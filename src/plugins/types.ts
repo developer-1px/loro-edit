@@ -9,6 +9,9 @@ export interface PluginContext {
   handleItemAdd: (containerId: string) => void;
   handleTextChange: (elementId: string, newText: string) => void;
   handleImageChange: (elementId: string, newSrc: string) => void;
+  handleDatabaseViewModeChange?: (databaseId: string, viewMode: "cards" | "table") => void;
+  handleDatabaseSettingsUpdate?: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
+  handleDatabaseFetch?: (databaseId: string) => Promise<void>;
 }
 
 export interface ElementMatch {

@@ -16,6 +16,7 @@ const processElement = (element: Element | null): ParsedElement | null => {
   const className = element.getAttribute("class") || "";
   const repeatContainer = element.getAttribute("data-repeat-container");
   const repeatItem = element.getAttribute("data-repeat-item");
+  const database = element.getAttribute("data-database");
   const id = Math.random().toString(36).substr(2, 9);
 
   if (tagName === "img") {
@@ -60,6 +61,25 @@ const processElement = (element: Element | null): ParsedElement | null => {
       return null;
     })
     .filter((child): child is ParsedElement => child !== null);
+
+  if (database) {
+    return {
+      type: "database",
+      tagName,
+      className,
+      database,
+      apiUrl: element.getAttribute("data-api-url") || undefined,
+      viewMode: (element.getAttribute("data-view-mode") as "cards" | "table") || "cards",
+      data: [],
+      columns: [
+        { id: 'id', name: 'ID', type: 'text' },
+        { id: 'name', name: 'Name', type: 'text' },
+        { id: 'email', name: 'Email', type: 'text' },
+        { id: 'phone', name: 'Phone', type: 'text' }
+      ],
+      id,
+    };
+  }
 
   if (repeatContainer) {
     const items = children.filter(

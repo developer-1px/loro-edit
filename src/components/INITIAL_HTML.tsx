@@ -134,6 +134,24 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
     </div>
   </section>
 
+  <!-- Database Integration Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Live Data Integration</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">Connect to any API and visualize your data in real-time with our powerful database integration features.</p>
+      </div>
+      
+      <div data-database="User Analytics" 
+           data-api-url="https://jsonplaceholder.typicode.com/users" 
+           data-view-mode="cards"
+           class="mb-12"
+           id="user-analytics-db">
+        <!-- Database content will be rendered here -->
+      </div>
+    </div>
+  </section>
+
   <!-- CTA Section -->
   <section class="py-20 bg-blue-600 text-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

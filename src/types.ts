@@ -33,11 +33,34 @@ export interface RepeatContainer extends BaseElement {
   id: string;
 }
 
+export interface DatabaseElement extends BaseElement {
+  type: "database";
+  database: string; // database name/identifier
+  apiUrl?: string;
+  viewMode: "cards" | "table";
+  data: DatabaseRecord[];
+  columns: DatabaseColumn[];
+  id: string;
+}
+
+export interface DatabaseRecord {
+  id: string;
+  [key: string]: any;
+}
+
+export interface DatabaseColumn {
+  id: string;
+  name: string;
+  type: "text" | "number" | "date" | "select" | "multiselect" | "checkbox";
+  options?: string[]; // for select/multiselect
+}
+
 export type ParsedElement =
   | TextElement
   | ImageElement
   | RegularElement
-  | RepeatContainer;
+  | RepeatContainer
+  | DatabaseElement;
 
 export interface SelectionState {
   mode: "block" | "text";

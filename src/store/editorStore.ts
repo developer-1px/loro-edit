@@ -23,6 +23,9 @@ export interface EditorState {
   handleRepeatItemPaste: (containerId: string) => void;
   handleTextChange: (textId: string, newText: string) => void;
   handleImageChange: (imageId: string, newSrc: string) => void;
+  handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => void;
+  handleDatabaseSettingsUpdate: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
+  handleDatabaseFetch: (databaseId: string) => Promise<void>;
 }
 
 const generateNewIds = (element: ParsedElement): ParsedElement => {
@@ -365,6 +368,131 @@ export const useEditorStore = create<EditorState>()(
             }
           };
         });
+      },
+
+      handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => {
+        set((state) => {
+          const updateElements = (elements: ParsedElement[]): ParsedElement[] => {
+            return elements.map((element) => {
+              if (element.type === "database" && element.id === databaseId) {
+                return { ...element, viewMode };
+              }
+              if ("children" in element && element.children) {
+                return { ...element, children: updateElements(element.children) };
+              }
+              if ("items" in element && element.items) {
+                return {
+                  ...element,
+                  items: updateElements(element.items) as RegularElement[],
+                };
+              }
+              return element;
+            });
+          };
+
+          return {
+            ...state,
+            parsedElements: updateElements(state.parsedElements),
+          };
+        });
+      },
+
+      handleDatabaseSettingsUpdate: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => {
+        set((state) => {
+          const updateElements = (elements: ParsedElement[]): ParsedElement[] => {
+            return elements.map((element) => {
+              if (element.type === "database" && element.id === databaseId) {
+                return { ...element, apiUrl, columns };
+              }
+              if ("children" in element && element.children) {
+                return { ...element, children: updateElements(element.children) };
+              }
+              if ("items" in element && element.items) {
+                return {
+                  ...element,
+                  items: updateElements(element.items) as RegularElement[],
+                };
+              }
+              return element;
+            });
+          };
+
+          return {
+            ...state,
+            parsedElements: updateElements(state.parsedElements),
+          };
+        });
+      },
+
+      handleDatabaseFetch: async (databaseId: string) => {
+        // Find the database element
+        const state = useEditorStore.getState();
+        const findDatabase = (elements: ParsedElement[]): import("../types").DatabaseElement | null => {
+          for (const element of elements) {
+            if (element.type === "database" && element.id === databaseId) {
+              return element as import("../types").DatabaseElement;
+            }
+            if ("children" in element && element.children) {
+              const found = findDatabase(element.children);
+              if (found) return found;
+            }
+            if ("items" in element && element.items) {
+              const found = findDatabase(element.items);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const database = findDatabase(state.parsedElements);
+        if (!database || !database.apiUrl) {
+          console.warn('Database not found or no API URL configured');
+          return;
+        }
+
+        try {
+          const response = await fetch(database.apiUrl);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          
+          // Transform data to match our format
+          const records = Array.isArray(data) ? data : data.data || [data];
+          const formattedRecords = records.map((record: any, index: number) => ({
+            id: record.id || `record_${index}`,
+            ...record
+          }));
+
+          // Update the database with fetched data
+          set((state) => {
+            const updateElements = (elements: ParsedElement[]): ParsedElement[] => {
+              return elements.map((element) => {
+                if (element.type === "database" && element.id === databaseId) {
+                  return { ...element, data: formattedRecords };
+                }
+                if ("children" in element && element.children) {
+                  return { ...element, children: updateElements(element.children) };
+                }
+                if ("items" in element && element.items) {
+                  return {
+                    ...element,
+                    items: updateElements(element.items) as RegularElement[],
+                  };
+                }
+                return element;
+              });
+            };
+
+            return {
+              ...state,
+              parsedElements: updateElements(state.parsedElements),
+            };
+          });
+        } catch (error) {
+          console.error('Failed to fetch database data:', error);
+          // You could also update the state to show an error message
+        }
       },
     }),
     {

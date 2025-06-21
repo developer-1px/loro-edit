@@ -57,18 +57,7 @@ export const useSelectionHandling = ({ selection, setSelection }: UseSelectionHa
   const handleDocumentClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
 
-    // 1. 반복 요소 클릭 확인 (최우선)
-    const repeatItemElement = target.closest<HTMLElement>('[data-repeat-item-id]');
-    if (repeatItemElement) {
-      const itemId = repeatItemElement.dataset.repeatItemId!;
-      const containerId = repeatItemElement.dataset.repeatContainerId!;
-      
-      // 반복 요소 선택
-      handleRepeatItemSelect(itemId, containerId);
-      return;
-    }
-
-    // 2. 텍스트 요소 클릭 확인
+    // 1. 텍스트 요소 클릭 확인 (최우선 - 텍스트 편집이 가장 중요)
     const textElement = target.closest<HTMLElement>('[data-text-element-id]');
     if (textElement) {
       const textElementId = textElement.dataset.textElementId!;
@@ -81,6 +70,17 @@ export const useSelectionHandling = ({ selection, setSelection }: UseSelectionHa
         handleTextSelect(textElementId);
         return;
       }
+    }
+
+    // 2. 반복 요소 클릭 확인 (텍스트가 아닌 영역)
+    const repeatItemElement = target.closest<HTMLElement>('[data-repeat-item-id]');
+    if (repeatItemElement) {
+      const itemId = repeatItemElement.dataset.repeatItemId!;
+      const containerId = repeatItemElement.dataset.repeatContainerId!;
+      
+      // 반복 요소 선택
+      handleRepeatItemSelect(itemId, containerId);
+      return;
     }
 
     // 3. 블록(요소) 클릭 확인

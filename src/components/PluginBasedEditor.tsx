@@ -30,6 +30,9 @@ export const PluginBasedEditor: React.FC = () => {
     handleItemAdd,
     handleTextChange,
     handleImageChange,
+    handleDatabaseViewModeChange,
+    handleDatabaseSettingsUpdate,
+    handleDatabaseFetch,
   } = useEditorStore();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +63,7 @@ export const PluginBasedEditor: React.FC = () => {
 
   const handleParseAndRender = (html: string) => {
     const elements = parseAndRenderHTML(html);
+    console.log('Parsed elements:', elements);
     setParsedElements(elements);
     // Reset history for new HTML
     if (clear) clear();
@@ -76,10 +80,18 @@ export const PluginBasedEditor: React.FC = () => {
     handleItemAdd,
     handleTextChange,
     handleImageChange,
+    handleDatabaseViewModeChange,
+    handleDatabaseSettingsUpdate,
+    handleDatabaseFetch,
   };
 
   // Plugin-based rendering
   const renderElement = (element: ParsedElement): React.ReactNode => {
+    // Debug log for database elements
+    if (element.type === 'database') {
+      console.log('Rendering database element:', element);
+    }
+
     // New selection logic: text is only editable in text mode for the selected text element
     const canEditText =
       selection.mode === "text" &&
