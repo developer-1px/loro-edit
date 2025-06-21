@@ -69,28 +69,20 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
       <div className="flex items-center gap-2">
         <div
           className={`px-3 py-1 rounded-full text-xs font-medium ${
-            selection.mode === 'container'
+            selection.mode === 'block'
               ? 'bg-blue-100 text-blue-700'
-              : selection.mode === 'repeat-item'
-              ? 'bg-purple-100 text-purple-700'
-              : 'bg-gray-100 text-gray-600'
+              : 'bg-green-100 text-green-700'
           }`}
           title={`Current mode: ${
-            selection.mode === 'container'
-              ? 'Container Mode'
-              : selection.mode === 'repeat-item'
-              ? 'Item Mode'
-              : 'Text Mode'
+            selection.mode === 'block'
+              ? 'Block Selection Mode'
+              : 'Text Edit Mode'
           }`}
         >
-          {selection.mode === 'container'
-            ? 'C'
-            : selection.mode === 'repeat-item'
-            ? 'I'
-            : 'T'}
+          {selection.mode === 'block' ? 'B' : 'T'}
         </div>
         
-        {(selection.selectedContainerId || selection.selectedRepeatItemId) && (
+        {(selection.selectedElementId || selection.selectedTextElementId) && (
           <button
             onClick={onClearSelection}
             className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200"

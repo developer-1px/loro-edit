@@ -1,24 +1,23 @@
 // src/components/PluginBasedEditor.tsx
 
-import React, { useEffect, useState } from 'react';
-import { useEditorStore } from '../store/editorStore';
-import { useEditorHotkeys } from '../hooks/useEditorHotkeys';
-import { useSelectionHandling } from '../hooks/useSelectionHandling';
-import { useResizeHandling } from '../hooks/useResizeHandling';
-import { INITIAL_HTML } from './INITIAL_HTML';
+import React, { useEffect, useState } from "react";
+import { useEditorStore } from "../store/editorStore";
+import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
+import { useSelectionHandling } from "../hooks/useSelectionHandling";
+import { useResizeHandling } from "../hooks/useResizeHandling";
+import { INITIAL_HTML } from "./INITIAL_HTML";
 
 // UI Components
-import { PreviewControls } from './ui/PreviewControls';
-import { PreviewPanel } from './ui/PreviewPanel';
-import { ResizeHandle } from './ui/ResizeHandle';
-import { HtmlEditorPanel } from './ui/HtmlEditorPanel';
+import { PreviewControls } from "./ui/PreviewControls";
+import { PreviewPanel } from "./ui/PreviewPanel";
+import { ResizeHandle } from "./ui/ResizeHandle";
+import { HtmlEditorPanel } from "./ui/HtmlEditorPanel";
 
 // Plugin system
-import { pluginManager } from '../plugins';
-import { parseAndRenderHTML } from '../utils/htmlParser';
-import { isElementInSelectedContainer } from '../utils/selectionUtils';
-import type { ParsedElement } from '../types';
-import type { PluginContext } from '../plugins/types';
+import { pluginManager } from "../plugins";
+import { parseAndRenderHTML } from "../utils/htmlParser";
+import type { ParsedElement } from "../types";
+import type { PluginContext } from "../plugins/types";
 
 export const PluginBasedEditor: React.FC = () => {
   const {
@@ -39,14 +38,16 @@ export const PluginBasedEditor: React.FC = () => {
   const { pastStates, futureStates } = temporalStore.getState();
 
   // UI State
-  const [previewMode, setPreviewMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  
+  const [previewMode, setPreviewMode] = useState<
+    "mobile" | "tablet" | "desktop"
+  >("desktop");
+
   // Custom hooks
   const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
-  const {
-    handleContainerDeselect,
-    handleDocumentClick,
-  } = useSelectionHandling({ selection, setSelection });
+  const { handleDeselect, handleDocumentClick } = useSelectionHandling({
+    selection,
+    setSelection,
+  });
 
   useEditorHotkeys();
 
@@ -78,22 +79,21 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Plugin-based rendering
   const renderElement = (element: ParsedElement): React.ReactNode => {
-    const isInContainer = isElementInSelectedContainer(element, selection, parsedElements);
-    const canEditText = (selection.mode === 'text' || selection.mode === 'repeat-item') 
-      ? isInContainer 
-      : false;
-    const showHoverEffects = Boolean(
-      selection.mode === 'container' && 
-      selection.selectedContainerId &&
-      isInContainer
-    );
+    // New selection logic: text is only editable in text mode for the selected text element
+    const canEditText =
+      selection.mode === "text" &&
+      element.type === "text" &&
+      selection.selectedTextElementId === element.id;
+
+    // Show hover effects when in block mode and element is selected
+    const showHoverEffects =
+      selection.mode === "block" && selection.selectedElementId === element.id;
 
     // Use plugin manager to render element
     return pluginManager.renderElement(
       element,
       {
         ...pluginContext,
-        isInSelectedContainer: isInContainer,
         canEditText,
         showHoverEffects,
       } as any, // Type assertion for extended context
@@ -113,7 +113,7 @@ export const PluginBasedEditor: React.FC = () => {
             previewMode={previewMode}
             onPreviewModeChange={setPreviewMode}
             selection={selection}
-            onClearSelection={handleContainerDeselect}
+            onClearSelection={handleDeselect}
             onUndo={undo}
             onRedo={redo}
             pastStates={pastStates?.length || 0}
@@ -129,9 +129,9 @@ export const PluginBasedEditor: React.FC = () => {
 
           <div className="mt-4 text-center">
             <div className="text-xs text-gray-500">
-              {previewMode === 'mobile' && '375px × 667px'}
-              {previewMode === 'tablet' && '768px × 1024px'}
-              {previewMode === 'desktop' && '100% width'}
+              {previewMode === "mobile" && "375px × 667px"}
+              {previewMode === "tablet" && "768px × 1024px"}
+              {previewMode === "desktop" && "100% width"}
             </div>
           </div>
         </div>

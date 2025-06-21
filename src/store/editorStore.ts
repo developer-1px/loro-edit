@@ -52,15 +52,13 @@ const generateNewIds = (element: ParsedElement): ParsedElement => {
 
 export const useEditorStore = create<EditorState>()(
   temporal(
-    (set, get) => ({
+    (set) => ({
       htmlInput: "",
       parsedElements: [],
       selection: {
-        mode: "container",
-        selectedContainerId: null,
-        selectedContainerType: null,
-        selectedRepeatItemId: null,
-        selectedRepeatContainerId: null,
+        mode: "block",
+        selectedElementId: null,
+        selectedTextElementId: null,
       },
       clipboard: null,
 
@@ -184,116 +182,22 @@ export const useEditorStore = create<EditorState>()(
         set((state) => ({
           parsedElements: updateElements(state.parsedElements),
         }));
-        get().setSelection({
-          selectedRepeatItemId: null,
-          selectedRepeatContainerId: null,
-        });
       },
 
       handleRepeatItemCopy: () => {
-        const { selection, parsedElements } = get();
-        if (
-          selection.mode !== "repeat-item" ||
-          !selection.selectedRepeatItemId ||
-          !selection.selectedRepeatContainerId
-        )
-          return;
-
-        let itemToCopy: RegularElement | null = null;
-
-        function findItem(elements: ParsedElement[]): RegularElement | null {
-          for (const element of elements) {
-            if (
-              element.type === "repeat-container" &&
-              element.id === selection.selectedRepeatContainerId
-            ) {
-              const found = element.items.find(
-                (item) => item.id === selection.selectedRepeatItemId
-              );
-              if (found) return found;
-            }
-            if ("children" in element && element.children) {
-              const found = findItem(element.children);
-              if (found) return found;
-            }
-            if ("items" in element && element.items) {
-              const found = findItem(element.items);
-              if (found) return found;
-            }
-          }
-          return null;
-        }
-
-        itemToCopy = findItem(parsedElements);
-
-        if (itemToCopy) {
-          set({
-            clipboard: {
-              type: "repeat-item",
-              data: JSON.parse(JSON.stringify(itemToCopy)),
-              sourceContainerId: selection.selectedRepeatContainerId!,
-            },
-          });
-        }
+        // Simplified for new selection logic - not implemented yet
+        return;
       },
 
       handleRepeatItemCut: () => {
-        get().handleRepeatItemCopy();
-        const { selection } = get();
-        if (
-          selection.mode !== "repeat-item" ||
-          !selection.selectedRepeatItemId ||
-          !selection.selectedRepeatContainerId
-        )
-          return;
-        get().handleItemDelete(
-          selection.selectedRepeatContainerId,
-          selection.selectedRepeatItemId
-        );
+        // Simplified for new selection logic - not implemented yet
+        return;
       },
 
       handleRepeatItemPaste: (containerId: string) => {
-        const { clipboard, selection } = get();
-        if (!clipboard || clipboard.type !== "repeat-item") return;
-
-        const pastedItem = generateNewIds(
-          JSON.parse(JSON.stringify(clipboard.data))
-        ) as RegularElement;
-
-        const updateElements = (elements: ParsedElement[]): ParsedElement[] => {
-          return elements.map((element) => {
-            if (
-              element.type === "repeat-container" &&
-              element.id === containerId
-            ) {
-              const items = element.items;
-              const selectedIndex = selection.selectedRepeatItemId
-                ? items.findIndex(
-                    (item) => item.id === selection.selectedRepeatItemId
-                  )
-                : -1;
-              const insertIndex =
-                selectedIndex >= 0 ? selectedIndex + 1 : items.length;
-              const newItems = [...items];
-              newItems.splice(insertIndex, 0, pastedItem);
-              return { ...element, items: newItems };
-            }
-            if ("children" in element && element.children) {
-              return { ...element, children: updateElements(element.children) };
-            }
-            if ("items" in element && element.items) {
-              return {
-                ...element,
-                items: updateElements(element.items) as RegularElement[],
-              };
-            }
-            return element;
-          });
-        };
-
-        set((state) => ({
-          parsedElements: updateElements(state.parsedElements),
-        }));
+        // Simplified for new selection logic - not implemented yet
+        console.log('Paste to container:', containerId);
+        return;
       },
     }),
     {

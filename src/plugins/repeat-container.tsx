@@ -1,9 +1,9 @@
 // src/plugins/repeat-container.tsx
 
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
-import type { Plugin } from './types';
-import type { RepeatContainer, RegularElement } from '../types';
+import React, { useState } from "react";
+import { Plus } from "lucide-react";
+import type { Plugin } from "./types";
+import type { RepeatContainer, RegularElement } from "../types";
 
 interface RepeatableItemProps {
   item: RegularElement;
@@ -187,30 +187,30 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
 };
 
 export const repeatContainerPlugin: Plugin = {
-  name: 'repeat-container',
-  version: '1.0.0',
-  description: 'Handles repeatable container elements with item management',
-  
+  name: "repeat-container",
+  version: "1.0.0",
+  description: "Handles repeatable container elements with item management",
+
   match: {
-    condition: (element) => element.type === 'repeat-container',
-    priority: 80
+    condition: (element) => element.type === "repeat-container",
+    priority: 80,
   },
 
   parse: (element: Element) => {
-    const repeatAttribute = element.getAttribute('data-repeat-container');
+    const repeatAttribute = element.getAttribute("data-repeat-container");
     if (repeatAttribute) {
       // Parse repeat container items
       const items: RegularElement[] = [];
       // This would need proper implementation based on your HTML structure
-      
+
       return {
-        type: 'repeat-container' as const,
+        type: "repeat-container" as const,
         id: element.id || crypto.randomUUID(),
-        className: element.className || '',
+        className: element.className || "",
         tagName: element.tagName.toLowerCase(),
         repeatContainer: repeatAttribute,
         items: items,
-        children: [] // Would be parsed from child elements
+        children: [], // Would be parsed from child elements
       };
     }
     return null;
@@ -218,11 +218,8 @@ export const repeatContainerPlugin: Plugin = {
 
   render: ({ element, context, renderElement, showHoverEffects }) => {
     const repeatElement = element as RepeatContainer;
-    const isSelected = context.selection.selectedContainerId === element.id;
-    const selectedItemId =
-      context.selection.selectedRepeatContainerId === element.id
-        ? context.selection.selectedRepeatItemId
-        : null;
+    const isSelected = context.selection.selectedElementId === element.id;
+    const selectedItemId: string | null = null; // Simplified for new selection logic
 
     const repeatContainer = (
       <RepeatableContainer
@@ -243,10 +240,10 @@ export const repeatContainerPlugin: Plugin = {
         key={`selectable-${repeatElement.id}`}
         element={repeatElement}
         isSelected={isSelected}
-        isInContainerMode={context.selection.mode === "container"}
+        isInContainerMode={context.selection.mode === "block"}
       >
         {repeatContainer}
       </SelectableContainer>
     );
-  }
+  },
 };

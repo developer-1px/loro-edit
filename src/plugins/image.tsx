@@ -1,8 +1,8 @@
 // src/plugins/image.tsx
 
-import React, { useState } from 'react';
-import type { Plugin } from './types';
-import type { ImageElement } from '../types';
+import React, { useState } from "react";
+import type { Plugin } from "./types";
+import type { ImageElement } from "../types";
 
 interface EditableImageProps {
   src?: string;
@@ -122,26 +122,32 @@ const EditableImage: React.FC<EditableImageProps> = ({
 };
 
 export const imagePlugin: Plugin = {
-  name: 'image',
-  version: '1.0.0',
-  description: 'Handles image elements with drag & drop upload capabilities',
-  
+  name: "image",
+  version: "1.0.0",
+  description: "Handles image elements with drag & drop upload capabilities",
+
   match: {
-    condition: (element) => element.type === 'img' || element.type === 'picture',
-    priority: 90
+    condition: (element) =>
+      element.type === "img" || element.type === "picture",
+    priority: 90,
   },
 
   parse: (element: Element) => {
-    if (element.tagName === 'IMG' || element.tagName === 'PICTURE') {
-      const img = element.tagName === 'IMG' ? element as HTMLImageElement : element.querySelector('img');
+    if (element.tagName === "IMG" || element.tagName === "PICTURE") {
+      const img =
+        element.tagName === "IMG"
+          ? (element as HTMLImageElement)
+          : element.querySelector("img");
       return {
-        type: (element.tagName.toLowerCase() === 'picture' ? 'picture' : 'img') as 'img' | 'picture',
+        type: (element.tagName.toLowerCase() === "picture"
+          ? "picture"
+          : "img") as "img" | "picture",
         id: element.id || crypto.randomUUID(),
-        className: element.className || '',
+        className: element.className || "",
         tagName: element.tagName.toLowerCase(),
-        src: img?.src || '',
-        alt: img?.alt || '',
-        repeatItem: element.getAttribute('data-repeat-item') || undefined
+        src: img?.src || "",
+        alt: img?.alt || "",
+        repeatItem: element.getAttribute("data-repeat-item") || undefined,
       };
     }
     return null;
@@ -149,7 +155,7 @@ export const imagePlugin: Plugin = {
 
   render: ({ element, context }) => {
     const imageElement = element as ImageElement;
-    
+
     return (
       <EditableImage
         key={imageElement.id}
@@ -157,8 +163,10 @@ export const imagePlugin: Plugin = {
         src={imageElement.src}
         alt={imageElement.alt}
         className={imageElement.className}
-        onImageChange={(newSrc) => context.handleImageChange(imageElement.id, newSrc)}
+        onImageChange={(newSrc) =>
+          context.handleImageChange(imageElement.id, newSrc)
+        }
       />
     );
-  }
+  },
 };

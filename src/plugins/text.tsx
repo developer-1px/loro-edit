@@ -11,6 +11,7 @@ interface EditableTextProps {
   elementId: string;
   isEditable?: boolean;
   showHoverEffects?: boolean;
+  isTextMode?: boolean; // 텍스트 모드인지 여부
 }
 
 const EditableText: React.FC<EditableTextProps> = ({
@@ -20,6 +21,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   elementId,
   isEditable = true,
   showHoverEffects = false,
+  isTextMode = false,
 }) => {
   const [currentText, setCurrentText] = useState(text);
   const textRef = useRef<HTMLSpanElement>(null);
@@ -39,7 +41,7 @@ const EditableText: React.FC<EditableTextProps> = ({
     }
   }, [text]);
 
-  // Initialize as editable on mount
+  // Initialize contentEditable based on isEditable
   useEffect(() => {
     if (textRef.current) {
       textRef.current.contentEditable = isEditable ? "plaintext-only" : "false";
@@ -85,14 +87,33 @@ const EditableText: React.FC<EditableTextProps> = ({
     // Remove Enter key handler - let it work as normal line break
   }, []);
 
+  // Handle mousedown to enable contentEditable and focus without losing cursor position
+  const handleMouseDown = useCallback((_e: React.MouseEvent) => {
+    if (textRef.current && isTextMode) {
+      // If not already editable, make it editable and focus
+      if (textRef.current.contentEditable !== "plaintext-only") {
+        textRef.current.contentEditable = "plaintext-only";
+        // Don't preventDefault to preserve natural cursor positioning
+        setTimeout(() => {
+          if (textRef.current) {
+            textRef.current.focus();
+          }
+        }, 0);
+      }
+    }
+  }, [isTextMode]);
+
   const getTextStyles = () => {
     const baseStyles = `${className} rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`;
 
+    // 텍스트 모드에서는 편집 가능하지 않아도 cursor-text 적용
+    const cursorStyle = (isTextMode || isEditable) ? 'cursor-text' : 'cursor-default';
+    
     if (!isEditable) {
-      return `${baseStyles} cursor-default`;
+      return `${baseStyles} ${cursorStyle}`;
     }
 
-    let editableStyles = `${baseStyles} cursor-text focus:outline-none focus:ring-1 focus:ring-blue-400`;
+    let editableStyles = `${baseStyles} ${cursorStyle} focus:outline-none focus:ring-1 focus:ring-blue-400`;
 
     if (showHoverEffects) {
       editableStyles += ` underline hover:bg-blue-50 hover:text-blue-700`;
@@ -127,8 +148,9 @@ const EditableText: React.FC<EditableTextProps> = ({
       onFocus={isEditable ? handleFocus : undefined}
       onBlur={isEditable ? handleBlur : undefined}
       onKeyDown={isEditable ? handleKeyDown : undefined}
+      onMouseDown={handleMouseDown}
       className={getTextStyles()}
-      data-element-id={elementId}
+      data-text-element-id={elementId}
     >
       {renderTextWithLineBreaks(currentText)}
     </span>
@@ -167,6 +189,7 @@ export const textPlugin: Plugin = {
         onTextChange={(newText) => context.handleTextChange(textElement.id, newText)}
         isEditable={canEditText}
         showHoverEffects={showHoverEffects}
+        isTextMode={context.selection.mode === 'text'}
       />
     );
   }

@@ -40,11 +40,9 @@ export type ParsedElement =
   | RepeatContainer;
 
 export interface SelectionState {
-  mode: "container" | "text" | "repeat-item";
-  selectedContainerId: string | null;
-  selectedContainerType: "repeat-container" | "regular" | null;
-  selectedRepeatItemId: string | null;
-  selectedRepeatContainerId: string | null;
+  mode: "block" | "text";
+  selectedElementId: string | null;
+  selectedTextElementId: string | null; // text 모드일 때 편집 중인 텍스트 요소
 }
 
 export interface ClipboardItem {

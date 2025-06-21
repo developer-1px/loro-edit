@@ -1,7 +1,7 @@
 // src/plugins/PluginManager.ts
 
 import type { Plugin, PluginManager as IPluginManager, PluginContext, PluginRenderProps } from './types';
-import type { ParsedElement, SelectionState } from '../types';
+import type { ParsedElement } from '../types';
 import React from 'react';
 
 class PluginManager implements IPluginManager {
@@ -83,50 +83,23 @@ class PluginManager implements IPluginManager {
       return null;
     }
 
-    // Calculate render props
-    const isInSelectedContainer = this.isElementInSelectedContainer(element, context.selection);
-    const canEditText = (context.selection.mode === "text" || context.selection.mode === "repeat-item") 
-      ? isInSelectedContainer 
-      : false;
-    const showHoverEffects = Boolean(
-      context.selection.mode === "container" && 
-      context.selection.selectedContainerId &&
-      isInSelectedContainer
-    );
+    // Calculate render props using simple selection logic
+    const canEditText = context.selection.mode === "text" && 
+                       element.type === "text" && 
+                       context.selection.selectedTextElementId === element.id;
+    const showHoverEffects = context.selection.mode === "block" && 
+                            context.selection.selectedElementId === element.id;
 
     const renderProps: PluginRenderProps = {
       element,
       context,
       renderElement,
-      isInSelectedContainer,
+      isInSelectedContainer: false, // Not used in new selection logic
       canEditText,
       showHoverEffects
     };
 
     return plugin.render(renderProps);
-  }
-
-  private isElementInSelectedContainer(_element: ParsedElement, selection: SelectionState): boolean {
-    // For now, we'll use a simplified approach
-    // In a complete implementation, this would need access to the full element tree
-    // This method should be enhanced to properly traverse the element hierarchy
-    
-    // Basic logic for determining if element is in selected container
-    if (selection.mode === 'container' && selection.selectedContainerId) {
-      // For now, assume all elements are potentially in the selected container
-      // This should be improved with proper tree traversal
-      return true;
-    }
-    
-    if (selection.mode === 'text' && selection.selectedContainerId) {
-      return true;
-    }
-    
-    if (selection.mode === 'repeat-item' && selection.selectedRepeatItemId) {
-      return true;
-    }
-    
-    return false;
   }
 }
 

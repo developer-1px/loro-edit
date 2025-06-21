@@ -1,8 +1,8 @@
 // src/plugins/section.tsx
 
-import React, { useState } from 'react';
-import type { Plugin } from './types';
-import type { RegularElement } from '../types';
+import React, { useState } from "react";
+import type { Plugin } from "./types";
+import type { RegularElement } from "../types";
 
 interface SelectableContainerProps {
   element: any;
@@ -50,8 +50,7 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
   return (
     <div
       className={getContainerStyles()}
-      data-container-id={element.id}
-      data-container-type="regular"
+      data-block-element-id={element.id}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -64,7 +63,7 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
         </div>
       )}
 
-      {/* Hover indicator in container mode */}
+      {/* Hover indicator in block mode */}
       {isInContainerMode && isHovered && !isSelected && (
         <div className="absolute -top-2 -left-2 bg-gray-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
           Click to select: {getElementName()}
@@ -75,30 +74,33 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
 };
 
 export const sectionPlugin: Plugin = {
-  name: 'section',
-  version: '1.0.0',
-  description: 'Handles semantic section elements (section, header, footer, nav)',
-  
+  name: "section",
+  version: "1.0.0",
+  description:
+    "Handles semantic section elements (section, header, footer, nav)",
+
   match: {
     condition: (element) => {
-      return element.type === 'element' && 
-        'tagName' in element &&
-        typeof element.tagName === 'string' &&
-        ['section', 'header', 'footer', 'nav'].includes(element.tagName);
+      return (
+        element.type === "element" &&
+        "tagName" in element &&
+        typeof element.tagName === "string" &&
+        ["section", "header", "footer", "nav"].includes(element.tagName)
+      );
     },
-    priority: 70
+    priority: 70,
   },
 
   parse: (element: Element) => {
     const tagName = element.tagName.toLowerCase();
-    if (['section', 'header', 'footer', 'nav'].includes(tagName)) {
+    if (["section", "header", "footer", "nav"].includes(tagName)) {
       return {
-        type: 'element' as const,
+        type: "element" as const,
         id: element.id || crypto.randomUUID(),
-        className: element.className || '',
+        className: element.className || "",
         tagName: tagName,
         children: [], // Would be parsed from child elements
-        repeatItem: element.getAttribute('data-repeat-item') || undefined
+        repeatItem: element.getAttribute("data-repeat-item") || undefined,
       };
     }
     return null;
@@ -107,8 +109,8 @@ export const sectionPlugin: Plugin = {
   render: ({ element, context, renderElement }) => {
     const sectionElement = element as RegularElement;
     const Tag = sectionElement.tagName as keyof React.JSX.IntrinsicElements;
-    const isSelected = context.selection.selectedContainerId === element.id;
-    
+    const isSelected = context.selection.selectedElementId === element.id;
+
     const regularElement = React.createElement(
       Tag,
       { key: sectionElement.id, className: sectionElement.className },
@@ -120,10 +122,10 @@ export const sectionPlugin: Plugin = {
         key={`selectable-${sectionElement.id}`}
         element={sectionElement}
         isSelected={isSelected}
-        isInContainerMode={context.selection.mode === "container"}
+        isInContainerMode={context.selection.mode === "block"}
       >
         {regularElement}
       </SelectableContainer>
     );
-  }
+  },
 };
