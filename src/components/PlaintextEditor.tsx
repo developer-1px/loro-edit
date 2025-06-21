@@ -5,6 +5,7 @@ interface EditableTextProps {
   onTextChange: (newText: string) => void;
   className?: string;
   elementId: string;
+  isEditable?: boolean;
 }
 
 interface EditableImageProps {
@@ -15,7 +16,34 @@ interface EditableImageProps {
   elementId: string;
 }
 
-const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, className, elementId }) => {
+interface RepeatableContainerProps {
+  containerId: string;
+  containerName: string;
+  className?: string;
+  items: any[];
+  selectedItemId: string | null;
+  onItemAdd: (containerId: string) => void;
+  onItemSelect: (containerId: string, itemId: string) => void;
+  renderItem: (item: any) => React.ReactNode;
+}
+
+interface RepeatableItemProps {
+  item: any;
+  containerId: string;
+  onSelect: (containerId: string, itemId: string) => void;
+  isSelected: boolean;
+  children: React.ReactNode;
+}
+
+interface SelectableContainerProps {
+  element: any;
+  isSelected: boolean;
+  isInContainerMode: boolean;
+  onSelect: (containerId: string, containerType: 'repeat-container' | 'regular') => void;
+  children: React.ReactNode;
+}
+
+const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, className, elementId, isEditable = true }) => {
   const [currentText, setCurrentText] = useState(text);
   const textRef = useRef<HTMLSpanElement>(null);
   const originalTextRef = useRef<string>(text);
@@ -27,7 +55,9 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
       setCurrentText(text);
       originalTextRef.current = text;
       if (textRef.current) {
-        textRef.current.textContent = text;
+        // Convert <br/> tags to line breaks for editing
+        const editableText = text.replace(/<br\s*\/?>/gi, '\n');
+        textRef.current.textContent = editableText;
       }
     }
   }, [text]);
@@ -35,20 +65,32 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   // Initialize as editable on mount
   useEffect(() => {
     if (textRef.current) {
-      textRef.current.contentEditable = 'plaintext-only';
+      textRef.current.contentEditable = isEditable ? 'plaintext-only' : 'false';
     }
-  }, []);
+  }, [isEditable]);
+
+  // Handle focus to convert <br/> tags to line breaks for editing
+  const handleFocus = useCallback(() => {
+    if (textRef.current && isEditable) {
+      // Convert <br/> tags to line breaks for editing
+      const editableText = currentText.replace(/<br\s*\/?>/gi, '\n');
+      textRef.current.textContent = editableText;
+    }
+  }, [currentText, isEditable]);
 
   const handleBlur = useCallback(() => {
     if (textRef.current && !isCommittingRef.current) {
       isCommittingRef.current = true;
       
-      const newText = textRef.current.textContent || '';
-      setCurrentText(newText);
+      const rawText = textRef.current.textContent || '';
+      // Convert line breaks to <br/> tags
+      const htmlText = rawText.replace(/\n/g, '<br/>');
+      setCurrentText(htmlText);
       
       // Only trigger change if text actually changed
-      if (newText !== originalTextRef.current) {
-        onTextChange(newText);
+      const originalHtml = originalTextRef.current.replace(/\n/g, '<br/>');
+      if (htmlText !== originalHtml) {
+        onTextChange(htmlText);
       }
       
       // Reset commit flag after a short delay
@@ -59,30 +101,53 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   }, [onTextChange]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+    if (e.key === 'Escape') {
+      // ESC now saves and blurs instead of canceling
       textRef.current?.blur();
-    } else if (e.key === 'Escape') {
-      if (textRef.current) {
-        // Restore original text
-        textRef.current.textContent = originalTextRef.current;
-        setCurrentText(originalTextRef.current);
-        textRef.current.blur();
-      }
     }
+    // Remove Enter key handler - let it work as normal line break
   }, []);
+
+  const getTextStyles = () => {
+    const baseStyles = `${className} rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`;
+    
+    if (!isEditable) {
+      return `${baseStyles} cursor-default`;
+    }
+    
+    return `${baseStyles} focus:outline-none focus:ring-1 focus:ring-blue-400`;
+  };
+
+  // Helper function to render text with line breaks
+  const renderTextWithLineBreaks = (text: string) => {
+    if (!text || text === '\u00A0') return '\u00A0';
+    
+    // Split by <br/> tags and render with line breaks
+    const parts = text.split(/<br\s*\/?>/gi);
+    if (parts.length === 1) {
+      return text;
+    }
+    
+    return parts.map((part, index) => (
+      <React.Fragment key={index}>
+        {part}
+        {index < parts.length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
 
   return (
     <span
       ref={textRef}
-      contentEditable="plaintext-only"
+      contentEditable={isEditable ? "plaintext-only" : "false"}
       suppressContentEditableWarning={true}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      className={`${className} focus:outline-none focus:ring-1 focus:ring-blue-400 focus:bg-blue-50 rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`}
+      onFocus={isEditable ? handleFocus : undefined}
+      onBlur={isEditable ? handleBlur : undefined}
+      onKeyDown={isEditable ? handleKeyDown : undefined}
+      className={getTextStyles()}
       data-element-id={elementId}
     >
-      {currentText || '\u00A0'}
+      {renderTextWithLineBreaks(currentText)}
     </span>
   );
 };
@@ -184,7 +249,159 @@ const EditableImage: React.FC<EditableImageProps> = ({ src, alt, onImageChange, 
   );
 };
 
+const RepeatableItem: React.FC<RepeatableItemProps> = ({ 
+  item,
+  containerId,
+  onSelect,
+  isSelected,
+  children 
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(containerId, item.id);
+  };
+
+  const getItemStyles = () => {
+    const baseStyles = "relative group cursor-pointer transition-all duration-200";
+    
+    if (isSelected) {
+      return `${baseStyles} ring-2 ring-purple-500 bg-purple-50 bg-opacity-50`;
+    }
+    
+    return `${baseStyles} hover:ring-1 hover:ring-purple-300`;
+  };
+
+  return (
+    <div 
+      className={getItemStyles()}
+      onClick={handleClick}
+    >
+      {children}
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute -top-2 -left-2 bg-purple-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-20">
+          Selected Item
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
+  containerId,
+  containerName,
+  className,
+  items,
+  selectedItemId,
+  onItemAdd,
+  onItemSelect,
+  renderItem
+}) => {
+  const [showAddButton, setShowAddButton] = useState(false);
+
+  return (
+    <div 
+      className="relative"
+      onMouseEnter={() => setShowAddButton(true)}
+      onMouseLeave={() => setShowAddButton(false)}
+    >
+      <div className={className}>
+        {items.map((item) => (
+          <RepeatableItem
+            key={item.id}
+            item={item}
+            containerId={containerId}
+            onSelect={onItemSelect}
+            isSelected={selectedItemId === item.id}
+          >
+            {renderItem(item)}
+          </RepeatableItem>
+        ))}
+      </div>
+      
+      {showAddButton && (
+        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+          <button
+            onClick={() => onItemAdd(containerId)}
+            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 shadow-lg"
+            title={`Add new ${containerName}`}
+          >
+            + Add {containerName}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SelectableContainer: React.FC<SelectableContainerProps> = ({
+  element,
+  isSelected,
+  isInContainerMode,
+  onSelect,
+  children
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const handleClick = (e: React.MouseEvent) => {
+    if (isInContainerMode) {
+      e.stopPropagation();
+      const containerType = element.type === 'repeat-container' ? 'repeat-container' : 'regular';
+      onSelect(element.id, containerType);
+    }
+  };
+
+  const getContainerStyles = () => {
+    const baseStyles = "relative transition-all duration-200";
+    
+    if (isSelected) {
+      return `${baseStyles} ring-2 ring-blue-500 bg-blue-50 bg-opacity-50`;
+    }
+    
+    if (isInContainerMode && isHovered) {
+      return `${baseStyles} ring-1 ring-blue-300 bg-blue-50 bg-opacity-30 cursor-pointer`;
+    }
+    
+    return baseStyles;
+  };
+
+  return (
+    <div
+      className={getContainerStyles()}
+      data-container-id={element.id}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute -top-2 -left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
+          Selected: {element.type === 'repeat-container' ? element.repeatContainer : element.tagName}
+        </div>
+      )}
+      
+      {/* Hover indicator in container mode */}
+      {isInContainerMode && isHovered && !isSelected && (
+        <div className="absolute -top-2 -left-2 bg-gray-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
+          Click to select: {element.type === 'repeat-container' ? element.repeatContainer : element.tagName}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface PlaintextEditorProps {}
+
+interface SelectionState {
+  mode: 'container' | 'text' | 'repeat-item';
+  selectedContainerId: string | null;
+  selectedContainerType: 'repeat-container' | 'regular' | null;
+  selectedRepeatItemId: string | null;
+  selectedRepeatContainerId: string | null;
+}
 
 export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
   const [htmlInput, setHtmlInput] = useState(`<div class="min-h-screen bg-gray-50">
@@ -271,8 +488,8 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
         </div>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="text-center p-6">
+      <div class="grid md:grid-cols-3 gap-8" data-repeat-container="features">
+        <div class="text-center p-6" data-repeat-item="feature-1">
           <picture class="w-16 h-16 mx-auto mb-4 block">
             <img src="" alt="Speed Icon" class="w-full h-full rounded-lg">
           </picture>
@@ -280,7 +497,7 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           <p class="text-gray-600">Process data at incredible speeds with our optimized AI algorithms and cloud infrastructure.</p>
         </div>
         
-        <div class="text-center p-6">
+        <div class="text-center p-6" data-repeat-item="feature-2">
           <picture class="w-16 h-16 mx-auto mb-4 block">
             <img src="" alt="Security Icon" class="w-full h-full rounded-lg">
           </picture>
@@ -288,7 +505,7 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           <p class="text-gray-600">Bank-level security with end-to-end encryption and compliance with global standards.</p>
         </div>
         
-        <div class="text-center p-6">
+        <div class="text-center p-6" data-repeat-item="feature-3">
           <picture class="w-16 h-16 mx-auto mb-4 block">
             <img src="" alt="Analytics Icon" class="w-full h-full rounded-lg">
           </picture>
@@ -302,20 +519,20 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
   <!-- Stats Section -->
   <section class="py-16 bg-gray-900 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" data-repeat-container="stats">
+        <div data-repeat-item="stat-1">
           <div class="text-3xl md:text-4xl font-bold text-blue-400 mb-2">10M+</div>
           <div class="text-gray-300">Users Worldwide</div>
         </div>
-        <div>
+        <div data-repeat-item="stat-2">
           <div class="text-3xl md:text-4xl font-bold text-green-400 mb-2">99.9%</div>
           <div class="text-gray-300">Uptime Guarantee</div>
         </div>
-        <div>
+        <div data-repeat-item="stat-3">
           <div class="text-3xl md:text-4xl font-bold text-purple-400 mb-2">150+</div>
           <div class="text-gray-300">Countries Served</div>
         </div>
-        <div>
+        <div data-repeat-item="stat-4">
           <div class="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">24/7</div>
           <div class="text-gray-300">Customer Support</div>
         </div>
@@ -380,6 +597,14 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
   const [imageStates, setImageStates] = useState<{[key: string]: string}>({});
   const [history, setHistory] = useState<Array<{[key: string]: string}>>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [selectionState, setSelectionState] = useState<SelectionState>({
+    mode: 'container',
+    selectedContainerId: null,
+    selectedContainerType: null,
+    selectedRepeatItemId: null,
+    selectedRepeatContainerId: null
+  });
+  const [clipboard, setClipboard] = useState<any>(null);
 
   useEffect(() => {
     parseAndRenderHTML(htmlInput);
@@ -425,6 +650,8 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
 
     const tagName = element.tagName.toLowerCase();
     const className = element.getAttribute('class') || '';
+    const repeatContainer = element.getAttribute('data-repeat-container');
+    const repeatItem = element.getAttribute('data-repeat-item');
 
     // Handle img tags specially
     if (tagName === 'img') {
@@ -434,7 +661,8 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
         className,
         src: element.getAttribute('src') || '',
         alt: element.getAttribute('alt') || '',
-        id: Math.random().toString(36).substr(2, 9)
+        id: Math.random().toString(36).substr(2, 9),
+        repeatItem
       };
     }
 
@@ -448,10 +676,61 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
         className,
         src: imgElement?.getAttribute('src') || '',
         alt: imgElement?.getAttribute('alt') || '',
+        id: Math.random().toString(36).substr(2, 9),
+        repeatItem
+      };
+    }
+
+    // Handle repeat containers
+    if (repeatContainer) {
+      const items: any[] = [];
+      const children: any[] = [];
+
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const child = element.childNodes[i];
+        
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const childElement = child as Element;
+          const childRepeatItem = childElement.getAttribute('data-repeat-item');
+          
+          if (childRepeatItem) {
+            // This is a repeat item
+            const processedItem = processElement(childElement);
+            if (processedItem) {
+              processedItem.repeatItemId = childRepeatItem;
+              items.push(processedItem);
+            }
+          } else {
+            // Regular child element
+            const processedChild = processElement(childElement);
+            if (processedChild) {
+              children.push(processedChild);
+            }
+          }
+        } else if (child.nodeType === Node.TEXT_NODE) {
+          const text = child.textContent?.trim();
+          if (text) {
+            children.push({
+              type: 'text',
+              content: text,
+              id: Math.random().toString(36).substr(2, 9)
+            });
+          }
+        }
+      }
+
+      return {
+        type: 'repeat-container',
+        tagName,
+        className,
+        repeatContainer,
+        items,
+        children,
         id: Math.random().toString(36).substr(2, 9)
       };
     }
 
+    // Regular element processing
     const children: any[] = [];
 
     for (let i = 0; i < element.childNodes.length; i++) {
@@ -479,7 +758,8 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
       tagName,
       className,
       children,
-      id: Math.random().toString(36).substr(2, 9)
+      id: Math.random().toString(36).substr(2, 9),
+      repeatItem
     };
   };
 
@@ -529,7 +809,389 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
     setParsedElements(prev => prev.map(updateElementImage));
   };
 
+  const handleItemAdd = (containerId: string) => {
+    // Find the container in parsed elements to get template
+    const findContainer = (element: any): any => {
+      if (element.type === 'repeat-container' && element.id === containerId) {
+        return element;
+      }
+      if (element.children) {
+        for (const child of element.children) {
+          const found = findContainer(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const container = parsedElements.map(findContainer).find(Boolean);
+    if (!container || container.items.length === 0) return;
+
+    // Clone the first item as template
+    const template = container.items[0];
+    const newItem = JSON.parse(JSON.stringify(template));
+    
+    // Generate new IDs for all elements in the cloned item
+    const generateNewIds = (element: any): any => {
+      const newElement = { ...element };
+      newElement.id = Math.random().toString(36).substr(2, 9);
+      newElement.repeatItemId = `${container.repeatContainer}-${Date.now()}`;
+      
+      if (newElement.children) {
+        newElement.children = newElement.children.map(generateNewIds);
+      }
+      return newElement;
+    };
+
+    const clonedItem = generateNewIds(newItem);
+
+    // Update parsed elements
+    const updateElementsWithNewItem = (element: any): any => {
+      if (element.type === 'repeat-container' && element.id === containerId) {
+        return {
+          ...element,
+          items: [...element.items, clonedItem]
+        };
+      }
+      if (element.children) {
+        return {
+          ...element,
+          children: element.children.map(updateElementsWithNewItem)
+        };
+      }
+      return element;
+    };
+
+    setParsedElements(prev => prev.map(updateElementsWithNewItem));
+  };
+
+  const handleItemDelete = (containerId: string, itemId: string) => {
+    const updateElementsWithDeletedItem = (element: any): any => {
+      if (element.type === 'repeat-container' && element.id === containerId) {
+        return {
+          ...element,
+          items: element.items.filter((item: any) => item.id !== itemId)
+        };
+      }
+      if (element.children) {
+        return {
+          ...element,
+          children: element.children.map(updateElementsWithDeletedItem)
+        };
+      }
+      return element;
+    };
+
+    setParsedElements(prev => prev.map(updateElementsWithDeletedItem));
+  };
+
+
+  const handleRepeatItemCopy = (containerId: string, itemId: string) => {
+    // Find the item to copy
+    const findItem = (element: any): any => {
+      if (element.type === 'repeat-container' && element.id === containerId) {
+        return element.items.find((item: any) => item.id === itemId);
+      }
+      if (element.children) {
+        for (const child of element.children) {
+          const found = findItem(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const itemToCopy = parsedElements.map(findItem).find(Boolean);
+    if (itemToCopy) {
+      setClipboard({
+        type: 'repeat-item',
+        data: JSON.parse(JSON.stringify(itemToCopy)),
+        sourceContainerId: containerId
+      });
+    }
+  };
+
+  const handleRepeatItemCut = (containerId: string, itemId: string) => {
+    handleRepeatItemCopy(containerId, itemId);
+    handleItemDelete(containerId, itemId);
+  };
+
+  const handleRepeatItemPaste = (containerId: string, targetIndex?: number) => {
+    if (!clipboard || clipboard.type !== 'repeat-item') return;
+
+    const clonedItem = JSON.parse(JSON.stringify(clipboard.data));
+    
+    // Generate new IDs for the pasted item
+    const generateNewIds = (element: any): any => {
+      const newElement = { ...element };
+      newElement.id = Math.random().toString(36).substr(2, 9);
+      if (newElement.repeatItemId) {
+        newElement.repeatItemId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      }
+      
+      if (newElement.children) {
+        newElement.children = newElement.children.map(generateNewIds);
+      }
+      return newElement;
+    };
+
+    const pastedItem = generateNewIds(clonedItem);
+
+    // Determine insertion index
+    let insertIndex = targetIndex;
+    
+    // If no target index provided, check if there's a selected item
+    if (insertIndex === undefined && selectionState.selectedRepeatItemId && selectionState.selectedRepeatContainerId === containerId) {
+      // Find the index of the selected item and insert after it
+      const findItemIndex = (element: any): number => {
+        if (element.type === 'repeat-container' && element.id === containerId) {
+          const selectedIndex = element.items.findIndex((item: any) => item.id === selectionState.selectedRepeatItemId);
+          return selectedIndex >= 0 ? selectedIndex + 1 : element.items.length;
+        }
+        if (element.children) {
+          for (const child of element.children) {
+            const index = findItemIndex(child);
+            if (index >= 0) return index;
+          }
+        }
+        return -1;
+      };
+      
+      insertIndex = parsedElements.map(findItemIndex).find(idx => idx >= 0) || 0;
+    }
+    
+    // Default to end if still no index
+    if (insertIndex === undefined) {
+      insertIndex = Number.MAX_SAFE_INTEGER;
+    }
+
+    // Update parsed elements to add the pasted item
+    const updateElementsWithPastedItem = (element: any): any => {
+      if (element.type === 'repeat-container' && element.id === containerId) {
+        const newItems = [...element.items];
+        const finalIndex = Math.min(insertIndex!, newItems.length);
+        newItems.splice(finalIndex, 0, pastedItem);
+        
+        return {
+          ...element,
+          items: newItems
+        };
+      }
+      if (element.children) {
+        return {
+          ...element,
+          children: element.children.map(updateElementsWithPastedItem)
+        };
+      }
+      return element;
+    };
+
+    setParsedElements(prev => prev.map(updateElementsWithPastedItem));
+  };
+
+  const handleContainerSelect = (containerId: string, containerType: 'repeat-container' | 'regular') => {
+    setSelectionState({
+      mode: 'text',
+      selectedContainerId: containerId,
+      selectedContainerType: containerType,
+      selectedRepeatItemId: null,
+      selectedRepeatContainerId: null
+    });
+  };
+
+  const handleContainerDeselect = () => {
+    setSelectionState({
+      mode: 'container',
+      selectedContainerId: null,
+      selectedContainerType: null,
+      selectedRepeatItemId: null,
+      selectedRepeatContainerId: null
+    });
+  };
+
+  const handleRepeatItemSelect = (containerId: string, itemId: string) => {
+    setSelectionState({
+      mode: 'repeat-item',
+      selectedContainerId: null,
+      selectedContainerType: null,
+      selectedRepeatItemId: itemId,
+      selectedRepeatContainerId: containerId
+    });
+  };
+
+  const handleDocumentClick = (e: React.MouseEvent) => {
+    // If clicking outside any container in container mode, ensure we stay in container mode
+    if (selectionState.mode === 'text') {
+      // Check if clicked outside the selected container
+      const target = e.target as HTMLElement;
+      const selectedContainer = document.querySelector(`[data-container-id="${selectionState.selectedContainerId}"]`);
+      
+      if (selectedContainer && !selectedContainer.contains(target)) {
+        handleContainerDeselect();
+      }
+    }
+  };
+
+  // Add keyboard event handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if we're currently editing text (focused on a contentEditable element)
+      const activeElement = document.activeElement;
+      const isEditingText = activeElement && (
+        activeElement.hasAttribute('contenteditable') ||
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA'
+      );
+
+      // Handle ESC for container deselection (but not during text editing)
+      if (e.key === 'Escape' && !isEditingText) {
+        handleContainerDeselect();
+        return;
+      }
+
+      // Skip repeat item operations if we're editing text
+      if (isEditingText) {
+        // Only allow global undo/redo during text editing
+        if (e.metaKey || e.ctrlKey) {
+          if (e.key === 'z' || e.key === 'Z') {
+            e.preventDefault();
+            
+            if (e.shiftKey) {
+              // Shift+Cmd+Z or Shift+Ctrl+Z for Redo
+              handleRedo();
+            } else {
+              // Cmd+Z or Ctrl+Z for Undo
+              handleUndo();
+            }
+          }
+        }
+        return; // Exit early, don't process repeat item operations
+      }
+
+      // Handle repeat item operations when an item is selected (and not editing text)
+      if (selectionState.mode === 'repeat-item' && selectionState.selectedRepeatItemId && selectionState.selectedRepeatContainerId) {
+        const containerId = selectionState.selectedRepeatContainerId;
+        const itemId = selectionState.selectedRepeatItemId;
+
+        // Delete or Backspace - Delete item
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          e.preventDefault();
+          handleItemDelete(containerId, itemId);
+          return;
+        }
+
+        // Cmd/Ctrl shortcuts
+        if (e.metaKey || e.ctrlKey) {
+          switch (e.key.toLowerCase()) {
+            case 'c':
+              // Cmd+C - Copy item
+              e.preventDefault();
+              handleRepeatItemCopy(containerId, itemId);
+              return;
+            
+            case 'x':
+              // Cmd+X - Cut item
+              e.preventDefault();
+              handleRepeatItemCut(containerId, itemId);
+              return;
+            
+            case 'v':
+              // Cmd+V - Paste item after selected item
+              e.preventDefault();
+              if (clipboard && clipboard.type === 'repeat-item') {
+                handleRepeatItemPaste(containerId);
+              }
+              return;
+          }
+        }
+      }
+
+      // Handle global Cmd+Z (Undo) and Shift+Cmd+Z (Redo)
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'z' || e.key === 'Z') {
+          e.preventDefault();
+          
+          if (e.shiftKey) {
+            // Shift+Cmd+Z or Shift+Ctrl+Z for Redo
+            handleRedo();
+          } else {
+            // Cmd+Z or Ctrl+Z for Undo
+            handleUndo();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectionState, clipboard, historyIndex, history.length]);
+
+  const isElementInSelectedContainer = (element: any): boolean => {
+    // Check for text mode (selected container)
+    if (selectionState.mode === 'text' && selectionState.selectedContainerId) {
+      const findParentContainer = (el: any, targetId: string): boolean => {
+        if (el.id === targetId) return true;
+        if (el.children) {
+          return el.children.some((child: any) => findParentContainer(child, targetId));
+        }
+        // Also check items for repeat containers
+        if (el.items) {
+          return el.items.some((item: any) => findParentContainer(item, targetId));
+        }
+        return false;
+      };
+
+      return parsedElements.some(rootEl => {
+        const findElement = (el: any): boolean => {
+          if (el.id === selectionState.selectedContainerId) {
+            return findParentContainer(el, element.id);
+          }
+          if (el.children) {
+            return el.children.some(findElement);
+          }
+          if (el.items) {
+            return el.items.some(findElement);
+          }
+          return false;
+        };
+        return findElement(rootEl);
+      });
+    }
+
+    // Check for repeat-item mode (selected repeat item)
+    if (selectionState.mode === 'repeat-item' && selectionState.selectedRepeatItemId) {
+      const findParentContainer = (el: any, targetId: string): boolean => {
+        if (el.id === targetId) return true;
+        if (el.children) {
+          return el.children.some((child: any) => findParentContainer(child, targetId));
+        }
+        return false;
+      };
+
+      return parsedElements.some(rootEl => {
+        const findRepeatItem = (el: any): boolean => {
+          if (el.type === 'repeat-container' && el.items) {
+            const targetItem = el.items.find((item: any) => item.id === selectionState.selectedRepeatItemId);
+            if (targetItem) {
+              return findParentContainer(targetItem, element.id);
+            }
+          }
+          if (el.children) {
+            return el.children.some(findRepeatItem);
+          }
+          return false;
+        };
+        return findRepeatItem(rootEl);
+      });
+    }
+
+    return false;
+  };
+
   const renderElement = (element: any): React.ReactNode => {
+    const isInSelectedContainer = isElementInSelectedContainer(element);
+    const canEditText = (selectionState.mode === 'text' || selectionState.mode === 'repeat-item') && isInSelectedContainer;
+
     if (element.type === 'text') {
       const currentContent = textStates[element.id] || element.content;
       return (
@@ -538,6 +1200,7 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           elementId={element.id}
           text={currentContent}
           onTextChange={(newText) => handleTextChange(element.id, newText)}
+          isEditable={canEditText}
         />
       );
     } else if (element.type === 'img' || element.type === 'picture') {
@@ -552,13 +1215,60 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           onImageChange={(newSrc) => handleImageChange(element.id, newSrc)}
         />
       );
+    } else if (element.type === 'repeat-container') {
+      const isSelected = selectionState.selectedContainerId === element.id;
+      const selectedItemId = selectionState.selectedRepeatContainerId === element.id ? selectionState.selectedRepeatItemId : null;
+      
+      const repeatContainer = (
+        <RepeatableContainer
+          key={element.id}
+          containerId={element.id}
+          containerName={element.repeatContainer}
+          className={element.className}
+          items={element.items}
+          selectedItemId={selectedItemId}
+          onItemAdd={handleItemAdd}
+          onItemSelect={handleRepeatItemSelect}
+          renderItem={renderElement}
+        />
+      );
+
+      return (
+        <SelectableContainer
+          key={`selectable-${element.id}`}
+          element={element}
+          isSelected={isSelected}
+          isInContainerMode={selectionState.mode === 'container'}
+          onSelect={handleContainerSelect}
+        >
+          {repeatContainer}
+        </SelectableContainer>
+      );
     } else if (element.type === 'element') {
       const Tag = element.tagName as keyof React.JSX.IntrinsicElements;
-      return React.createElement(
+      const isSelected = selectionState.selectedContainerId === element.id;
+      const regularElement = React.createElement(
         Tag,
         { key: element.id, className: element.className },
         element.children.map(renderElement)
       );
+
+      // Only wrap section elements with SelectableContainer
+      if (element.tagName === 'section') {
+        return (
+          <SelectableContainer
+            key={`selectable-${element.id}`}
+            element={element}
+            isSelected={isSelected}
+            isInContainerMode={selectionState.mode === 'container'}
+            onSelect={handleContainerSelect}
+          >
+            {regularElement}
+          </SelectableContainer>
+        );
+      }
+
+      return regularElement;
     }
     return null;
   };
@@ -610,9 +1320,32 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
         {/* Left Panel - Rendered Output */}
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Live Preview
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Live Preview
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  selectionState.mode === 'container' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : selectionState.mode === 'repeat-item'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {selectionState.mode === 'container' ? '📦 Container Mode' : 
+                   selectionState.mode === 'repeat-item' ? '🔧 Item Mode' : '✏️ Text Mode'}
+                </div>
+                {(selectionState.selectedContainerId || selectionState.selectedRepeatItemId) && (
+                  <button
+                    onClick={handleContainerDeselect}
+                    className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                    title="Press ESC or click to deselect"
+                  >
+                    ✕ Clear Selection
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleUndo}
@@ -633,7 +1366,10 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border min-h-full">
+          <div 
+            className="bg-white rounded-lg shadow-sm border min-h-full"
+            onClick={handleDocumentClick}
+          >
             <div className="p-4">
               {parsedElements.map(renderElement)}
             </div>
@@ -670,12 +1406,14 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           </div>
 
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <h4 className="font-semibold text-gray-900 mb-2 text-sm">Quick Tips:</h4>
+            <h4 className="font-semibold text-gray-900 mb-2 text-sm">Keyboard Shortcuts:</h4>
             <ul className="text-xs text-gray-600 space-y-1">
-              <li>• Click text to edit in-place</li>
-              <li>• Real-time layout preview</li>
-              <li>• Enter saves, Escape cancels</li>
-              <li>• Images maintain original dimensions</li>
+              <li>• <strong>ESC:</strong> Return to container mode</li>
+              <li>• <strong>⌘+C:</strong> Copy selected item</li>
+              <li>• <strong>⌘+X:</strong> Cut selected item</li>
+              <li>• <strong>⌘+V:</strong> Paste after selected item</li>
+              <li>• <strong>Delete/BS:</strong> Delete selected item</li>
+              <li>• <strong>⌘+Z/⇧+⌘+Z:</strong> Undo/Redo changes</li>
             </ul>
           </div>
         </div>
