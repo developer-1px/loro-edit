@@ -14,7 +14,7 @@ import { ResizeHandle } from "./ui/ResizeHandle";
 import { HtmlEditorPanel } from "./ui/HtmlEditorPanel";
 
 // Plugin system
-import { pluginManager } from "../plugins";
+import { pluginManager, registerDefaultPlugins } from "../plugins";
 import { parseAndRenderHTML } from "../utils/htmlParser";
 import type { ParsedElement } from "../types";
 import type { PluginContext } from "../plugins/types";
@@ -53,6 +53,7 @@ export const PluginBasedEditor: React.FC = () => {
 
   useEffect(() => {
     // Set initial HTML input on mount
+    registerDefaultPlugins();
     useEditorStore.setState({ htmlInput: INITIAL_HTML });
     handleParseAndRender(INITIAL_HTML);
   }, []);

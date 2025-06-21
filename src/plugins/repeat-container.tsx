@@ -114,77 +114,6 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
   );
 };
 
-interface SelectableContainerProps {
-  element: any;
-  isSelected: boolean;
-  isInContainerMode: boolean;
-  children: React.ReactNode;
-}
-
-const SelectableContainer: React.FC<SelectableContainerProps> = ({
-  element,
-  isSelected,
-  isInContainerMode,
-  children,
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const getContainerStyles = () => {
-    const baseStyles = "relative transition-all duration-200";
-
-    if (isSelected) {
-      return `${baseStyles} ring-2 ring-blue-500`;
-    }
-
-    if (isInContainerMode && isHovered) {
-      return `${baseStyles} ring-1 ring-blue-300 bg-blue-50 bg-opacity-30 cursor-pointer`;
-    }
-
-    return baseStyles;
-  };
-
-  const getElementName = () => {
-    if (element.type === "repeat-container") {
-      return element.repeatContainer;
-    }
-    if (
-      element.type === "element" ||
-      element.type === "img" ||
-      element.type === "picture"
-    ) {
-      return element.tagName;
-    }
-    return "container";
-  };
-
-  return (
-    <div
-      className={getContainerStyles()}
-      data-container-id={element.id}
-      data-container-type={
-        element.type === "repeat-container" ? "repeat-container" : "regular"
-      }
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {children}
-
-      {/* Selection indicator */}
-      {isSelected && (
-        <div className="absolute -top-2 -left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
-          Selected: {getElementName()}
-        </div>
-      )}
-
-      {/* Hover indicator in container mode */}
-      {isInContainerMode && isHovered && !isSelected && (
-        <div className="absolute -top-2 -left-2 bg-gray-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
-          Click to select: {getElementName()}
-        </div>
-      )}
-    </div>
-  );
-};
 
 export const repeatContainerPlugin: Plugin = {
   name: "repeat-container",
@@ -218,10 +147,14 @@ export const repeatContainerPlugin: Plugin = {
 
   render: ({ element, context, renderElement, showHoverEffects }) => {
     const repeatElement = element as RepeatContainer;
-    const isSelected = context.selection.selectedElementId === element.id;
-    const selectedItemId: string | null = null; // Simplified for new selection logic
+    
+    // 현재 선택된 반복 요소 ID 확인
+    const selectedItemId = context.selection.selectedRepeatContainerId === repeatElement.id 
+      ? context.selection.selectedRepeatItemId 
+      : null;
 
-    const repeatContainer = (
+    // 컨테이너 자체는 선택 불가능하고, 내부 반복 요소만 선택 가능
+    return (
       <RepeatableContainer
         key={repeatElement.id}
         containerId={repeatElement.id}
@@ -233,17 +166,6 @@ export const repeatContainerPlugin: Plugin = {
         renderItem={renderElement}
         showHoverEffects={showHoverEffects}
       />
-    );
-
-    return (
-      <SelectableContainer
-        key={`selectable-${repeatElement.id}`}
-        element={repeatElement}
-        isSelected={isSelected}
-        isInContainerMode={context.selection.mode === "block"}
-      >
-        {repeatContainer}
-      </SelectableContainer>
     );
   },
 };

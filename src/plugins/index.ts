@@ -1,11 +1,11 @@
 // src/plugins/index.ts
 
-import { pluginManager } from './PluginManager';
-import { textPlugin } from './text';
-import { imagePlugin } from './image';
-import { repeatContainerPlugin } from './repeat-container';
-import { sectionPlugin } from './section';
-import { elementPlugin } from './element';
+import { pluginManager } from "./PluginManager";
+import { textPlugin } from "./text";
+import { imagePlugin } from "./image";
+import { repeatContainerPlugin } from "./repeat-container";
+import { sectionPlugin } from "./section";
+import { elementPlugin } from "./element";
 
 // Register all default plugins
 export const registerDefaultPlugins = () => {
@@ -18,13 +18,10 @@ export const registerDefaultPlugins = () => {
 };
 
 // Re-export everything
-export { pluginManager } from './PluginManager';
-export * from './types';
-export { textPlugin } from './text';
-export { imagePlugin } from './image';
-export { repeatContainerPlugin } from './repeat-container';
-export { sectionPlugin } from './section';
-export { elementPlugin } from './element';
-
-// Auto-register plugins when this module is imported
-registerDefaultPlugins();
+export { pluginManager } from "./PluginManager";
+export * from "./types";
+export { textPlugin } from "./text";
+export { imagePlugin } from "./image";
+export { repeatContainerPlugin } from "./repeat-container";
+export { sectionPlugin } from "./section";
+export { elementPlugin } from "./element";
