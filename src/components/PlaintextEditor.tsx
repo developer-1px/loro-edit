@@ -25,6 +25,7 @@ interface EditableTextProps {
   className?: string;
   elementId: string;
   isEditable?: boolean;
+  showHoverEffects?: boolean;
 }
 
 interface EditableImageProps {
@@ -43,6 +44,7 @@ interface RepeatableContainerProps {
   selectedItemId: string | null;
   onItemAdd: (containerId: string) => void;
   renderItem: (item: ParsedElement) => React.ReactNode;
+  showHoverEffects?: boolean;
 }
 
 interface RepeatableItemProps {
@@ -50,6 +52,7 @@ interface RepeatableItemProps {
   containerId: string;
   isSelected: boolean;
   children: React.ReactNode;
+  showHoverEffects?: boolean;
 }
 
 interface SelectableContainerProps {
@@ -65,6 +68,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   className,
   elementId,
   isEditable = true,
+  showHoverEffects = false,
 }) => {
   const [currentText, setCurrentText] = React.useState(text);
   const textRef = React.useRef<HTMLSpanElement>(null);
@@ -137,7 +141,13 @@ const EditableText: React.FC<EditableTextProps> = ({
       return `${baseStyles} cursor-default`;
     }
 
-    return `${baseStyles} focus:outline-none focus:ring-1 focus:ring-blue-400`;
+    let editableStyles = `${baseStyles} cursor-text focus:outline-none focus:ring-1 focus:ring-blue-400`;
+
+    if (showHoverEffects) {
+      editableStyles += ` underline hover:bg-blue-50 hover:text-blue-700`;
+    }
+
+    return editableStyles;
   };
 
   // Helper function to render text with line breaks
@@ -288,6 +298,7 @@ const RepeatableItem: React.FC<RepeatableItemProps> = ({
   containerId,
   isSelected,
   children,
+  showHoverEffects = false,
 }) => {
   const getItemStyles = () => {
     const baseStyles =
@@ -297,7 +308,13 @@ const RepeatableItem: React.FC<RepeatableItemProps> = ({
       return `${baseStyles} ring-2 ring-purple-500`;
     }
 
-    return `${baseStyles} hover:ring-1 hover:ring-purple-300`;
+    let hoverStyles = `${baseStyles} hover:ring-1 hover:ring-purple-300`;
+
+    if (showHoverEffects) {
+      hoverStyles += ` hover:bg-purple-50`;
+    }
+
+    return hoverStyles;
   };
 
   return (
@@ -326,6 +343,7 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
   selectedItemId,
   onItemAdd,
   renderItem,
+  showHoverEffects = false,
 }) => {
   const [showAddButton, setShowAddButton] = React.useState(false);
 
@@ -342,6 +360,7 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
             item={item}
             containerId={containerId}
             isSelected={selectedItemId === item.id}
+            showHoverEffects={showHoverEffects}
           >
             {renderItem(item)}
           </RepeatableItem>
@@ -659,7 +678,25 @@ export const PlaintextEditor: React.FC = () => {
       if (clickedRepeatItemId) {
         handleRepeatItemSelect(clickedContainerId, clickedRepeatItemId);
       } else {
-        // Already in text mode, no state change needed. Let browser handle focus.
+        // Check if the clicked target is a text element or its descendant
+        const isTextElement =
+          target.hasAttribute("contenteditable") ||
+          target.hasAttribute("data-element-id");
+        const isWithinTextElement =
+          target.closest("[contenteditable]") ||
+          target.closest("[data-element-id]");
+
+        const isTextClick = isTextElement || isWithinTextElement;
+
+        if (isTextClick) {
+          // Already in text mode, no state change needed. Let browser handle focus.
+        } else {
+          // Clicked on non-text area, exit text mode back to container mode
+          setSelection({
+            ...selection,
+            mode: "container",
+          });
+        }
       }
     }
   };
@@ -739,6 +776,13 @@ export const PlaintextEditor: React.FC = () => {
         ? isInSelectedContainer
         : false;
 
+    // Check if we should show hover effects (when a section is selected in container mode)
+    const showHoverEffects = Boolean(
+      selection.mode === "container" &&
+        selection.selectedContainerId &&
+        isInSelectedContainer
+    );
+
     if (element.type === "text") {
       return (
         <EditableText
@@ -747,6 +791,7 @@ export const PlaintextEditor: React.FC = () => {
           text={element.content}
           onTextChange={(newText) => handleTextChange(element.id, newText)}
           isEditable={canEditText}
+          showHoverEffects={showHoverEffects}
         />
       );
     }
@@ -781,6 +826,7 @@ export const PlaintextEditor: React.FC = () => {
           selectedItemId={selectedItemId}
           onItemAdd={handleItemAdd}
           renderItem={renderElement}
+          showHoverEffects={showHoverEffects}
         />
       );
 
@@ -805,7 +851,12 @@ export const PlaintextEditor: React.FC = () => {
         element.children.map(renderElement)
       );
 
-      if (element.tagName === "section") {
+      if (
+        element.tagName === "section" ||
+        element.tagName === "header" ||
+        element.tagName === "footer" ||
+        element.tagName === "nav"
+      ) {
         return (
           <SelectableContainer
             key={`selectable-${element.id}`}
