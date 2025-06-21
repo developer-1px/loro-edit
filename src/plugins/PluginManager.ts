@@ -1,8 +1,13 @@
 // src/plugins/PluginManager.ts
 
-import type { Plugin, PluginManager as IPluginManager, PluginContext, PluginRenderProps } from './types';
-import type { ParsedElement } from '../types';
-import React from 'react';
+import type {
+  Plugin,
+  PluginManager as IPluginManager,
+  PluginContext,
+  PluginRenderProps,
+} from "./types";
+import type { ParsedElement } from "../types";
+import React from "react";
 
 class PluginManager implements IPluginManager {
   private _plugins: Plugin[] = [];
@@ -13,15 +18,16 @@ class PluginManager implements IPluginManager {
 
   register(plugin: Plugin): void {
     // Check if plugin with same name already exists
-    const existingIndex = this._plugins.findIndex(p => p.name === plugin.name);
+    const existingIndex = this._plugins.findIndex(
+      (p) => p.name === plugin.name
+    );
     if (existingIndex !== -1) {
       // Unregister existing plugin first
       this.unregister(plugin.name);
     }
 
-    // Add plugin and sort by priority (higher priority first)
+    // Add plugin (no priority sorting needed)
     this._plugins.push(plugin);
-    this._plugins.sort((a, b) => b.match.priority - a.match.priority);
 
     // Initialize plugin
     if (plugin.init) {
@@ -32,14 +38,14 @@ class PluginManager implements IPluginManager {
   }
 
   unregister(pluginName: string): void {
-    const pluginIndex = this._plugins.findIndex(p => p.name === pluginName);
+    const pluginIndex = this._plugins.findIndex((p) => p.name === pluginName);
     if (pluginIndex === -1) {
       console.warn(`Plugin "${pluginName}" not found`);
       return;
     }
 
     const plugin = this._plugins[pluginIndex];
-    
+
     // Cleanup plugin
     if (plugin.destroy) {
       plugin.destroy();
@@ -49,57 +55,85 @@ class PluginManager implements IPluginManager {
     console.log(`Plugin "${pluginName}" unregistered`);
   }
 
-  getPlugin(element: ParsedElement): Plugin | null {
-    // Find the first plugin that matches the element (plugins are sorted by priority)
+  getPlugin(element: Element): Plugin | null {
+    // First try all specific plugins (not text plugin)
     for (const plugin of this._plugins) {
-      if (plugin.match.condition(element)) {
+      if (plugin.name !== "text" && plugin.match(element)) {
         return plugin;
       }
     }
-    return null;
+
+    // If no specific plugin matches, use text plugin as fallback
+    const textPlugin = this._plugins.find((p) => p.name === "text");
+    return textPlugin || null;
   }
 
   parseElement(element: Element): ParsedElement | null {
-    // Try each plugin's parser in priority order
+    // Remove excessive logging
+    // console.log("Parsing element:", element.tagName, element.className, element);
+
+    // Try specific plugins first (not text plugin)
     for (const plugin of this._plugins) {
-      if (plugin.parse) {
+      if (plugin.name !== "text") {
         const result = plugin.parse(element);
         if (result) {
+          // console.log("Plugin", plugin.name, "parsed:", result);
           return result;
         }
       }
     }
+
+    // If no specific plugin can parse, try text plugin as fallback
+    const textPlugin = this._plugins.find((p) => p.name === "text");
+    if (textPlugin) {
+      const result = textPlugin.parse(element);
+      // console.log("Text plugin parsed:", result);
+      return result;
+    }
+
     return null;
   }
 
   renderElement(
-    element: ParsedElement, 
-    context: PluginContext, 
+    element: Element,
+    parsedElement: ParsedElement,
+    context: PluginContext,
     renderElement: (element: ParsedElement) => React.ReactNode
   ): React.ReactNode {
     const plugin = this.getPlugin(element);
+    // console.log("Rendering element:", element.tagName, "with plugin:", plugin?.name);
+
     if (!plugin) {
-      console.warn(`No plugin found for element type: ${element.type}`, element);
+      console.warn(`No plugin found for element`, element);
       return null;
     }
 
     // Calculate render props using simple selection logic
-    const canEditText = context.selection.mode === "text" && 
-                       element.type === "text" && 
-                       context.selection.selectedTextElementId === element.id;
-    const showHoverEffects = context.selection.mode === "block" && 
-                            context.selection.selectedElementId === element.id;
+    const canEditText =
+      context.selection.mode === "text" &&
+      parsedElement.type === "text" &&
+      context.selection.selectedTextElementId === parsedElement.id;
+    const showHoverEffects =
+      context.selection.mode === "block" &&
+      context.selection.selectedElementId === parsedElement.id;
 
     const renderProps: PluginRenderProps = {
       element,
+      parsedElement,
       context,
       renderElement,
       isInSelectedContainer: false, // Not used in new selection logic
       canEditText,
-      showHoverEffects
+      showHoverEffects,
     };
 
-    return plugin.render(renderProps);
+    try {
+      const result = plugin.render(renderProps);
+      return result || null;
+    } catch (error) {
+      console.error('Error rendering element with plugin', plugin.name, ':', error);
+      return null;
+    }
   }
 }
 

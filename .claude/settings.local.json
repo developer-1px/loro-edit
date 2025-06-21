@@ -13,7 +13,9 @@
       "Bash(rg:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

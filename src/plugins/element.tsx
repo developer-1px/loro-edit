@@ -1,43 +1,56 @@
 // src/plugins/element.tsx
 
-import React from 'react';
-import type { Plugin } from './types';
-import type { RegularElement } from '../types';
+import React from "react";
+import type { Plugin } from "./types";
+import type { RegularElement } from "../types";
 
 export const elementPlugin: Plugin = {
-  name: 'element',
-  version: '1.0.0',
-  description: 'Handles generic HTML elements that are not handled by other plugins',
-  
-  match: {
-    condition: (element) => element.type === 'element',
-    priority: 10 // Lowest priority - fallback for other elements
+  name: "element",
+  version: "1.0.0",
+  description:
+    "Handles generic HTML elements that are not handled by other plugins",
+
+  match: (element: Element) => {
+    // Do not match elements that are explicitly text
+    if (element.getAttribute("data-element-type") === "text") {
+      return false;
+    }
+
+    // Handle generic HTML elements that don't have special attributes
+    const hasSpecialAttributes =
+      element.hasAttribute("data-repeat-container") ||
+      element.hasAttribute("data-repeat-item") ||
+      element.hasAttribute("data-database") ||
+      element.tagName.toLowerCase() === "img" ||
+      element.tagName.toLowerCase() === "picture";
+
+    return !hasSpecialAttributes;
   },
 
   parse: (element: Element) => {
-    // This is a fallback parser for generic elements
+    // Parse generic HTML elements
     return {
-      type: 'element' as const,
+      type: "element" as const,
       id: element.id || crypto.randomUUID(),
-      className: element.className || '',
+      className: element.className || "",
       tagName: element.tagName.toLowerCase(),
-      children: [], // Would be parsed from child elements
-      repeatItem: element.getAttribute('data-repeat-item') || undefined
+      children: [], // Will be filled by htmlParser
+      repeatItem: element.getAttribute("data-repeat-item") || undefined,
     };
   },
 
-  render: ({ element, renderElement }) => {
-    const regularElement = element as RegularElement;
+  render: ({ parsedElement, renderElement }) => {
+    const regularElement = parsedElement as RegularElement;
     const Tag = regularElement.tagName as keyof React.JSX.IntrinsicElements;
-    
+
     return React.createElement(
       Tag,
-      { 
-        key: regularElement.id, 
+      {
+        key: regularElement.id,
         className: regularElement.className,
-        'data-element-id': regularElement.id
+        "data-element-id": regularElement.id,
       },
-      regularElement.children.map(renderElement)
+      (regularElement.children || []).map(renderElement).filter(Boolean)
     );
-  }
+  },
 };

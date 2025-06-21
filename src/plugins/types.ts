@@ -12,15 +12,13 @@ export interface PluginContext {
   handleDatabaseViewModeChange?: (databaseId: string, viewMode: "cards" | "table") => void;
   handleDatabaseSettingsUpdate?: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
   handleDatabaseFetch?: (databaseId: string) => Promise<void>;
-}
-
-export interface ElementMatch {
-  condition: (element: ParsedElement) => boolean;
-  priority: number; // Higher numbers have higher priority
+  canEditText?: boolean;
+  showHoverEffects?: boolean;
 }
 
 export interface PluginRenderProps {
-  element: ParsedElement;
+  element: Element;
+  parsedElement: ParsedElement;
   context: PluginContext;
   renderElement: (element: ParsedElement) => React.ReactNode;
   isInSelectedContainer: boolean;
@@ -34,16 +32,16 @@ export interface Plugin {
   description?: string;
   
   // Matching conditions - when should this plugin handle an element
-  match: ElementMatch;
+  match: (element: Element) => boolean;
   
   // DOM parsing - how to parse HTML into element data
-  parse?: (element: Element) => ParsedElement | null;
+  parse: (element: Element) => ParsedElement | null;
   
   // Rendering - how to render the element
   render: (props: PluginRenderProps) => React.ReactNode;
   
   // Selection handling - how to handle selection for this element type
-  onSelect?: (element: ParsedElement, context: PluginContext) => void;
+  onSelect?: (parsedElement: ParsedElement, context: PluginContext) => void;
   
   // Initialization - called when plugin is registered
   init?: () => void;
@@ -56,7 +54,7 @@ export interface PluginManager {
   plugins: Plugin[];
   register: (plugin: Plugin) => void;
   unregister: (pluginName: string) => void;
-  getPlugin: (element: ParsedElement) => Plugin | null;
+  getPlugin: (element: Element) => Plugin | null;
   parseElement: (element: Element) => ParsedElement | null;
-  renderElement: (element: ParsedElement, context: PluginContext, renderElement: (element: ParsedElement) => React.ReactNode) => React.ReactNode;
+  renderElement: (element: Element, parsedElement: ParsedElement, context: PluginContext, renderElement: (element: ParsedElement) => React.ReactNode) => React.ReactNode;
 }

@@ -1,6 +1,7 @@
 // src/utils/htmlParser.ts
 
 import type { ParsedElement, RegularElement } from "../types";
+import { pluginManager } from "../plugins/PluginManager";
 
 export const parseAndRenderHTML = (html: string): ParsedElement[] => {
   const parser = new DOMParser();
@@ -12,37 +13,59 @@ export const parseAndRenderHTML = (html: string): ParsedElement[] => {
 const processElement = (element: Element | null): ParsedElement | null => {
   if (!element) return null;
 
+  // Try to use plugin system to parse the element
+  const parsed = pluginManager.parseElement(element);
+  if (parsed) {
+    // Recursively parse children if this is a container element
+    if (parsed.type === "element" || parsed.type === "repeat-container") {
+      const children: ParsedElement[] = Array.from(element.childNodes)
+        .map((child) => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            const text = child.textContent?.trim();
+            if (text) {
+              return {
+                type: "text",
+                content: text,
+                id: crypto.randomUUID(),
+              } as ParsedElement;
+            }
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            return processElement(child as Element);
+          }
+          return null;
+        })
+        .filter((child): child is ParsedElement => child !== null);
+
+      if (parsed.type === "repeat-container") {
+        // Handle repeat container items
+        const items = children.filter(
+          (c) => c.type === "element" && (c as RegularElement).repeatItem
+        ) as RegularElement[];
+        const nonItemChildren = children.filter(
+          (c) => !(c.type === "element" && (c as RegularElement).repeatItem)
+        );
+
+        return {
+          ...parsed,
+          items,
+          children: nonItemChildren,
+        };
+      } else {
+        return {
+          ...parsed,
+          children,
+        };
+      }
+    }
+
+    return parsed;
+  }
+
+  // Fallback for elements not handled by plugins
   const tagName = element.tagName.toLowerCase();
   const className = element.getAttribute("class") || "";
-  const repeatContainer = element.getAttribute("data-repeat-container");
   const repeatItem = element.getAttribute("data-repeat-item");
-  const database = element.getAttribute("data-database");
-  const id = Math.random().toString(36).substr(2, 9);
-
-  if (tagName === "img") {
-    return {
-      type: "img",
-      tagName,
-      className,
-      src: element.getAttribute("src") || "",
-      alt: element.getAttribute("alt") || "",
-      id,
-      repeatItem: repeatItem || undefined,
-    };
-  }
-
-  if (tagName === "picture") {
-    const imgElement = element.querySelector("img");
-    return {
-      type: "picture",
-      tagName,
-      className,
-      src: imgElement?.getAttribute("src") || "",
-      alt: imgElement?.getAttribute("alt") || "",
-      id,
-      repeatItem: repeatItem || undefined,
-    };
-  }
+  const id = crypto.randomUUID();
 
   const children: ParsedElement[] = Array.from(element.childNodes)
     .map((child) => {
@@ -52,7 +75,7 @@ const processElement = (element: Element | null): ParsedElement | null => {
           return {
             type: "text",
             content: text,
-            id: Math.random().toString(36).substr(2, 9),
+            id: crypto.randomUUID(),
           } as ParsedElement;
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
@@ -61,44 +84,6 @@ const processElement = (element: Element | null): ParsedElement | null => {
       return null;
     })
     .filter((child): child is ParsedElement => child !== null);
-
-  if (database) {
-    return {
-      type: "database",
-      tagName,
-      className,
-      database,
-      apiUrl: element.getAttribute("data-api-url") || undefined,
-      viewMode: (element.getAttribute("data-view-mode") as "cards" | "table") || "cards",
-      data: [],
-      columns: [
-        { id: 'id', name: 'ID', type: 'text' },
-        { id: 'name', name: 'Name', type: 'text' },
-        { id: 'email', name: 'Email', type: 'text' },
-        { id: 'phone', name: 'Phone', type: 'text' }
-      ],
-      id,
-    };
-  }
-
-  if (repeatContainer) {
-    const items = children.filter(
-      (c) => c.type === "element" && c.repeatItem
-    ) as RegularElement[];
-    const nonItemChildren = children.filter(
-      (c) => !(c.type === "element" && c.repeatItem)
-    );
-
-    return {
-      type: "repeat-container",
-      tagName,
-      className,
-      repeatContainer,
-      items,
-      children: nonItemChildren,
-      id,
-    };
-  }
 
   return {
     type: "element",

@@ -1,6 +1,6 @@
 // src/components/PluginBasedEditor.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useEditorStore } from "../store/editorStore";
 import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
 import { useSelectionHandling } from "../hooks/useSelectionHandling";
@@ -54,20 +54,27 @@ export const PluginBasedEditor: React.FC = () => {
 
   useEditorHotkeys();
 
+  const handleParseAndRender = useCallback(
+    (html: string) => {
+      const elements = parseAndRenderHTML(html);
+      console.log("Parsed elements:", elements);
+      setParsedElements(elements);
+      // Reset history for new HTML
+      if (clear) clear();
+    },
+    [setParsedElements, clear]
+  );
+
   useEffect(() => {
-    // Set initial HTML input on mount
+    // Set initial HTML input on mount - only run once
     registerDefaultPlugins();
     useEditorStore.setState({ htmlInput: INITIAL_HTML });
-    handleParseAndRender(INITIAL_HTML);
-  }, []);
-
-  const handleParseAndRender = (html: string) => {
-    const elements = parseAndRenderHTML(html);
-    console.log('Parsed elements:', elements);
+    const elements = parseAndRenderHTML(INITIAL_HTML);
+    console.log("Parsed elements:", elements);
     setParsedElements(elements);
     // Reset history for new HTML
     if (clear) clear();
-  };
+  }, []); // Empty dependency array to run only once
 
   const handleNewHTML = () => {
     handleParseAndRender(htmlInput);
@@ -86,32 +93,66 @@ export const PluginBasedEditor: React.FC = () => {
   };
 
   // Plugin-based rendering
-  const renderElement = (element: ParsedElement): React.ReactNode => {
+  const renderElement = (parsedElement: ParsedElement): React.ReactNode => {
     // Debug log for database elements
-    if (element.type === 'database') {
-      console.log('Rendering database element:', element);
+    if (parsedElement.type === "database") {
+      console.log("Rendering database element:", parsedElement);
     }
 
     // New selection logic: text is only editable in text mode for the selected text element
     const canEditText =
       selection.mode === "text" &&
-      element.type === "text" &&
-      selection.selectedTextElementId === element.id;
+      parsedElement.type === "text" &&
+      selection.selectedTextElementId === parsedElement.id;
 
     // Show hover effects when in block mode and element is selected
     const showHoverEffects =
-      selection.mode === "block" && selection.selectedElementId === element.id;
+      selection.mode === "block" &&
+      selection.selectedElementId === parsedElement.id;
+
+    // For the new plugin system, we need to create a mock DOM element to pass to the plugin
+    // This is a temporary solution until we fully refactor to work with DOM elements
+    const tagName = "tagName" in parsedElement ? parsedElement.tagName : "div";
+    const className =
+      "className" in parsedElement ? parsedElement.className : "";
+    const mockElement = document.createElement(tagName || "div");
+    if (className) {
+      mockElement.className = className;
+    }
+    mockElement.setAttribute("data-element-type", parsedElement.type);
+
+    // Copy data attributes for matching
+    if (parsedElement.type === "database" && parsedElement.database) {
+      mockElement.setAttribute("data-database", parsedElement.database);
+    }
+    if (
+      parsedElement.type === "repeat-container" &&
+      parsedElement.repeatContainer
+    ) {
+      mockElement.setAttribute(
+        "data-repeat-container",
+        parsedElement.repeatContainer
+      );
+    }
+
+    if (parsedElement.id) {
+      mockElement.id = parsedElement.id;
+    }
 
     // Use plugin manager to render element
-    return pluginManager.renderElement(
-      element,
+    const result = pluginManager.renderElement(
+      mockElement,
+      parsedElement,
       {
         ...pluginContext,
         canEditText,
         showHoverEffects,
-      } as any, // Type assertion for extended context
+      },
       renderElement
     );
+
+    // Return null instead of undefined to prevent React errors
+    return result || null;
   };
 
   return (

@@ -62,7 +62,7 @@ interface RepeatableContainerProps {
   items: RegularElement[];
   selectedItemId: string | null;
   onItemAdd: (containerId: string) => void;
-  renderItem: (item: any) => React.ReactNode;
+  renderItem: (item: RegularElement) => React.ReactNode;
   showHoverEffects?: boolean;
 }
 
@@ -120,10 +120,7 @@ export const repeatContainerPlugin: Plugin = {
   version: "1.0.0",
   description: "Handles repeatable container elements with item management",
 
-  match: {
-    condition: (element) => element.type === "repeat-container",
-    priority: 80,
-  },
+  match: (element: Element) => element.hasAttribute("data-repeat-container"),
 
   parse: (element: Element) => {
     const repeatAttribute = element.getAttribute("data-repeat-container");
@@ -145,8 +142,8 @@ export const repeatContainerPlugin: Plugin = {
     return null;
   },
 
-  render: ({ element, context, renderElement, showHoverEffects }) => {
-    const repeatElement = element as RepeatContainer;
+  render: ({ parsedElement, context, renderElement, showHoverEffects }) => {
+    const repeatElement = parsedElement as RepeatContainer;
     
     // 현재 선택된 반복 요소 ID 확인
     const selectedItemId = context.selection.selectedRepeatContainerId === repeatElement.id 

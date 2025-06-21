@@ -23,19 +23,19 @@ const EditableText: React.FC<EditableTextProps> = ({
   showHoverEffects = false,
   isTextMode = false,
 }) => {
-  const [currentText, setCurrentText] = useState(text);
+  const [currentText, setCurrentText] = useState(text || '');
   const textRef = useRef<HTMLSpanElement>(null);
-  const originalTextRef = useRef<string>(text);
+  const originalTextRef = useRef<string>(text || '');
   const isCommittingRef = useRef<boolean>(false);
 
   // Update current text when prop changes
   useEffect(() => {
     if (!isCommittingRef.current) {
-      setCurrentText(text);
-      originalTextRef.current = text;
+      setCurrentText(text || '');
+      originalTextRef.current = text || '';
       if (textRef.current) {
         // Convert <br/> tags to line breaks for editing
-        const editableText = text.replace(/<br\s*\/?>/gi, "\n");
+        const editableText = (text || '').replace(/<br\s*\/?>/gi, "\n");
         textRef.current.textContent = editableText;
       }
     }
@@ -52,7 +52,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   const handleFocus = useCallback(() => {
     if (textRef.current && isEditable) {
       // Convert <br/> tags to line breaks for editing
-      const editableText = currentText.replace(/<br\s*\/?>/gi, "\n");
+      const editableText = (currentText || '').replace(/<br\s*\/?>/gi, "\n");
       textRef.current.textContent = editableText;
     }
   }, [currentText, isEditable]);
@@ -88,7 +88,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   }, []);
 
   // Handle mousedown to enable contentEditable and focus without losing cursor position
-  const handleMouseDown = useCallback((_e: React.MouseEvent) => {
+  const handleMouseDown = useCallback(() => {
     if (textRef.current && isTextMode) {
       // If not already editable, make it editable and focus
       if (textRef.current.contentEditable !== "plaintext-only") {
@@ -162,24 +162,26 @@ export const textPlugin: Plugin = {
   version: '1.0.0',
   description: 'Handles text elements with inline editing capabilities',
   
-  match: {
-    condition: (element) => element.type === 'text',
-    priority: 100
+  match: (element: Element) => {
+    // Only match actual text nodes, not element nodes
+    return element.nodeType === Node.TEXT_NODE;
   },
 
   parse: (element: Element) => {
-    if (element.nodeType === Node.TEXT_NODE || element.tagName === 'SPAN') {
+    // Only parse text nodes
+    if (element.nodeType === Node.TEXT_NODE) {
       return {
         type: 'text' as const,
         id: crypto.randomUUID(),
         content: element.textContent || ''
       };
     }
+    
     return null;
   },
 
-  render: ({ element, context, canEditText, showHoverEffects }) => {
-    const textElement = element as TextElement;
+  render: ({ parsedElement, context, canEditText, showHoverEffects }) => {
+    const textElement = parsedElement as TextElement;
     
     return (
       <EditableText

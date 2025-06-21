@@ -5,7 +5,7 @@ import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 
 interface SelectableContainerProps {
-  element: any;
+  element: RegularElement;
   isSelected: boolean;
   isInContainerMode: boolean;
   children: React.ReactNode;
@@ -34,17 +34,7 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
   };
 
   const getElementName = () => {
-    if (element.type === "repeat-container") {
-      return element.repeatContainer;
-    }
-    if (
-      element.type === "element" ||
-      element.type === "img" ||
-      element.type === "picture"
-    ) {
-      return element.tagName;
-    }
-    return "container";
+    return element.tagName || "container";
   };
 
   return (
@@ -79,16 +69,9 @@ export const sectionPlugin: Plugin = {
   description:
     "Handles semantic section elements (section, header, footer, nav)",
 
-  match: {
-    condition: (element) => {
-      return (
-        element.type === "element" &&
-        "tagName" in element &&
-        typeof element.tagName === "string" &&
-        ["section", "header", "footer", "nav"].includes(element.tagName)
-      );
-    },
-    priority: 70,
+  match: (element: Element) => {
+    const tagName = element.tagName.toLowerCase();
+    return ["section", "header", "footer", "nav"].includes(tagName);
   },
 
   parse: (element: Element) => {
@@ -106,15 +89,15 @@ export const sectionPlugin: Plugin = {
     return null;
   },
 
-  render: ({ element, context, renderElement }) => {
-    const sectionElement = element as RegularElement;
+  render: ({ parsedElement, context, renderElement }) => {
+    const sectionElement = parsedElement as RegularElement;
     const Tag = sectionElement.tagName as keyof React.JSX.IntrinsicElements;
-    const isSelected = context.selection.selectedElementId === element.id;
+    const isSelected = context.selection.selectedElementId === parsedElement.id;
 
     const regularElement = React.createElement(
       Tag,
       { key: sectionElement.id, className: sectionElement.className },
-      sectionElement.children.map(renderElement)
+      (sectionElement.children || []).map(renderElement).filter(Boolean)
     );
 
     return (

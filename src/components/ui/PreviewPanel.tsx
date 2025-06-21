@@ -39,7 +39,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         onClick={onClick}
       >
         <div className="p-4 h-full overflow-y-auto">
-          {parsedElements.map(renderElement)}
+          {parsedElements.map((element, index) => {
+            const rendered = renderElement(element);
+            if (!rendered) {
+              return null;
+            }
+            return <div key={element.id || index}>{rendered}</div>;
+          })}
         </div>
       </div>
     </div>

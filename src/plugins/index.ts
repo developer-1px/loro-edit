@@ -8,15 +8,28 @@ import { sectionPlugin } from "./section";
 import { elementPlugin } from "./element";
 import { databasePlugin } from "./database";
 
+let pluginsRegistered = false;
+
 // Register all default plugins
 export const registerDefaultPlugins = () => {
+  if (pluginsRegistered) {
+    console.log("Plugins already registered, skipping...");
+    return;
+  }
+  
+  console.log("Registering default plugins...");
   // Register plugins in order (higher priority plugins first)
-  pluginManager.register(textPlugin);
   pluginManager.register(imagePlugin);
   pluginManager.register(repeatContainerPlugin);
   pluginManager.register(databasePlugin);
   pluginManager.register(sectionPlugin);
   pluginManager.register(elementPlugin); // Fallback plugin with lowest priority
+  pluginManager.register(textPlugin);
+  console.log(
+    "Registered plugins:",
+    pluginManager.plugins.map((p) => p.name)
+  );
+  pluginsRegistered = true;
 };
 
 // Re-export everything

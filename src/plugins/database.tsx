@@ -562,10 +562,7 @@ export const databasePlugin: Plugin = {
   version: '1.0.0',
   description: 'Handles database connections with card and table views',
   
-  match: {
-    condition: (element) => element.type === 'database',
-    priority: 70
-  },
+  match: (element: Element) => element.hasAttribute('data-database'),
 
   parse: (element: Element) => {
     const databaseAttribute = element.getAttribute('data-database');
@@ -589,9 +586,9 @@ export const databasePlugin: Plugin = {
     return null;
   },
 
-  render: ({ element, context, showHoverEffects }) => {
-    const databaseElement = element as DatabaseElement;
-    const isSelected = context.selection.selectedElementId === element.id;
+  render: ({ parsedElement, context, showHoverEffects }) => {
+    const databaseElement = parsedElement as DatabaseElement;
+    const isSelected = context.selection.selectedElementId === parsedElement.id;
     
     const handleViewModeChange = (mode: "cards" | "table") => {
       if (context.handleDatabaseViewModeChange) {

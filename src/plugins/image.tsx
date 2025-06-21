@@ -126,16 +126,20 @@ export const imagePlugin: Plugin = {
   version: "1.0.0",
   description: "Handles image elements with drag & drop upload capabilities",
 
-  match: {
-    condition: (element) =>
-      element.type === "img" || element.type === "picture",
-    priority: 90,
+  match: (element: Element) => {
+    return (
+      element.tagName.toLowerCase() === "img" ||
+      element.tagName.toLowerCase() === "picture"
+    );
   },
 
   parse: (element: Element) => {
-    if (element.tagName === "IMG" || element.tagName === "PICTURE") {
+    if (
+      element.tagName.toLowerCase() === "img" ||
+      element.tagName.toLowerCase() === "picture"
+    ) {
       const img =
-        element.tagName === "IMG"
+        element.tagName.toLowerCase() === "img"
           ? (element as HTMLImageElement)
           : element.querySelector("img");
       return {
@@ -145,7 +149,7 @@ export const imagePlugin: Plugin = {
         id: element.id || crypto.randomUUID(),
         className: element.className || "",
         tagName: element.tagName.toLowerCase(),
-        src: img?.src || "",
+        src: img?.getAttribute("src") || "",
         alt: img?.alt || "",
         repeatItem: element.getAttribute("data-repeat-item") || undefined,
       };
@@ -153,8 +157,8 @@ export const imagePlugin: Plugin = {
     return null;
   },
 
-  render: ({ element, context }) => {
-    const imageElement = element as ImageElement;
+  render: ({ parsedElement, context }) => {
+    const imageElement = parsedElement as ImageElement;
 
     return (
       <EditableImage
