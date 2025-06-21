@@ -13,6 +13,10 @@ This is a React + TypeScript + Vite application that integrates with Loro CRDT (
 - `pnpm lint` - Run ESLint on the codebase
 - `pnpm preview` - Preview production build locally
 
+## Testing Convention
+
+**IMPORTANT**: When testing changes, always use `pnpm build` instead of `pnpm dev` to ensure TypeScript compilation and proper validation of the changes. This catches type errors and ensures production compatibility.
+
 ## Package Manager
 
 This project uses **pnpm** as the package manager (evidenced by `pnpm-lock.yaml`). Use `pnpm` commands instead of `npm` or `yarn`.

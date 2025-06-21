@@ -8,7 +8,8 @@
       "Bash(pnpm remove:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm preview:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

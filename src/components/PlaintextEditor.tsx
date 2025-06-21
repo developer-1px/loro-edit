@@ -1,4 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useCallback } from "react";
+import type { ParsedElement, RegularElement, SelectionState } from "../types";
+import { useEditorStore } from "../store/editorStore";
+import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
+import { INITIAL_HTML } from "./INITIAL_HTML";
+import {
+  Smartphone,
+  Tablet,
+  Monitor,
+  Undo2,
+  Redo2,
+  X,
+  Copy,
+  Scissors,
+  Clipboard,
+  Trash2,
+  Plus,
+  Code2,
+  Eye,
+} from "lucide-react";
 
 interface EditableTextProps {
   text: string;
@@ -20,34 +39,37 @@ interface RepeatableContainerProps {
   containerId: string;
   containerName: string;
   className?: string;
-  items: any[];
+  items: RegularElement[];
   selectedItemId: string | null;
   onItemAdd: (containerId: string) => void;
-  onItemSelect: (containerId: string, itemId: string) => void;
-  renderItem: (item: any) => React.ReactNode;
+  renderItem: (item: ParsedElement) => React.ReactNode;
 }
 
 interface RepeatableItemProps {
-  item: any;
+  item: RegularElement;
   containerId: string;
-  onSelect: (containerId: string, itemId: string) => void;
   isSelected: boolean;
   children: React.ReactNode;
 }
 
 interface SelectableContainerProps {
-  element: any;
+  element: ParsedElement;
   isSelected: boolean;
   isInContainerMode: boolean;
-  onSelect: (containerId: string, containerType: 'repeat-container' | 'regular') => void;
   children: React.ReactNode;
 }
 
-const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, className, elementId, isEditable = true }) => {
-  const [currentText, setCurrentText] = useState(text);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const originalTextRef = useRef<string>(text);
-  const isCommittingRef = useRef<boolean>(false);
+const EditableText: React.FC<EditableTextProps> = ({
+  text,
+  onTextChange,
+  className,
+  elementId,
+  isEditable = true,
+}) => {
+  const [currentText, setCurrentText] = React.useState(text);
+  const textRef = React.useRef<HTMLSpanElement>(null);
+  const originalTextRef = React.useRef<string>(text);
+  const isCommittingRef = React.useRef<boolean>(false);
 
   // Update current text when prop changes
   useEffect(() => {
@@ -56,7 +78,7 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
       originalTextRef.current = text;
       if (textRef.current) {
         // Convert <br/> tags to line breaks for editing
-        const editableText = text.replace(/<br\s*\/?>/gi, '\n');
+        const editableText = text.replace(/<br\s*\/?>/gi, "\n");
         textRef.current.textContent = editableText;
       }
     }
@@ -65,7 +87,7 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   // Initialize as editable on mount
   useEffect(() => {
     if (textRef.current) {
-      textRef.current.contentEditable = isEditable ? 'plaintext-only' : 'false';
+      textRef.current.contentEditable = isEditable ? "plaintext-only" : "false";
     }
   }, [isEditable]);
 
@@ -73,7 +95,7 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   const handleFocus = useCallback(() => {
     if (textRef.current && isEditable) {
       // Convert <br/> tags to line breaks for editing
-      const editableText = currentText.replace(/<br\s*\/?>/gi, '\n');
+      const editableText = currentText.replace(/<br\s*\/?>/gi, "\n");
       textRef.current.textContent = editableText;
     }
   }, [currentText, isEditable]);
@@ -81,18 +103,18 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   const handleBlur = useCallback(() => {
     if (textRef.current && !isCommittingRef.current) {
       isCommittingRef.current = true;
-      
-      const rawText = textRef.current.textContent || '';
+
+      const rawText = textRef.current.textContent || "";
       // Convert line breaks to <br/> tags
-      const htmlText = rawText.replace(/\n/g, '<br/>');
+      const htmlText = rawText.replace(/\n/g, "<br/>");
       setCurrentText(htmlText);
-      
+
       // Only trigger change if text actually changed
-      const originalHtml = originalTextRef.current.replace(/\n/g, '<br/>');
+      const originalHtml = originalTextRef.current.replace(/\n/g, "<br/>");
       if (htmlText !== originalHtml) {
         onTextChange(htmlText);
       }
-      
+
       // Reset commit flag after a short delay
       setTimeout(() => {
         isCommittingRef.current = false;
@@ -101,7 +123,7 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   }, [onTextChange]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       // ESC now saves and blurs instead of canceling
       textRef.current?.blur();
     }
@@ -110,24 +132,24 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
 
   const getTextStyles = () => {
     const baseStyles = `${className} rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`;
-    
+
     if (!isEditable) {
       return `${baseStyles} cursor-default`;
     }
-    
+
     return `${baseStyles} focus:outline-none focus:ring-1 focus:ring-blue-400`;
   };
 
   // Helper function to render text with line breaks
   const renderTextWithLineBreaks = (text: string) => {
-    if (!text || text === '\u00A0') return '\u00A0';
-    
+    if (!text || text === "\u00A0") return "\u00A0";
+
     // Split by <br/> tags and render with line breaks
     const parts = text.split(/<br\s*\/?>/gi);
     if (parts.length === 1) {
       return text;
     }
-    
+
     return parts.map((part, index) => (
       <React.Fragment key={index}>
         {part}
@@ -152,8 +174,14 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange, classNa
   );
 };
 
-const EditableImage: React.FC<EditableImageProps> = ({ src, alt, onImageChange, className, elementId }) => {
-  const [dragOver, setDragOver] = useState(false);
+const EditableImage: React.FC<EditableImageProps> = ({
+  src,
+  alt,
+  onImageChange,
+  className,
+  elementId,
+}) => {
+  const [dragOver, setDragOver] = React.useState(false);
 
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
@@ -168,10 +196,10 @@ const EditableImage: React.FC<EditableImageProps> = ({ src, alt, onImageChange, 
   const handlePaste = async (e: React.ClipboardEvent) => {
     e.preventDefault();
     const items = e.clipboardData.items;
-    
+
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (item.type.startsWith('image/')) {
+      if (item.type.startsWith("image/")) {
         const file = item.getAsFile();
         if (file) {
           handleImageUpload(file);
@@ -197,87 +225,89 @@ const EditableImage: React.FC<EditableImageProps> = ({ src, alt, onImageChange, 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
+    if (files.length > 0 && files[0].type.startsWith("image/")) {
       handleImageUpload(files[0]);
     }
   };
 
   return (
-    <div
-      className={`${className} relative group`}
-      data-element-id={elementId}
-    >
+    <div className={`${className} relative group`} data-element-id={elementId}>
       {src ? (
         <img
           src={src}
-          alt={alt || 'Editable image'}
+          alt={alt || "Editable image"}
           className="transition-all duration-200 group-hover:opacity-75"
           onPaste={handlePaste}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           tabIndex={0}
-          style={{ outline: 'none' }}
+          style={{ outline: "none" }}
         />
       ) : (
         <div
           className={`border-2 border-dashed border-gray-300 rounded-lg text-center transition-all duration-200 hover:border-gray-400 focus:border-blue-500 focus:outline-none flex items-center justify-center ${
-            dragOver ? 'border-blue-500 bg-blue-50' : ''
+            dragOver ? "border-blue-500 bg-blue-50" : ""
           }`}
           onPaste={handlePaste}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           tabIndex={0}
-          style={{ aspectRatio: 'auto', minHeight: 'auto' }}
+          style={{ aspectRatio: "auto", minHeight: "auto" }}
         >
           <div className="text-gray-400 p-4">
-            <svg className="mx-auto w-8 h-8" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              className="mx-auto w-8 h-8"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
         </div>
       )}
-      
+
       {src && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded">
-        </div>
+        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded"></div>
       )}
     </div>
   );
 };
 
-const RepeatableItem: React.FC<RepeatableItemProps> = ({ 
+const RepeatableItem: React.FC<RepeatableItemProps> = ({
   item,
   containerId,
-  onSelect,
   isSelected,
-  children 
+  children,
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect(containerId, item.id);
-  };
-
   const getItemStyles = () => {
-    const baseStyles = "relative group cursor-pointer transition-all duration-200";
-    
+    const baseStyles =
+      "relative group cursor-pointer transition-all duration-200";
+
     if (isSelected) {
-      return `${baseStyles} ring-2 ring-purple-500 bg-purple-50 bg-opacity-50`;
+      return `${baseStyles} ring-2 ring-purple-500`;
     }
-    
+
     return `${baseStyles} hover:ring-1 hover:ring-purple-300`;
   };
 
   return (
-    <div 
+    <div
       className={getItemStyles()}
-      onClick={handleClick}
+      data-repeat-item-id={item.id}
+      data-repeat-container-id={containerId}
     >
       {children}
-      
+
       {/* Selection indicator */}
       {isSelected && (
         <div className="absolute -top-2 -left-2 bg-purple-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-20">
@@ -295,13 +325,12 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
   items,
   selectedItemId,
   onItemAdd,
-  onItemSelect,
-  renderItem
+  renderItem,
 }) => {
-  const [showAddButton, setShowAddButton] = useState(false);
+  const [showAddButton, setShowAddButton] = React.useState(false);
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={() => setShowAddButton(true)}
       onMouseLeave={() => setShowAddButton(false)}
@@ -312,22 +341,22 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
             key={item.id}
             item={item}
             containerId={containerId}
-            onSelect={onItemSelect}
             isSelected={selectedItemId === item.id}
           >
             {renderItem(item)}
           </RepeatableItem>
         ))}
       </div>
-      
+
       {showAddButton && (
         <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
           <button
             onClick={() => onItemAdd(containerId)}
-            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 shadow-lg"
+            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 shadow-lg flex items-center gap-1"
             title={`Add new ${containerName}`}
           >
-            + Add {containerName}
+            <Plus className="w-3 h-3" />
+            {containerName}
           </button>
         </div>
       )}
@@ -339,886 +368,409 @@ const SelectableContainer: React.FC<SelectableContainerProps> = ({
   element,
   isSelected,
   isInContainerMode,
-  onSelect,
-  children
+  children,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const handleClick = (e: React.MouseEvent) => {
-    if (isInContainerMode) {
-      e.stopPropagation();
-      const containerType = element.type === 'repeat-container' ? 'repeat-container' : 'regular';
-      onSelect(element.id, containerType);
-    }
-  };
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const getContainerStyles = () => {
     const baseStyles = "relative transition-all duration-200";
-    
+
     if (isSelected) {
-      return `${baseStyles} ring-2 ring-blue-500 bg-blue-50 bg-opacity-50`;
+      return `${baseStyles} ring-2 ring-blue-500`;
     }
-    
+
     if (isInContainerMode && isHovered) {
       return `${baseStyles} ring-1 ring-blue-300 bg-blue-50 bg-opacity-30 cursor-pointer`;
     }
-    
+
     return baseStyles;
+  };
+
+  const getElementName = () => {
+    if (element.type === "repeat-container") {
+      return element.repeatContainer;
+    }
+    if (
+      element.type === "element" ||
+      element.type === "img" ||
+      element.type === "picture"
+    ) {
+      return element.tagName;
+    }
+    return "container";
   };
 
   return (
     <div
       className={getContainerStyles()}
       data-container-id={element.id}
-      onClick={handleClick}
+      data-container-type={
+        element.type === "repeat-container" ? "repeat-container" : "regular"
+      }
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {children}
-      
+
       {/* Selection indicator */}
       {isSelected && (
         <div className="absolute -top-2 -left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
-          Selected: {element.type === 'repeat-container' ? element.repeatContainer : element.tagName}
+          Selected: {getElementName()}
         </div>
       )}
-      
+
       {/* Hover indicator in container mode */}
       {isInContainerMode && isHovered && !isSelected && (
         <div className="absolute -top-2 -left-2 bg-gray-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
-          Click to select: {element.type === 'repeat-container' ? element.repeatContainer : element.tagName}
+          Click to select: {getElementName()}
         </div>
       )}
     </div>
   );
 };
 
-interface PlaintextEditorProps {}
+export const PlaintextEditor: React.FC = () => {
+  const {
+    htmlInput,
+    parsedElements,
+    selection,
+    setHtmlInput,
+    setParsedElements,
+    setSelection,
+    handleItemAdd,
+    handleTextChange,
+    handleImageChange,
+  } = useEditorStore();
 
-interface SelectionState {
-  mode: 'container' | 'text' | 'repeat-item';
-  selectedContainerId: string | null;
-  selectedContainerType: 'repeat-container' | 'regular' | null;
-  selectedRepeatItemId: string | null;
-  selectedRepeatContainerId: string | null;
-}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const temporalStore = useEditorStore.temporal as any;
+  const { undo, redo, clear } = temporalStore;
+  const { pastStates, futureStates } = temporalStore.getState();
 
-export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
-  const [htmlInput, setHtmlInput] = useState(`<div class="min-h-screen bg-gray-50">
-  <!-- Hero Section with Image -->
-  <section class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <div class="text-center lg:text-left">
-          <h1 class="text-4xl md:text-6xl font-bold mb-6">Build the Future with AI</h1>
-          <p class="text-xl md:text-2xl mb-8 opacity-90">Transform your business with cutting-edge artificial intelligence solutions that drive innovation and growth.</p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Start Free Trial</button>
-            <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600">Watch Demo</button>
-          </div>
-        </div>
-        <div class="flex justify-center">
-          <picture class="w-full max-w-md">
-            <source media="(min-width: 768px)" srcset="">
-            <img src="" alt="AI Technology Dashboard" class="w-full h-auto rounded-lg shadow-2xl">
-          </picture>
-        </div>
-      </div>
-    </div>
-  </section>
+  // Resize functionality for 2-panel layout
+  const [leftPanelWidth, setLeftPanelWidth] = React.useState(80); // percentage
+  const [isResizing, setIsResizing] = React.useState(false);
+  const [startX, setStartX] = React.useState(0);
+  const [startWidth, setStartWidth] = React.useState(0);
 
-  <!-- Navigation Bar -->
-  <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center py-4">
-        <div class="flex items-center space-x-4">
-          <h2 class="text-2xl font-bold text-gray-900">TechCorp</h2>
-          <div class="hidden md:flex space-x-8 ml-8">
-            <a href="#" class="text-gray-600 hover:text-gray-900">Products</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">Solutions</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">About</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">Contact</a>
-          </div>
-        </div>
-        <div class="flex items-center space-x-4">
-          <button class="text-gray-600 hover:text-gray-900">Sign In</button>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Get Started</button>
-        </div>
-      </div>
-    </div>
-  </nav>
+  // Responsive preview settings
+  const [previewMode, setPreviewMode] = React.useState<
+    "mobile" | "tablet" | "desktop"
+  >("desktop");
+  const previewWidths = {
+    mobile: "375px",
+    tablet: "768px",
+    desktop: "100%",
+  };
 
-  <!-- Features Section -->
-  <section class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose TechCorp?</h3>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Our platform combines powerful AI capabilities with intuitive design to deliver results that matter.</p>
-      </div>
-      
-      <div class="grid md:grid-cols-2 gap-12 items-center mb-16">
-        <div>
-          <h4 class="text-2xl font-bold text-gray-900 mb-6">Advanced AI Dashboard</h4>
-          <div class="space-y-4">
-            <div class="flex items-start space-x-3">
-              <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span class="text-white text-xs">✓</span>
-              </div>
-              <p class="text-gray-600">Real-time data processing and analysis</p>
-            </div>
-            <div class="flex items-start space-x-3">
-              <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span class="text-white text-xs">✓</span>
-              </div>
-              <p class="text-gray-600">Customizable workflows and automations</p>
-            </div>
-            <div class="flex items-start space-x-3">
-              <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span class="text-white text-xs">✓</span>
-              </div>
-              <p class="text-gray-600">Enterprise-grade security and compliance</p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <picture class="w-full">
-            <source media="(min-width: 768px)" srcset="">
-            <img src="" alt="Dashboard Screenshot" class="w-full h-auto rounded-lg shadow-lg border">
-          </picture>
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8" data-repeat-container="features">
-        <div class="text-center p-6" data-repeat-item="feature-1">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Speed Icon" class="w-full h-full rounded-lg">
-          </picture>
-          <h4 class="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h4>
-          <p class="text-gray-600">Process data at incredible speeds with our optimized AI algorithms and cloud infrastructure.</p>
-        </div>
-        
-        <div class="text-center p-6" data-repeat-item="feature-2">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Security Icon" class="w-full h-full rounded-lg">
-          </picture>
-          <h4 class="text-xl font-semibold text-gray-900 mb-3">Enterprise Security</h4>
-          <p class="text-gray-600">Bank-level security with end-to-end encryption and compliance with global standards.</p>
-        </div>
-        
-        <div class="text-center p-6" data-repeat-item="feature-3">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Analytics Icon" class="w-full h-full rounded-lg">
-          </picture>
-          <h4 class="text-xl font-semibold text-gray-900 mb-3">Advanced Analytics</h4>
-          <p class="text-gray-600">Get deep insights with real-time analytics and customizable dashboards.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Stats Section -->
-  <section class="py-16 bg-gray-900 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" data-repeat-container="stats">
-        <div data-repeat-item="stat-1">
-          <div class="text-3xl md:text-4xl font-bold text-blue-400 mb-2">10M+</div>
-          <div class="text-gray-300">Users Worldwide</div>
-        </div>
-        <div data-repeat-item="stat-2">
-          <div class="text-3xl md:text-4xl font-bold text-green-400 mb-2">99.9%</div>
-          <div class="text-gray-300">Uptime Guarantee</div>
-        </div>
-        <div data-repeat-item="stat-3">
-          <div class="text-3xl md:text-4xl font-bold text-purple-400 mb-2">150+</div>
-          <div class="text-gray-300">Countries Served</div>
-        </div>
-        <div data-repeat-item="stat-4">
-          <div class="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">24/7</div>
-          <div class="text-gray-300">Customer Support</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-20 bg-blue-600 text-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h3 class="text-3xl md:text-4xl font-bold mb-6">Ready to Get Started?</h3>
-      <p class="text-xl mb-8 opacity-90">Join thousands of companies already using our platform to drive innovation.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Start Your Free Trial</button>
-        <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">Contact Sales</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-gray-300 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-4 gap-8">
-        <div>
-          <h5 class="text-white font-semibold mb-4">TechCorp</h5>
-          <p class="text-sm">Building the future of AI-powered solutions for businesses worldwide.</p>
-        </div>
-        <div>
-          <h6 class="text-white font-semibold mb-4">Product</h6>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white">Features</a></li>
-            <li><a href="#" class="hover:text-white">Pricing</a></li>
-            <li><a href="#" class="hover:text-white">API Docs</a></li>
-          </ul>
-        </div>
-        <div>
-          <h6 class="text-white font-semibold mb-4">Company</h6>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white">About Us</a></li>
-            <li><a href="#" class="hover:text-white">Careers</a></li>
-            <li><a href="#" class="hover:text-white">Blog</a></li>
-          </ul>
-        </div>
-        <div>
-          <h6 class="text-white font-semibold mb-4">Support</h6>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white">Help Center</a></li>
-            <li><a href="#" class="hover:text-white">Contact</a></li>
-            <li><a href="#" class="hover:text-white">Status</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
-        <p>&copy; 2024 TechCorp. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-</div>`);
-  
-  const [parsedElements, setParsedElements] = useState<any[]>([]);
-  const [textStates, setTextStates] = useState<{[key: string]: string}>({});
-  const [imageStates, setImageStates] = useState<{[key: string]: string}>({});
-  const [history, setHistory] = useState<Array<{[key: string]: string}>>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [selectionState, setSelectionState] = useState<SelectionState>({
-    mode: 'container',
-    selectedContainerId: null,
-    selectedContainerType: null,
-    selectedRepeatItemId: null,
-    selectedRepeatContainerId: null
-  });
-  const [clipboard, setClipboard] = useState<any>(null);
+  useEditorHotkeys();
 
   useEffect(() => {
-    parseAndRenderHTML(htmlInput);
+    // Set initial HTML input on mount
+    useEditorStore.setState({ htmlInput: INITIAL_HTML });
+    parseAndRenderHTML(INITIAL_HTML);
   }, []);
 
   const parseAndRenderHTML = (html: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const doc = parser.parseFromString(html, "text/html");
     const elements = processElement(doc.body.firstElementChild);
-    setParsedElements([elements]);
-    
-    // Initialize text states with original content
-    const initialTextStates: {[key: string]: string} = {};
-    const initialImageStates: {[key: string]: string} = {};
-    extractTextStates(elements, initialTextStates);
-    extractImageStates(elements, initialImageStates);
-    setTextStates(initialTextStates);
-    setImageStates(initialImageStates);
-    setHistory([initialTextStates]);
-    setHistoryIndex(0);
-  };
-
-  const extractTextStates = (element: any, states: {[key: string]: string}) => {
-    if (element && element.type === 'text') {
-      states[element.id] = element.content;
-    } else if (element && element.children) {
-      element.children.forEach((child: any) => extractTextStates(child, states));
+    if (elements) {
+      setParsedElements([elements]);
+      // Reset history for new HTML
+      if (clear) clear();
     }
   };
 
-  const extractImageStates = (element: any, states: {[key: string]: string}) => {
-    if (element && (element.type === 'img' || element.type === 'picture')) {
-      if (element.src) {
-        states[element.id] = element.src;
-      }
-    } else if (element && element.children) {
-      element.children.forEach((child: any) => extractImageStates(child, states));
-    }
-  };
-
-  const processElement = (element: Element | null): any => {
+  const processElement = (element: Element | null): ParsedElement | null => {
     if (!element) return null;
 
     const tagName = element.tagName.toLowerCase();
-    const className = element.getAttribute('class') || '';
-    const repeatContainer = element.getAttribute('data-repeat-container');
-    const repeatItem = element.getAttribute('data-repeat-item');
+    const className = element.getAttribute("class") || "";
+    const repeatContainer = element.getAttribute("data-repeat-container");
+    const repeatItem = element.getAttribute("data-repeat-item");
+    const id = Math.random().toString(36).substr(2, 9);
 
-    // Handle img tags specially
-    if (tagName === 'img') {
+    if (tagName === "img") {
       return {
-        type: 'img',
+        type: "img",
         tagName,
         className,
-        src: element.getAttribute('src') || '',
-        alt: element.getAttribute('alt') || '',
-        id: Math.random().toString(36).substr(2, 9),
-        repeatItem
+        src: element.getAttribute("src") || "",
+        alt: element.getAttribute("alt") || "",
+        id,
+        repeatItem: repeatItem || undefined,
       };
     }
 
-    // Handle picture tags specially
-    if (tagName === 'picture') {
-      // Find the img element inside picture
-      const imgElement = element.querySelector('img');
+    if (tagName === "picture") {
+      const imgElement = element.querySelector("img");
       return {
-        type: 'picture',
+        type: "picture",
         tagName,
         className,
-        src: imgElement?.getAttribute('src') || '',
-        alt: imgElement?.getAttribute('alt') || '',
-        id: Math.random().toString(36).substr(2, 9),
-        repeatItem
+        src: imgElement?.getAttribute("src") || "",
+        alt: imgElement?.getAttribute("alt") || "",
+        id,
+        repeatItem: repeatItem || undefined,
       };
     }
 
-    // Handle repeat containers
-    if (repeatContainer) {
-      const items: any[] = [];
-      const children: any[] = [];
-
-      for (let i = 0; i < element.childNodes.length; i++) {
-        const child = element.childNodes[i];
-        
-        if (child.nodeType === Node.ELEMENT_NODE) {
-          const childElement = child as Element;
-          const childRepeatItem = childElement.getAttribute('data-repeat-item');
-          
-          if (childRepeatItem) {
-            // This is a repeat item
-            const processedItem = processElement(childElement);
-            if (processedItem) {
-              processedItem.repeatItemId = childRepeatItem;
-              items.push(processedItem);
-            }
-          } else {
-            // Regular child element
-            const processedChild = processElement(childElement);
-            if (processedChild) {
-              children.push(processedChild);
-            }
-          }
-        } else if (child.nodeType === Node.TEXT_NODE) {
+    const children: ParsedElement[] = Array.from(element.childNodes)
+      .map((child) => {
+        if (child.nodeType === Node.TEXT_NODE) {
           const text = child.textContent?.trim();
           if (text) {
-            children.push({
-              type: 'text',
+            return {
+              type: "text",
               content: text,
-              id: Math.random().toString(36).substr(2, 9)
-            });
+              id: Math.random().toString(36).substr(2, 9),
+            } as ParsedElement;
           }
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          return processElement(child as Element);
         }
-      }
+        return null;
+      })
+      .filter((child): child is ParsedElement => child !== null);
+
+    if (repeatContainer) {
+      const items = children.filter(
+        (c) => c.type === "element" && c.repeatItem
+      ) as RegularElement[];
+      const nonItemChildren = children.filter(
+        (c) => !(c.type === "element" && c.repeatItem)
+      );
 
       return {
-        type: 'repeat-container',
+        type: "repeat-container",
         tagName,
         className,
         repeatContainer,
         items,
-        children,
-        id: Math.random().toString(36).substr(2, 9)
+        children: nonItemChildren,
+        id,
       };
-    }
-
-    // Regular element processing
-    const children: any[] = [];
-
-    for (let i = 0; i < element.childNodes.length; i++) {
-      const child = element.childNodes[i];
-      
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent?.trim();
-        if (text) {
-          children.push({
-            type: 'text',
-            content: text,
-            id: Math.random().toString(36).substr(2, 9)
-          });
-        }
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        const processedChild = processElement(child as Element);
-        if (processedChild) {
-          children.push(processedChild);
-        }
-      }
     }
 
     return {
-      type: 'element',
+      type: "element",
       tagName,
       className,
       children,
-      id: Math.random().toString(36).substr(2, 9),
-      repeatItem
+      id,
+      repeatItem: repeatItem || undefined,
     };
   };
 
-  const handleTextChange = (textId: string, newText: string) => {
-    const newStates = { ...textStates, [textId]: newText };
-    setTextStates(newStates);
-    
-    // Add to history
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newStates);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-
-    // Update parsed elements for undo/redo functionality
-    const updateElementText = (element: any): any => {
-      if (element.type === 'text' && element.id === textId) {
-        return { ...element, content: newText };
-      } else if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementText)
-        };
-      }
-      return element;
-    };
-
-    setParsedElements(prev => prev.map(updateElementText));
-  };
-
-  const handleImageChange = (imageId: string, newSrc: string) => {
-    const newImageStates = { ...imageStates, [imageId]: newSrc };
-    setImageStates(newImageStates);
-
-    // Update parsed elements for immediate visual feedback
-    const updateElementImage = (element: any): any => {
-      if ((element.type === 'img' || element.type === 'picture') && element.id === imageId) {
-        return { ...element, src: newSrc };
-      } else if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementImage)
-        };
-      }
-      return element;
-    };
-
-    setParsedElements(prev => prev.map(updateElementImage));
-  };
-
-  const handleItemAdd = (containerId: string) => {
-    // Find the container in parsed elements to get template
-    const findContainer = (element: any): any => {
-      if (element.type === 'repeat-container' && element.id === containerId) {
-        return element;
-      }
-      if (element.children) {
-        for (const child of element.children) {
-          const found = findContainer(child);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    const container = parsedElements.map(findContainer).find(Boolean);
-    if (!container || container.items.length === 0) return;
-
-    // Clone the first item as template
-    const template = container.items[0];
-    const newItem = JSON.parse(JSON.stringify(template));
-    
-    // Generate new IDs for all elements in the cloned item
-    const generateNewIds = (element: any): any => {
-      const newElement = { ...element };
-      newElement.id = Math.random().toString(36).substr(2, 9);
-      newElement.repeatItemId = `${container.repeatContainer}-${Date.now()}`;
-      
-      if (newElement.children) {
-        newElement.children = newElement.children.map(generateNewIds);
-      }
-      return newElement;
-    };
-
-    const clonedItem = generateNewIds(newItem);
-
-    // Update parsed elements
-    const updateElementsWithNewItem = (element: any): any => {
-      if (element.type === 'repeat-container' && element.id === containerId) {
-        return {
-          ...element,
-          items: [...element.items, clonedItem]
-        };
-      }
-      if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementsWithNewItem)
-        };
-      }
-      return element;
-    };
-
-    setParsedElements(prev => prev.map(updateElementsWithNewItem));
-  };
-
-  const handleItemDelete = (containerId: string, itemId: string) => {
-    const updateElementsWithDeletedItem = (element: any): any => {
-      if (element.type === 'repeat-container' && element.id === containerId) {
-        return {
-          ...element,
-          items: element.items.filter((item: any) => item.id !== itemId)
-        };
-      }
-      if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementsWithDeletedItem)
-        };
-      }
-      return element;
-    };
-
-    setParsedElements(prev => prev.map(updateElementsWithDeletedItem));
-  };
-
-
-  const handleRepeatItemCopy = (containerId: string, itemId: string) => {
-    // Find the item to copy
-    const findItem = (element: any): any => {
-      if (element.type === 'repeat-container' && element.id === containerId) {
-        return element.items.find((item: any) => item.id === itemId);
-      }
-      if (element.children) {
-        for (const child of element.children) {
-          const found = findItem(child);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    const itemToCopy = parsedElements.map(findItem).find(Boolean);
-    if (itemToCopy) {
-      setClipboard({
-        type: 'repeat-item',
-        data: JSON.parse(JSON.stringify(itemToCopy)),
-        sourceContainerId: containerId
-      });
-    }
-  };
-
-  const handleRepeatItemCut = (containerId: string, itemId: string) => {
-    handleRepeatItemCopy(containerId, itemId);
-    handleItemDelete(containerId, itemId);
-  };
-
-  const handleRepeatItemPaste = (containerId: string, targetIndex?: number) => {
-    if (!clipboard || clipboard.type !== 'repeat-item') return;
-
-    const clonedItem = JSON.parse(JSON.stringify(clipboard.data));
-    
-    // Generate new IDs for the pasted item
-    const generateNewIds = (element: any): any => {
-      const newElement = { ...element };
-      newElement.id = Math.random().toString(36).substr(2, 9);
-      if (newElement.repeatItemId) {
-        newElement.repeatItemId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-      }
-      
-      if (newElement.children) {
-        newElement.children = newElement.children.map(generateNewIds);
-      }
-      return newElement;
-    };
-
-    const pastedItem = generateNewIds(clonedItem);
-
-    // Determine insertion index
-    let insertIndex = targetIndex;
-    
-    // If no target index provided, check if there's a selected item
-    if (insertIndex === undefined && selectionState.selectedRepeatItemId && selectionState.selectedRepeatContainerId === containerId) {
-      // Find the index of the selected item and insert after it
-      const findItemIndex = (element: any): number => {
-        if (element.type === 'repeat-container' && element.id === containerId) {
-          const selectedIndex = element.items.findIndex((item: any) => item.id === selectionState.selectedRepeatItemId);
-          return selectedIndex >= 0 ? selectedIndex + 1 : element.items.length;
-        }
-        if (element.children) {
-          for (const child of element.children) {
-            const index = findItemIndex(child);
-            if (index >= 0) return index;
-          }
-        }
-        return -1;
-      };
-      
-      insertIndex = parsedElements.map(findItemIndex).find(idx => idx >= 0) || 0;
-    }
-    
-    // Default to end if still no index
-    if (insertIndex === undefined) {
-      insertIndex = Number.MAX_SAFE_INTEGER;
-    }
-
-    // Update parsed elements to add the pasted item
-    const updateElementsWithPastedItem = (element: any): any => {
-      if (element.type === 'repeat-container' && element.id === containerId) {
-        const newItems = [...element.items];
-        const finalIndex = Math.min(insertIndex!, newItems.length);
-        newItems.splice(finalIndex, 0, pastedItem);
-        
-        return {
-          ...element,
-          items: newItems
-        };
-      }
-      if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementsWithPastedItem)
-        };
-      }
-      return element;
-    };
-
-    setParsedElements(prev => prev.map(updateElementsWithPastedItem));
-  };
-
-  const handleContainerSelect = (containerId: string, containerType: 'repeat-container' | 'regular') => {
-    setSelectionState({
-      mode: 'text',
+  const handleContainerSelect = (
+    containerId: string,
+    containerType: "repeat-container" | "regular"
+  ) => {
+    setSelection({
+      mode: "container",
       selectedContainerId: containerId,
       selectedContainerType: containerType,
       selectedRepeatItemId: null,
-      selectedRepeatContainerId: null
+      selectedRepeatContainerId: null,
     });
   };
 
   const handleContainerDeselect = () => {
-    setSelectionState({
-      mode: 'container',
+    setSelection({
+      mode: "container",
       selectedContainerId: null,
       selectedContainerType: null,
       selectedRepeatItemId: null,
-      selectedRepeatContainerId: null
+      selectedRepeatContainerId: null,
     });
   };
 
   const handleRepeatItemSelect = (containerId: string, itemId: string) => {
-    setSelectionState({
-      mode: 'repeat-item',
-      selectedContainerId: null,
-      selectedContainerType: null,
+    setSelection({
+      mode: "repeat-item",
+      selectedContainerId: containerId,
+      selectedContainerType: "repeat-container",
       selectedRepeatItemId: itemId,
-      selectedRepeatContainerId: containerId
+      selectedRepeatContainerId: containerId,
+    });
+  };
+
+  const handleTextSelect = () => {
+    setSelection({
+      ...selection,
+      mode: "text",
+      selectedRepeatItemId: null,
+      selectedRepeatContainerId: null,
     });
   };
 
   const handleDocumentClick = (e: React.MouseEvent) => {
-    // If clicking outside any container in container mode, ensure we stay in container mode
-    if (selectionState.mode === 'text') {
-      // Check if clicked outside the selected container
-      const target = e.target as HTMLElement;
-      const selectedContainer = document.querySelector(`[data-container-id="${selectionState.selectedContainerId}"]`);
-      
-      if (selectedContainer && !selectedContainer.contains(target)) {
-        handleContainerDeselect();
+    const target = e.target as HTMLElement;
+
+    const containerEl = target.closest<HTMLElement>("[data-container-id]");
+    const repeatItemEl = target.closest<HTMLElement>("[data-repeat-item-id]");
+
+    // 1. Clicked outside any container, deselect all.
+    if (!containerEl) {
+      handleContainerDeselect();
+      return;
+    }
+
+    const clickedContainerId = containerEl.dataset.containerId!;
+    const clickedContainerType = containerEl.dataset.containerType as
+      | "repeat-container"
+      | "regular";
+    const clickedRepeatItemId = repeatItemEl?.dataset.repeatItemId || null;
+
+    const { mode, selectedContainerId } = selection;
+
+    // 2. A different container is clicked, select it and reset.
+    if (selectedContainerId && selectedContainerId !== clickedContainerId) {
+      handleContainerSelect(clickedContainerId, clickedContainerType);
+      return;
+    }
+
+    // 3. No container is selected yet, select the clicked one.
+    if (!selectedContainerId) {
+      handleContainerSelect(clickedContainerId, clickedContainerType);
+      return;
+    }
+
+    // 4. From here, a container is selected and the click is within it.
+    // The logic now follows the mode priority.
+
+    if (mode === "container") {
+      // In container mode, we prioritize sub-selections based on what was clicked.
+      if (clickedRepeatItemId) {
+        handleRepeatItemSelect(clickedContainerId, clickedRepeatItemId);
+      } else {
+        handleTextSelect();
+      }
+    } else if (mode === "repeat-item") {
+      // In repeat-item mode, we prioritize repeat-items.
+      if (clickedRepeatItemId) {
+        handleRepeatItemSelect(clickedContainerId, clickedRepeatItemId);
+      } else {
+        handleTextSelect(); // Fallback to text selection.
+      }
+    } else if (mode === "text") {
+      // In text mode, text is priority, but repeat-items can override.
+      if (clickedRepeatItemId) {
+        handleRepeatItemSelect(clickedContainerId, clickedRepeatItemId);
+      } else {
+        // Already in text mode, no state change needed. Let browser handle focus.
       }
     }
   };
 
-  // Add keyboard event handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if we're currently editing text (focused on a contentEditable element)
-      const activeElement = document.activeElement;
-      const isEditingText = activeElement && (
-        activeElement.hasAttribute('contenteditable') ||
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA'
-      );
-
-      // Handle ESC for container deselection (but not during text editing)
-      if (e.key === 'Escape' && !isEditingText) {
-        handleContainerDeselect();
-        return;
+  const isElementInSelectedContainer = (
+    element: ParsedElement,
+    selectionState: SelectionState
+  ): boolean => {
+    // This function needs to be pure and not rely on component scope state
+    // Let's implement this logic purely based on inputs
+    const findInTree = (root: ParsedElement, targetId: string): boolean => {
+      if (root.id === targetId) return true;
+      if ("children" in root && root.children) {
+        if (root.children.some((child) => findInTree(child, targetId)))
+          return true;
       }
-
-      // Skip repeat item operations if we're editing text
-      if (isEditingText) {
-        // Only allow global undo/redo during text editing
-        if (e.metaKey || e.ctrlKey) {
-          if (e.key === 'z' || e.key === 'Z') {
-            e.preventDefault();
-            
-            if (e.shiftKey) {
-              // Shift+Cmd+Z or Shift+Ctrl+Z for Redo
-              handleRedo();
-            } else {
-              // Cmd+Z or Ctrl+Z for Undo
-              handleUndo();
-            }
-          }
-        }
-        return; // Exit early, don't process repeat item operations
+      if ("items" in root && root.items) {
+        if (root.items.some((item) => findInTree(item, targetId))) return true;
       }
-
-      // Handle repeat item operations when an item is selected (and not editing text)
-      if (selectionState.mode === 'repeat-item' && selectionState.selectedRepeatItemId && selectionState.selectedRepeatContainerId) {
-        const containerId = selectionState.selectedRepeatContainerId;
-        const itemId = selectionState.selectedRepeatItemId;
-
-        // Delete or Backspace - Delete item
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-          e.preventDefault();
-          handleItemDelete(containerId, itemId);
-          return;
-        }
-
-        // Cmd/Ctrl shortcuts
-        if (e.metaKey || e.ctrlKey) {
-          switch (e.key.toLowerCase()) {
-            case 'c':
-              // Cmd+C - Copy item
-              e.preventDefault();
-              handleRepeatItemCopy(containerId, itemId);
-              return;
-            
-            case 'x':
-              // Cmd+X - Cut item
-              e.preventDefault();
-              handleRepeatItemCut(containerId, itemId);
-              return;
-            
-            case 'v':
-              // Cmd+V - Paste item after selected item
-              e.preventDefault();
-              if (clipboard && clipboard.type === 'repeat-item') {
-                handleRepeatItemPaste(containerId);
-              }
-              return;
-          }
-        }
-      }
-
-      // Handle global Cmd+Z (Undo) and Shift+Cmd+Z (Redo)
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 'z' || e.key === 'Z') {
-          e.preventDefault();
-          
-          if (e.shiftKey) {
-            // Shift+Cmd+Z or Shift+Ctrl+Z for Redo
-            handleRedo();
-          } else {
-            // Cmd+Z or Ctrl+Z for Undo
-            handleUndo();
-          }
-        }
-      }
+      return false;
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectionState, clipboard, historyIndex, history.length]);
-
-  const isElementInSelectedContainer = (element: any): boolean => {
-    // Check for text mode (selected container)
-    if (selectionState.mode === 'text' && selectionState.selectedContainerId) {
-      const findParentContainer = (el: any, targetId: string): boolean => {
-        if (el.id === targetId) return true;
-        if (el.children) {
-          return el.children.some((child: any) => findParentContainer(child, targetId));
+    if (selectionState.mode === "text" && selectionState.selectedContainerId) {
+      // Find the selected container in the tree
+      const findContainer = (
+        elements: ParsedElement[]
+      ): ParsedElement | null => {
+        for (const el of elements) {
+          if (el.id === selectionState.selectedContainerId) return el;
+          if ("children" in el && el.children) {
+            const found = findContainer(el.children);
+            if (found) return found;
+          }
+          if ("items" in el && el.items) {
+            const found = findContainer(el.items);
+            if (found) return found;
+          }
         }
-        // Also check items for repeat containers
-        if (el.items) {
-          return el.items.some((item: any) => findParentContainer(item, targetId));
-        }
-        return false;
+        return null;
       };
-
-      return parsedElements.some(rootEl => {
-        const findElement = (el: any): boolean => {
-          if (el.id === selectionState.selectedContainerId) {
-            return findParentContainer(el, element.id);
-          }
-          if (el.children) {
-            return el.children.some(findElement);
-          }
-          if (el.items) {
-            return el.items.some(findElement);
-          }
-          return false;
-        };
-        return findElement(rootEl);
-      });
+      const container = findContainer(parsedElements);
+      return container ? findInTree(container, element.id) : false;
     }
 
-    // Check for repeat-item mode (selected repeat item)
-    if (selectionState.mode === 'repeat-item' && selectionState.selectedRepeatItemId) {
-      const findParentContainer = (el: any, targetId: string): boolean => {
-        if (el.id === targetId) return true;
-        if (el.children) {
-          return el.children.some((child: any) => findParentContainer(child, targetId));
+    if (
+      selectionState.mode === "repeat-item" &&
+      selectionState.selectedRepeatItemId
+    ) {
+      const findItem = (elements: ParsedElement[]): ParsedElement | null => {
+        for (const el of elements) {
+          if (el.id === selectionState.selectedRepeatItemId) return el;
+          if ("children" in el && el.children) {
+            const found = findItem(el.children);
+            if (found) return found;
+          }
+          if ("items" in el && el.items) {
+            const found = findItem(el.items);
+            if (found) return found;
+          }
         }
-        return false;
+        return null;
       };
-
-      return parsedElements.some(rootEl => {
-        const findRepeatItem = (el: any): boolean => {
-          if (el.type === 'repeat-container' && el.items) {
-            const targetItem = el.items.find((item: any) => item.id === selectionState.selectedRepeatItemId);
-            if (targetItem) {
-              return findParentContainer(targetItem, element.id);
-            }
-          }
-          if (el.children) {
-            return el.children.some(findRepeatItem);
-          }
-          return false;
-        };
-        return findRepeatItem(rootEl);
-      });
+      const item = findItem(parsedElements);
+      return item ? findInTree(item, element.id) : false;
     }
 
     return false;
   };
 
-  const renderElement = (element: any): React.ReactNode => {
-    const isInSelectedContainer = isElementInSelectedContainer(element);
-    const canEditText = (selectionState.mode === 'text' || selectionState.mode === 'repeat-item') && isInSelectedContainer;
+  const renderElement = (element: ParsedElement): React.ReactNode => {
+    const isInSelectedContainer = isElementInSelectedContainer(
+      element,
+      selection
+    );
+    const canEditText =
+      selection.mode === "text" || selection.mode === "repeat-item"
+        ? isInSelectedContainer
+        : false;
 
-    if (element.type === 'text') {
-      const currentContent = textStates[element.id] || element.content;
+    if (element.type === "text") {
       return (
         <EditableText
           key={element.id}
           elementId={element.id}
-          text={currentContent}
+          text={element.content}
           onTextChange={(newText) => handleTextChange(element.id, newText)}
           isEditable={canEditText}
         />
       );
-    } else if (element.type === 'img' || element.type === 'picture') {
-      const currentSrc = imageStates[element.id] || element.src;
+    }
+
+    if (element.type === "img" || element.type === "picture") {
       return (
         <EditableImage
           key={element.id}
           elementId={element.id}
-          src={currentSrc}
+          src={element.src}
           alt={element.alt}
           className={element.className}
           onImageChange={(newSrc) => handleImageChange(element.id, newSrc)}
         />
       );
-    } else if (element.type === 'repeat-container') {
-      const isSelected = selectionState.selectedContainerId === element.id;
-      const selectedItemId = selectionState.selectedRepeatContainerId === element.id ? selectionState.selectedRepeatItemId : null;
-      
+    }
+
+    if (element.type === "repeat-container") {
+      const isSelected = selection.selectedContainerId === element.id;
+      const selectedItemId =
+        selection.selectedRepeatContainerId === element.id
+          ? selection.selectedRepeatItemId
+          : null;
+
       const repeatContainer = (
         <RepeatableContainer
           key={element.id}
@@ -1228,7 +780,6 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           items={element.items}
           selectedItemId={selectedItemId}
           onItemAdd={handleItemAdd}
-          onItemSelect={handleRepeatItemSelect}
           renderItem={renderElement}
         />
       );
@@ -1238,30 +789,29 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           key={`selectable-${element.id}`}
           element={element}
           isSelected={isSelected}
-          isInContainerMode={selectionState.mode === 'container'}
-          onSelect={handleContainerSelect}
+          isInContainerMode={selection.mode === "container"}
         >
           {repeatContainer}
         </SelectableContainer>
       );
-    } else if (element.type === 'element') {
+    }
+
+    if (element.type === "element") {
       const Tag = element.tagName as keyof React.JSX.IntrinsicElements;
-      const isSelected = selectionState.selectedContainerId === element.id;
+      const isSelected = selection.selectedContainerId === element.id;
       const regularElement = React.createElement(
         Tag,
         { key: element.id, className: element.className },
         element.children.map(renderElement)
       );
 
-      // Only wrap section elements with SelectableContainer
-      if (element.tagName === 'section') {
+      if (element.tagName === "section") {
         return (
           <SelectableContainer
             key={`selectable-${element.id}`}
             element={element}
             isSelected={isSelected}
-            isInContainerMode={selectionState.mode === 'container'}
-            onSelect={handleContainerSelect}
+            isInContainerMode={selection.mode === "container"}
           >
             {regularElement}
           </SelectableContainer>
@@ -1273,128 +823,219 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
     return null;
   };
 
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1;
-      setHistoryIndex(newIndex);
-      const historicalStates = history[newIndex];
-      setTextStates(historicalStates);
-      applyStates(historicalStates);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1;
-      setHistoryIndex(newIndex);
-      const historicalStates = history[newIndex];
-      setTextStates(historicalStates);
-      applyStates(historicalStates);
-    }
-  };
-
-  const applyStates = (states: {[key: string]: string}) => {
-    const updateElementsWithStates = (element: any): any => {
-      if (element.type === 'text') {
-        const content = states[element.id] || element.content;
-        return { ...element, content };
-      } else if (element.children) {
-        return {
-          ...element,
-          children: element.children.map(updateElementsWithStates)
-        };
-      }
-      return element;
-    };
-    
-    setParsedElements(prev => prev.map(updateElementsWithStates));
-  };
-
   const handleNewHTML = () => {
     parseAndRenderHTML(htmlInput);
   };
 
+  // Resize handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsResizing(true);
+    setStartX(e.clientX);
+    setStartWidth(leftPanelWidth);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  const handleMouseMove = React.useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      const deltaX = e.clientX - startX;
+      const containerWidth = window.innerWidth;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const newWidth = Math.min(Math.max(startWidth + deltaPercent, 20), 80);
+
+      setLeftPanelWidth(newWidth);
+    },
+    [isResizing, startX, startWidth]
+  );
+
+  const handleMouseUp = React.useCallback(() => {
+    setIsResizing(false);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }, []);
+
+  // Add event listeners for resize
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        {/* Left Panel - Rendered Output */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        {/* Left Panel - Responsive Preview */}
+        <div
+          className="p-6 overflow-y-auto bg-gray-100 flex flex-col"
+          style={{ width: `${leftPanelWidth}%` }}
+        >
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Live Preview
-              </h2>
-              <div className="flex items-center gap-2">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  selectionState.mode === 'container' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : selectionState.mode === 'repeat-item'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {selectionState.mode === 'container' ? '📦 Container Mode' : 
-                   selectionState.mode === 'repeat-item' ? '🔧 Item Mode' : '✏️ Text Mode'}
-                </div>
-                {(selectionState.selectedContainerId || selectionState.selectedRepeatItemId) && (
-                  <button
-                    onClick={handleContainerDeselect}
-                    className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
-                    title="Press ESC or click to deselect"
-                  >
-                    ✕ Clear Selection
-                  </button>
-                )}
+              <Eye className="w-5 h-5 text-gray-700" />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPreviewMode("mobile")}
+                  className={`p-2 rounded transition-colors ${
+                    previewMode === "mobile"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                  title="Mobile view (375px)"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewMode("tablet")}
+                  className={`p-2 rounded transition-colors ${
+                    previewMode === "tablet"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                  title="Tablet view (768px)"
+                >
+                  <Tablet className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewMode("desktop")}
+                  className={`p-2 rounded transition-colors ${
+                    previewMode === "desktop"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                  title="Desktop view (100%)"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleUndo}
-                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors disabled:opacity-50"
-                disabled={historyIndex <= 0}
-                title={`Undo (${historyIndex} available)`}
+            <div className="flex items-center gap-2">
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  selection.mode === "container"
+                    ? "bg-blue-100 text-blue-700"
+                    : selection.mode === "repeat-item"
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+                title={`Current mode: ${
+                  selection.mode === "container"
+                    ? "Container Mode"
+                    : selection.mode === "repeat-item"
+                    ? "Item Mode"
+                    : "Text Mode"
+                }`}
               >
-                ↶ Undo
+                {selection.mode === "container"
+                  ? "C"
+                  : selection.mode === "repeat-item"
+                  ? "I"
+                  : "T"}
+              </div>
+              {(selection.selectedContainerId ||
+                selection.selectedRepeatItemId) && (
+                <button
+                  onClick={handleContainerDeselect}
+                  className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  title="Clear selection (ESC)"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+              <button
+                onClick={undo}
+                className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+                disabled={!pastStates || pastStates.length === 0}
+                title={`Undo (${pastStates?.length || 0} available)`}
+              >
+                <Undo2 className="w-4 h-4" />
               </button>
               <button
-                onClick={handleRedo}
-                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors disabled:opacity-50"
-                disabled={historyIndex >= history.length - 1}
-                title={`Redo (${history.length - 1 - historyIndex} available)`}
+                onClick={redo}
+                className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+                disabled={!futureStates || futureStates.length === 0}
+                title={`Redo (${futureStates?.length || 0} available)`}
               >
-                ↷ Redo
+                <Redo2 className="w-4 h-4" />
               </button>
             </div>
           </div>
-          
-          <div 
-            className="bg-white rounded-lg shadow-sm border min-h-full"
-            onClick={handleDocumentClick}
-          >
-            <div className="p-4">
-              {parsedElements.map(renderElement)}
+
+          <div className="flex-1 flex justify-center items-start">
+            <div
+              className="bg-white rounded-lg shadow-lg border transition-all duration-300"
+              style={{
+                width: previewWidths[previewMode],
+                maxWidth: "100%",
+                minHeight:
+                  previewMode === "mobile"
+                    ? "667px"
+                    : previewMode === "tablet"
+                    ? "1024px"
+                    : "600px",
+              }}
+              onClick={handleDocumentClick}
+            >
+              <div className="p-4 h-full overflow-y-auto">
+                {parsedElements.map(renderElement)}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <div className="text-xs text-gray-500">
+              {previewWidths[previewMode]}
+              {previewMode === "mobile" && " × 667px"}
+              {previewMode === "tablet" && " × 1024px"}
             </div>
           </div>
         </div>
 
-        {/* Right Panel - HTML Input */}
-        <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+        {/* Resize Handle */}
+        <div
+          className={`w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors duration-150 flex-shrink-0 ${
+            isResizing ? "bg-blue-500" : ""
+          }`}
+          onMouseDown={handleMouseDown}
+          title="Drag to resize panels"
+        >
+          <div className="w-full h-full relative">
+            <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-white opacity-50"></div>
+          </div>
+        </div>
+
+        {/* Right Panel - HTML Source */}
+        <div
+          className="bg-white border-l border-gray-200 flex flex-col"
+          style={{ width: `${100 - leftPanelWidth}%` }}
+        >
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">HTML Source</h3>
-            <p className="text-sm text-gray-600 mb-4">Edit the TailwindCSS HTML below</p>
-            
+            <div className="flex items-center gap-2 mb-4">
+              <Code2 className="w-5 h-5 text-gray-700" />
+              <span className="text-sm text-gray-600">TailwindCSS HTML</span>
+            </div>
+
             <button
               onClick={handleNewHTML}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mb-4"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mb-4 flex items-center justify-center gap-2"
+              title="Apply HTML changes"
             >
-              Apply Changes
+              <Eye className="w-4 h-4" />
+              Apply
             </button>
 
             <div className="flex justify-between text-xs text-gray-500">
-              <span>History: {history.length} steps</span>
-              <span>Index: {historyIndex}</span>
+              <span>History: {pastStates?.length || 0}</span>
+              <span>Future: {futureStates?.length || 0}</span>
             </div>
           </div>
-          
+
           <div className="flex-1 p-4">
             <textarea
               value={htmlInput}
@@ -1406,15 +1047,32 @@ export const PlaintextEditor: React.FC<PlaintextEditorProps> = () => {
           </div>
 
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <h4 className="font-semibold text-gray-900 mb-2 text-sm">Keyboard Shortcuts:</h4>
-            <ul className="text-xs text-gray-600 space-y-1">
-              <li>• <strong>ESC:</strong> Return to container mode</li>
-              <li>• <strong>⌘+C:</strong> Copy selected item</li>
-              <li>• <strong>⌘+X:</strong> Cut selected item</li>
-              <li>• <strong>⌘+V:</strong> Paste after selected item</li>
-              <li>• <strong>Delete/BS:</strong> Delete selected item</li>
-              <li>• <strong>⌘+Z/⇧+⌘+Z:</strong> Undo/Redo changes</li>
-            </ul>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div className="flex items-center gap-2">
+                <kbd className="bg-gray-100 px-1 rounded text-xs">ESC</kbd>
+                <span>Deselect</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Copy className="w-3 h-3" />
+                <kbd className="bg-gray-100 px-1 rounded text-xs">⌘+C</kbd>
+                <span>Copy</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Scissors className="w-3 h-3" />
+                <kbd className="bg-gray-100 px-1 rounded text-xs">⌘+X</kbd>
+                <span>Cut</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clipboard className="w-3 h-3" />
+                <kbd className="bg-gray-100 px-1 rounded text-xs">⌘+V</kbd>
+                <span>Paste</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Trash2 className="w-3 h-3" />
+                <kbd className="bg-gray-100 px-1 rounded text-xs">Del</kbd>
+                <span>Delete</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
