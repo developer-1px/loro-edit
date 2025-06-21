@@ -1,7 +1,7 @@
-import { PlaintextEditor } from './components/PlaintextEditor'
+import { PluginBasedEditor } from './components/PluginBasedEditor'
 
 function App() {
-  return <PlaintextEditor />
+  return <PluginBasedEditor />
 }
 
 export default App
