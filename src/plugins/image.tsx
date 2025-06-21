@@ -3,11 +3,11 @@
 import React, { useState } from "react";
 import type { Plugin } from "./types";
 import type { ImageElement } from "../types";
+import { useEditorStore } from "../store/editorStore";
 
 interface EditableImageProps {
   src?: string;
   alt?: string;
-  onImageChange: (newSrc: string) => void;
   className?: string;
   elementId: string;
 }
@@ -15,17 +15,17 @@ interface EditableImageProps {
 const EditableImage: React.FC<EditableImageProps> = ({
   src,
   alt,
-  onImageChange,
   className,
   elementId,
 }) => {
   const [dragOver, setDragOver] = useState(false);
+  const handleImageChange = useEditorStore((state) => state.handleImageChange);
 
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        onImageChange(e.target.result as string);
+        handleImageChange(elementId, e.target.result as string);
       }
     };
     reader.readAsDataURL(file);
@@ -157,7 +157,7 @@ export const imagePlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, context }) => {
+  render: ({ parsedElement }) => {
     const imageElement = parsedElement as ImageElement;
 
     return (
@@ -167,9 +167,6 @@ export const imagePlugin: Plugin = {
         src={imageElement.src}
         alt={imageElement.alt}
         className={imageElement.className}
-        onImageChange={(newSrc) =>
-          context.handleImageChange(imageElement.id, newSrc)
-        }
       />
     );
   },

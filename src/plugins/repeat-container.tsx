@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import type { Plugin } from "./types";
 import type { RepeatContainer, RegularElement } from "../types";
+import { useEditorStore } from "../store/editorStore";
 
 interface RepeatableItemProps {
   item: RegularElement;
@@ -60,8 +61,6 @@ interface RepeatableContainerProps {
   containerName: string;
   className?: string;
   items: RegularElement[];
-  selectedItemId: string | null;
-  onItemAdd: (containerId: string) => void;
   renderItem: (item: RegularElement) => React.ReactNode;
   showHoverEffects?: boolean;
 }
@@ -71,12 +70,16 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
   containerName,
   className,
   items,
-  selectedItemId,
-  onItemAdd,
   renderItem,
   showHoverEffects = false,
 }) => {
   const [showAddButton, setShowAddButton] = useState(false);
+  const handleItemAdd = useEditorStore((state) => state.handleItemAdd);
+  const selection = useEditorStore((state) => state.selection);
+  const selectedItemId =
+    selection.selectedRepeatContainerId === containerId
+      ? selection.selectedRepeatItemId
+      : null;
 
   return (
     <div
@@ -101,7 +104,7 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
       {showAddButton && (
         <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
           <button
-            onClick={() => onItemAdd(containerId)}
+            onClick={() => handleItemAdd(containerId)}
             className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 shadow-lg flex items-center gap-1"
             title={`Add new ${containerName}`}
           >
@@ -113,7 +116,6 @@ const RepeatableContainer: React.FC<RepeatableContainerProps> = ({
     </div>
   );
 };
-
 
 export const repeatContainerPlugin: Plugin = {
   name: "repeat-container",
@@ -142,13 +144,8 @@ export const repeatContainerPlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, context, renderElement, showHoverEffects }) => {
+  render: ({ parsedElement, renderElement, showHoverEffects }) => {
     const repeatElement = parsedElement as RepeatContainer;
-    
-    // 현재 선택된 반복 요소 ID 확인
-    const selectedItemId = context.selection.selectedRepeatContainerId === repeatElement.id 
-      ? context.selection.selectedRepeatItemId 
-      : null;
 
     // 컨테이너 자체는 선택 불가능하고, 내부 반복 요소만 선택 가능
     return (
@@ -158,8 +155,6 @@ export const repeatContainerPlugin: Plugin = {
         containerName={repeatElement.repeatContainer}
         className={repeatElement.className}
         items={repeatElement.items}
-        selectedItemId={selectedItemId}
-        onItemAdd={context.handleItemAdd}
         renderItem={renderElement}
         showHoverEffects={showHoverEffects}
       />

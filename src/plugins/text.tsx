@@ -1,41 +1,40 @@
 // src/plugins/text.tsx
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import type { Plugin } from './types';
-import type { TextElement } from '../types';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import type { Plugin } from "./types";
+import type { TextElement } from "../types";
+import { useEditorStore } from "../store/editorStore";
 
 interface EditableTextProps {
   text: string;
-  onTextChange: (newText: string) => void;
   className?: string;
   elementId: string;
   isEditable?: boolean;
   showHoverEffects?: boolean;
-  isTextMode?: boolean; // 텍스트 모드인지 여부
 }
 
 const EditableText: React.FC<EditableTextProps> = ({
   text,
-  onTextChange,
   className,
   elementId,
   isEditable = true,
   showHoverEffects = false,
-  isTextMode = false,
 }) => {
-  const [currentText, setCurrentText] = useState(text || '');
+  const [currentText, setCurrentText] = useState(text || "");
   const textRef = useRef<HTMLSpanElement>(null);
-  const originalTextRef = useRef<string>(text || '');
+  const originalTextRef = useRef<string>(text || "");
   const isCommittingRef = useRef<boolean>(false);
+  const handleTextChange = useEditorStore((state) => state.handleTextChange);
+  const isTextMode = useEditorStore((state) => state.selection.mode === "text");
 
   // Update current text when prop changes
   useEffect(() => {
     if (!isCommittingRef.current) {
-      setCurrentText(text || '');
-      originalTextRef.current = text || '';
+      setCurrentText(text || "");
+      originalTextRef.current = text || "";
       if (textRef.current) {
         // Convert <br/> tags to line breaks for editing
-        const editableText = (text || '').replace(/<br\s*\/?>/gi, "\n");
+        const editableText = (text || "").replace(/<br\s*\/?>/gi, "\n");
         textRef.current.textContent = editableText;
       }
     }
@@ -52,7 +51,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   const handleFocus = useCallback(() => {
     if (textRef.current && isEditable) {
       // Convert <br/> tags to line breaks for editing
-      const editableText = (currentText || '').replace(/<br\s*\/?>/gi, "\n");
+      const editableText = (currentText || "").replace(/<br\s*\/?>/gi, "\n");
       textRef.current.textContent = editableText;
     }
   }, [currentText, isEditable]);
@@ -69,7 +68,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       // Only trigger change if text actually changed
       const originalHtml = originalTextRef.current.replace(/\n/g, "<br/>");
       if (htmlText !== originalHtml) {
-        onTextChange(htmlText);
+        handleTextChange(elementId, htmlText);
       }
 
       // Reset commit flag after a short delay
@@ -77,7 +76,7 @@ const EditableText: React.FC<EditableTextProps> = ({
         isCommittingRef.current = false;
       }, 100);
     }
-  }, [onTextChange]);
+  }, [handleTextChange, elementId]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -107,8 +106,9 @@ const EditableText: React.FC<EditableTextProps> = ({
     const baseStyles = `${className} rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`;
 
     // 텍스트 모드에서는 편집 가능하지 않아도 cursor-text 적용
-    const cursorStyle = (isTextMode || isEditable) ? 'cursor-text' : 'cursor-default';
-    
+    const cursorStyle =
+      isTextMode || isEditable ? "cursor-text" : "cursor-default";
+
     if (!isEditable) {
       return `${baseStyles} ${cursorStyle}`;
     }
@@ -158,10 +158,10 @@ const EditableText: React.FC<EditableTextProps> = ({
 };
 
 export const textPlugin: Plugin = {
-  name: 'text',
-  version: '1.0.0',
-  description: 'Handles text elements with inline editing capabilities',
-  
+  name: "text",
+  version: "1.0.0",
+  description: "Handles text elements with inline editing capabilities",
+
   match: (element: Element) => {
     // Only match actual text nodes, not element nodes
     return element.nodeType === Node.TEXT_NODE;
@@ -171,28 +171,26 @@ export const textPlugin: Plugin = {
     // Only parse text nodes
     if (element.nodeType === Node.TEXT_NODE) {
       return {
-        type: 'text' as const,
+        type: "text" as const,
         id: crypto.randomUUID(),
-        content: element.textContent || ''
+        content: element.textContent || "",
       };
     }
-    
+
     return null;
   },
 
-  render: ({ parsedElement, context, canEditText, showHoverEffects }) => {
+  render: ({ parsedElement, canEditText, showHoverEffects }) => {
     const textElement = parsedElement as TextElement;
-    
+
     return (
       <EditableText
         key={textElement.id}
         elementId={textElement.id}
         text={textElement.content}
-        onTextChange={(newText) => context.handleTextChange(textElement.id, newText)}
         isEditable={canEditText}
         showHoverEffects={showHoverEffects}
-        isTextMode={context.selection.mode === 'text'}
       />
     );
-  }
+  },
 };

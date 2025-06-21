@@ -1,11 +1,11 @@
 // src/plugins/database.tsx
 
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Table, 
-  Grid, 
-  Settings, 
-  Plus, 
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Table,
+  Grid,
+  Settings,
+  Plus,
   Save,
   X,
   ExternalLink,
@@ -17,10 +17,11 @@ import {
   Phone,
   MapPin,
   Building,
-  Globe
-} from 'lucide-react';
-import type { Plugin } from './types';
-import type { DatabaseElement, DatabaseRecord, DatabaseColumn } from '../types';
+  Globe,
+} from "lucide-react";
+import type { Plugin } from "./types";
+import type { DatabaseElement, DatabaseRecord, DatabaseColumn } from "../types";
+import { useEditorStore } from "../store/editorStore";
 
 interface DatabaseCardProps {
   record: DatabaseRecord;
@@ -32,31 +33,51 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
   const getFieldIcon = (columnId: string, columnName: string) => {
     const id = columnId.toLowerCase();
     const name = columnName.toLowerCase();
-    
-    if (id.includes('email') || name.includes('email')) return <Mail className="w-4 h-4" />;
-    if (id.includes('phone') || name.includes('phone')) return <Phone className="w-4 h-4" />;
-    if (id.includes('address') || name.includes('location') || name.includes('city')) return <MapPin className="w-4 h-4" />;
-    if (id.includes('company') || name.includes('company')) return <Building className="w-4 h-4" />;
-    if (id.includes('website') || name.includes('website')) return <Globe className="w-4 h-4" />;
-    if (id.includes('name') || name.includes('name')) return <User className="w-4 h-4" />;
+
+    if (id.includes("email") || name.includes("email"))
+      return <Mail className="w-4 h-4" />;
+    if (id.includes("phone") || name.includes("phone"))
+      return <Phone className="w-4 h-4" />;
+    if (
+      id.includes("address") ||
+      name.includes("location") ||
+      name.includes("city")
+    )
+      return <MapPin className="w-4 h-4" />;
+    if (id.includes("company") || name.includes("company"))
+      return <Building className="w-4 h-4" />;
+    if (id.includes("website") || name.includes("website"))
+      return <Globe className="w-4 h-4" />;
+    if (id.includes("name") || name.includes("name"))
+      return <User className="w-4 h-4" />;
     return <User className="w-4 h-4" />;
   };
 
   // Get avatar/profile image
   const getAvatarUrl = (record: DatabaseRecord) => {
     // Try common avatar field names
-    const avatarFields = ['avatar', 'image', 'photo', 'picture', 'profileImage'];
+    const avatarFields = [
+      "avatar",
+      "image",
+      "photo",
+      "picture",
+      "profileImage",
+    ];
     for (const field of avatarFields) {
       if (record[field]) return record[field];
     }
     // Generate avatar based on name or email
     const name = record.name || record.email || record.id;
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=80`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      name
+    )}&background=6366f1&color=fff&size=80`;
   };
 
   // Get primary display name
   const getDisplayName = (record: DatabaseRecord) => {
-    return record.name || record.username || record.email || `User ${record.id}`;
+    return (
+      record.name || record.username || record.email || `User ${record.id}`
+    );
   };
 
   // Get secondary info
@@ -72,13 +93,15 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
       {/* Header with Avatar */}
       <div className="flex items-start gap-4 mb-4">
         <div className="flex-shrink-0">
-          <img 
-            src={getAvatarUrl(record)} 
+          <img
+            src={getAvatarUrl(record)}
             alt={getDisplayName(record)}
             className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(getDisplayName(record))}&background=6366f1&color=fff&size=80`;
+              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                getDisplayName(record)
+              )}&background=6366f1&color=fff&size=80`;
             }}
           />
         </div>
@@ -98,8 +121,14 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
       <div className="space-y-3">
         {columns.slice(0, 4).map((column) => {
           const value = record[column.id];
-          if (!value || column.id === 'name' || column.id === 'email' || column.id === 'id') return null;
-          
+          if (
+            !value ||
+            column.id === "name" ||
+            column.id === "email" ||
+            column.id === "id"
+          )
+            return null;
+
           return (
             <div key={column.id} className="flex items-center gap-3">
               <div className="flex-shrink-0 text-gray-400">
@@ -107,19 +136,24 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-900">
-                  {column.type === 'checkbox' ? (
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      value ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {value ? '✓ Active' : '✗ Inactive'}
+                  {column.type === "checkbox" ? (
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        value
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {value ? "✓ Active" : "✗ Inactive"}
                     </span>
-                  ) : column.type === 'select' || column.type === 'multiselect' ? (
+                  ) : column.type === "select" ||
+                    column.type === "multiselect" ? (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                      {Array.isArray(value) ? value.join(', ') : value}
+                      {Array.isArray(value) ? value.join(", ") : value}
                     </span>
-                  ) : typeof value === 'object' && value.name ? (
+                  ) : typeof value === "object" && value.name ? (
                     <span className="truncate">{value.name}</span>
-                  ) : typeof value === 'object' && value.city ? (
+                  ) : typeof value === "object" && value.city ? (
                     <span className="truncate">{value.city}</span>
                   ) : (
                     <span className="truncate">{value}</span>
@@ -149,14 +183,18 @@ interface DatabaseCardSliderProps {
   columns: DatabaseColumn[];
 }
 
-const DatabaseCardSlider: React.FC<DatabaseCardSliderProps> = ({ data, columns }) => {
+const DatabaseCardSlider: React.FC<DatabaseCardSliderProps> = ({
+  data,
+  columns,
+}) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const checkScrollButtons = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
     }
@@ -166,18 +204,21 @@ const DatabaseCardSlider: React.FC<DatabaseCardSliderProps> = ({ data, columns }
     checkScrollButtons();
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', checkScrollButtons);
-      return () => scrollContainer.removeEventListener('scroll', checkScrollButtons);
+      scrollContainer.addEventListener("scroll", checkScrollButtons);
+      return () =>
+        scrollContainer.removeEventListener("scroll", checkScrollButtons);
     }
   }, [data]);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const scrollAmount = 312; // Card width (288px) + gap (24px)
-      const newScrollLeft = scrollContainerRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+      const newScrollLeft =
+        scrollContainerRef.current.scrollLeft +
+        (direction === "left" ? -scrollAmount : scrollAmount);
       scrollContainerRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -187,39 +228,36 @@ const DatabaseCardSlider: React.FC<DatabaseCardSliderProps> = ({ data, columns }
       {/* Scroll buttons */}
       {canScrollLeft && (
         <button
-          onClick={() => scroll('left')}
+          onClick={() => scroll("left")}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50"
-          style={{ marginLeft: '-20px' }}
+          style={{ marginLeft: "-20px" }}
         >
           <ChevronLeft className="w-5 h-5 text-gray-600" />
         </button>
       )}
-      
+
       {canScrollRight && (
         <button
-          onClick={() => scroll('right')}
+          onClick={() => scroll("right")}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50"
-          style={{ marginRight: '-20px' }}
+          style={{ marginRight: "-20px" }}
         >
           <ChevronRight className="w-5 h-5 text-gray-600" />
         </button>
       )}
 
       {/* Cards container */}
-      <div 
+      <div
         ref={scrollContainerRef}
         className="flex gap-6 overflow-x-auto pb-4"
-        style={{ 
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
         {data.map((record) => (
           <div key={record.id} className="flex-shrink-0 w-72">
-            <DatabaseCard
-              record={record}
-              columns={columns}
-            />
+            <DatabaseCard record={record} columns={columns} />
           </div>
         ))}
       </div>
@@ -254,21 +292,35 @@ const DatabaseTable: React.FC<DatabaseTableProps> = ({ data, columns }) => {
         </thead>
         <tbody className="bg-white">
           {data.map((record, index) => (
-            <tr key={record.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors duration-150`}>
+            <tr
+              key={record.id}
+              className={`${
+                index % 2 === 0 ? "bg-white" : "bg-gray-50"
+              } hover:bg-blue-50 transition-colors duration-150`}
+            >
               {columns.map((column) => (
                 <td key={column.id} className="px-4 py-3 text-sm text-gray-900">
-                  {column.type === 'checkbox' ? (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      record[column.id] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {record[column.id] ? '✓' : '✗'}
+                  {column.type === "checkbox" ? (
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        record[column.id]
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {record[column.id] ? "✓" : "✗"}
                     </span>
-                  ) : column.type === 'select' || column.type === 'multiselect' ? (
+                  ) : column.type === "select" ||
+                    column.type === "multiselect" ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                      {Array.isArray(record[column.id]) ? record[column.id].join(', ') : record[column.id]}
+                      {Array.isArray(record[column.id])
+                        ? record[column.id].join(", ")
+                        : record[column.id]}
                     </span>
                   ) : (
-                    <span className="block truncate max-w-xs">{record[column.id] || '-'}</span>
+                    <span className="block truncate max-w-xs">
+                      {record[column.id] || "-"}
+                    </span>
                   )}
                 </td>
               ))}
@@ -282,25 +334,21 @@ const DatabaseTable: React.FC<DatabaseTableProps> = ({ data, columns }) => {
 
 interface DatabaseSettingsProps {
   element: DatabaseElement;
-  onUpdateSettings: (apiUrl: string, columns: DatabaseColumn[]) => void;
   onClose: () => void;
 }
 
-const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({ 
-  element, 
-  onUpdateSettings, 
-  onClose 
+const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
+  element,
+  onClose,
 }) => {
-  const [apiUrl, setApiUrl] = useState(element.apiUrl || '');
-  const [columns, setColumns] = useState<DatabaseColumn[]>(element.columns);
+  const [apiUrl, setApiUrl] = useState(element.apiUrl);
+  const [columns, setColumns] = useState(element.columns);
+  const handleUpdateSettings = useEditorStore(
+    (state) => state.handleDatabaseSettingsUpdate
+  );
 
   const addColumn = () => {
-    const newColumn: DatabaseColumn = {
-      id: `col_${Date.now()}`,
-      name: 'New Column',
-      type: 'text'
-    };
-    setColumns([...columns, newColumn]);
+    setColumns([...columns, { id: "", name: "", type: "text" }]);
   };
 
   const updateColumn = (index: number, updates: Partial<DatabaseColumn>) => {
@@ -314,7 +362,12 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
   };
 
   const handleSave = () => {
-    onUpdateSettings(apiUrl, columns);
+    // Basic validation
+    if (!apiUrl || columns.some((c) => !c.id || !c.name)) {
+      alert("API URL and all column IDs and names are required.");
+      return;
+    }
+    handleUpdateSettings(element.id, apiUrl, columns);
     onClose();
   };
 
@@ -322,8 +375,13 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Database Settings</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Database Settings
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -355,20 +413,29 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
                 Add Column
               </button>
             </div>
-            
+
             <div className="space-y-3">
               {columns.map((column, index) => (
-                <div key={column.id} className="flex gap-3 items-center p-3 border border-gray-200 rounded">
+                <div
+                  key={column.id}
+                  className="flex gap-3 items-center p-3 border border-gray-200 rounded"
+                >
                   <input
                     type="text"
                     value={column.name}
-                    onChange={(e) => updateColumn(index, { name: e.target.value })}
+                    onChange={(e) =>
+                      updateColumn(index, { name: e.target.value })
+                    }
                     className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Column name"
                   />
                   <select
                     value={column.type}
-                    onChange={(e) => updateColumn(index, { type: e.target.value as DatabaseColumn['type'] })}
+                    onChange={(e) =>
+                      updateColumn(index, {
+                        type: e.target.value as DatabaseColumn["type"],
+                      })
+                    }
                     className="px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="text">Text</option>
@@ -399,7 +466,7 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="flex items-center gap-2 justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <Save className="w-4 h-4" />
             Save
@@ -412,28 +479,32 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
 
 interface DatabaseViewProps {
   element: DatabaseElement;
-  onViewModeChange: (mode: "cards" | "table") => void;
-  onUpdateSettings: (apiUrl: string, columns: DatabaseColumn[]) => void;
-  onFetchData: () => void;
   showHoverEffects?: boolean;
   isSelected?: boolean;
 }
 
-const DatabaseView: React.FC<DatabaseViewProps> = ({ 
-  element, 
-  onViewModeChange, 
-  onUpdateSettings,
-  onFetchData,
+const DatabaseView: React.FC<DatabaseViewProps> = ({
+  element,
   showHoverEffects = false,
-  isSelected = false
+  isSelected = false,
 }) => {
-  const [showSettings, setShowSettings] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const handleViewModeChange = useEditorStore(
+    (state) => state.handleDatabaseViewModeChange
+  );
+  const storeHandleFetchData = useEditorStore(
+    (state) => state.handleDatabaseFetch
+  );
 
   const handleFetchData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      await onFetchData();
+      await storeHandleFetchData(element.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -441,23 +512,20 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
 
   const getContainerStyles = () => {
     const baseStyles = "relative transition-all duration-200";
-    
+
     if (isSelected) {
       return `${baseStyles} ring-2 ring-blue-500`;
     }
-    
+
     if (showHoverEffects) {
       return `${baseStyles} ring-1 ring-blue-300 bg-blue-50 bg-opacity-30`;
     }
-    
+
     return baseStyles;
   };
 
   return (
-    <div 
-      className={getContainerStyles()}
-      data-block-element-id={element.id}
-    >
+    <div className={getContainerStyles()} data-block-element-id={element.id}>
       {/* Selection indicator */}
       {isSelected && (
         <div className="absolute -top-2 -left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
@@ -477,11 +545,11 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
         {/* View mode chips */}
         <div className="flex gap-1">
           <button
-            onClick={() => onViewModeChange('cards')}
-            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
-              element.viewMode === 'cards' 
-                ? 'bg-purple-500 text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            onClick={() => handleViewModeChange(element.id, "cards")}
+            className={`p-1.5 rounded-md transition-colors ${
+              element.viewMode === "cards"
+                ? "bg-blue-100 text-blue-600"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
             title="Card View"
           >
@@ -489,11 +557,11 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
             Cards
           </button>
           <button
-            onClick={() => onViewModeChange('table')}
-            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
-              element.viewMode === 'table' 
-                ? 'bg-purple-500 text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            onClick={() => handleViewModeChange(element.id, "table")}
+            className={`p-1.5 rounded-md transition-colors ${
+              element.viewMode === "table"
+                ? "bg-blue-100 text-blue-600"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
             title="Table View"
           >
@@ -511,12 +579,12 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
             title="Fetch Data"
           >
             <ExternalLink className="w-3 h-3" />
-            {isLoading ? 'Fetching...' : 'Fetch'}
+            {isLoading ? "Fetching..." : "Fetch"}
           </button>
         )}
-        
+
         <button
-          onClick={() => setShowSettings(true)}
+          onClick={() => setIsSettingsOpen(true)}
           className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs hover:bg-gray-200 transition-colors"
           title="Settings"
         >
@@ -531,13 +599,12 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
             <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">No data available</p>
-            <p className="text-sm">Configure API URL and fetch data to get started</p>
+            <p className="text-sm">
+              Configure API URL and fetch data to get started
+            </p>
           </div>
-        ) : element.viewMode === 'cards' ? (
-          <DatabaseCardSlider 
-            data={element.data} 
-            columns={element.columns} 
-          />
+        ) : element.viewMode === "cards" ? (
+          <DatabaseCardSlider data={element.data} columns={element.columns} />
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200">
             <DatabaseTable data={element.data} columns={element.columns} />
@@ -546,78 +613,69 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
       </div>
 
       {/* Settings Modal */}
-      {showSettings && (
+      {isSettingsOpen && (
         <DatabaseSettings
           element={element}
-          onUpdateSettings={onUpdateSettings}
-          onClose={() => setShowSettings(false)}
+          onClose={() => setIsSettingsOpen(false)}
         />
       )}
+
+      {isLoading && (
+        <p className="text-center text-gray-500">Loading data...</p>
+      )}
+      {error && <p className="text-center text-red-500">Error: {error}</p>}
     </div>
   );
 };
 
 export const databasePlugin: Plugin = {
-  name: 'database',
-  version: '1.0.0',
-  description: 'Handles database connections with card and table views',
-  
-  match: (element: Element) => element.hasAttribute('data-database'),
+  name: "database",
+  version: "1.0.0",
+  description: "Handles database connections with card and table views",
+
+  match: (element: Element) =>
+    element.tagName.toLowerCase() === "div" &&
+    element.hasAttribute("data-database-id"),
 
   parse: (element: Element) => {
-    const databaseAttribute = element.getAttribute('data-database');
+    const databaseAttribute = element.getAttribute("data-database");
     if (databaseAttribute) {
       return {
-        type: 'database' as const,
+        type: "database" as const,
         id: element.id || crypto.randomUUID(),
-        className: element.className || '',
+        className: element.className || "",
         tagName: element.tagName.toLowerCase(),
         database: databaseAttribute,
-        apiUrl: element.getAttribute('data-api-url') || undefined,
-        viewMode: (element.getAttribute('data-view-mode') as "cards" | "table") || 'cards',
+        apiUrl: element.getAttribute("data-api-url") || undefined,
+        viewMode:
+          (element.getAttribute("data-view-mode") as "cards" | "table") ||
+          "cards",
         data: [],
         columns: [
-          { id: 'id', name: 'ID', type: 'text' },
-          { id: 'name', name: 'Name', type: 'text' },
-          { id: 'status', name: 'Status', type: 'select', options: ['Active', 'Inactive'] }
-        ]
+          { id: "id", name: "ID", type: "text" },
+          { id: "name", name: "Name", type: "text" },
+          {
+            id: "status",
+            name: "Status",
+            type: "select",
+            options: ["Active", "Inactive"],
+          },
+        ],
       };
     }
     return null;
   },
 
-  render: ({ parsedElement, context, showHoverEffects }) => {
+  render: ({ parsedElement, showHoverEffects, isSelected }) => {
     const databaseElement = parsedElement as DatabaseElement;
-    const isSelected = context.selection.selectedElementId === parsedElement.id;
-    
-    const handleViewModeChange = (mode: "cards" | "table") => {
-      if (context.handleDatabaseViewModeChange) {
-        context.handleDatabaseViewModeChange(databaseElement.id, mode);
-      }
-    };
-
-    const handleUpdateSettings = (apiUrl: string, columns: DatabaseColumn[]) => {
-      if (context.handleDatabaseSettingsUpdate) {
-        context.handleDatabaseSettingsUpdate(databaseElement.id, apiUrl, columns);
-      }
-    };
-
-    const handleFetchData = async () => {
-      if (context.handleDatabaseFetch) {
-        await context.handleDatabaseFetch(databaseElement.id);
-      }
-    };
 
     return (
       <DatabaseView
         key={databaseElement.id}
         element={databaseElement}
-        onViewModeChange={handleViewModeChange}
-        onUpdateSettings={handleUpdateSettings}
-        onFetchData={handleFetchData}
         showHoverEffects={showHoverEffects}
         isSelected={isSelected}
       />
     );
-  }
+  },
 };
