@@ -131,7 +131,7 @@ export const useSelectionHandling = ({
       tag: el.tagName,
       id: el.id,
       className: el.className,
-      datasets: Object.keys(el.dataset)
+      datasets: Object.keys((el as HTMLElement).dataset)
     })));
 
     // 선택 가능한 요소들을 우선순위대로 찾기

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import type { Plugin } from "./types";
 import type { SvgElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
-import { Edit3, Code, Palette } from "lucide-react";
+import { Edit3, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

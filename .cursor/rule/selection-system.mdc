@@ -1,0 +1,167 @@
+# Selection System
+
+## 🎯 선택 시스템 개요
+
+Loro Edit의 선택 시스템은 Figma/FigJam 스타일의 계층적 선택과 Builder.io의 미니멀한 인터랙션을 결합합니다.
+
+## 🔧 핵심 구현
+
+### document.elementsFromPoint 방식
+기존의 DOM traversal 대신 브라우저 네이티브 API를 사용합니다.
+
+```typescript
+const handleDocumentClick = useCallback((e: React.MouseEvent) => {
+  const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
+  
+  // 우선순위: 텍스트 → 반복요소 → 블록요소
+  for (const element of elementsAtPoint) {
+    if (element.dataset.textElementId) {
+      handleTextSelect(element.dataset.textElementId);
+      return;
+    }
+    // ... 다른 타입들 처리
+  }
+}, []);
+```
+
+### 요구사항 히스토리
+1. **초기 문제**: "아예 지금 아무 선택도 안되고 있어 다시 검토해 section도 text도 다 선택이 안돼"
+2. **해결 방법**: `document.elementsFromPoint`로 정확한 클릭 감지 구현
+3. **결과**: 정확한 요소 선택과 계층적 탐색 가능
+
+## 📊 선택 가능한 요소 트리
+
+### SelectableElement 구조
+```typescript
+interface SelectableElement {
+  id: string;
+  element: ParsedElement;
+  path: number[];
+  level: number;
+  selectable: SelectableConfig;
+  parent?: SelectableElement;
+  children: SelectableElement[];
+}
+```
+
+### buildSelectableTree 로직
+```typescript
+function buildSelectableTree(elements: ParsedElement[]): SelectableElement[] {
+  // 1. 각 요소의 플러그인 매칭
+  // 2. selectable 설정 확인
+  // 3. 자식 요소들 재귀적 처리
+  // 4. 선택 가능한 요소들만 트리 구성
+}
+```
+
+## 🎨 선택 모드
+
+### Block Mode
+- **대상**: 구조적 HTML 요소들
+- **동작**: 요소 전체 선택, 이동, 삭제
+- **시각적 표시**: 색상별 테두리 오버레이
+
+### Text Mode  
+- **대상**: 텍스트 컨텐츠
+- **동작**: 인라인 텍스트 편집
+- **시각적 표시**: 편집 가능한 텍스트 영역
+
+## 🎪 Figma 스타일 계층적 선택
+
+### 요구사항
+"repeat나 section이 선택된 다음에도 svg랑 img text는 inline이라서 같은 그룹으로 묶여서 선택이 되어야 돼"
+
+### 구현
+```typescript
+// inline 요소들의 그룹 처리
+const inlineGroup = result.alternatives.filter(alt => 
+  alt.selectable.elementType === 'inline'
+);
+
+if (inlineGroup.length > 1) {
+  // inline 요소들이 여러 개 있으면 클릭된 요소를 선택
+  const clickedInline = inlineGroup.find(el => el.id === elementId);
+  if (clickedInline) {
+    handleBlockSelect(clickedInline.id);
+  }
+}
+```
+
+### 선택 우선순위
+1. **텍스트 요소** (`data-text-element-id`)
+2. **반복 요소** (`data-repeat-item-id`)
+3. **블록 요소** (`data-block-element-id`)
+4. **선택 해제** (빈 공간 클릭)
+
+## 🎨 시각적 피드백
+
+### 선택 오버레이
+각 요소 타입별 고유 색상으로 선택 상태를 표시합니다.
+
+```typescript
+const SELECTION_COLORS = {
+  text: "#10b981",     // 초록색
+  image: "#f59e0b",    // 황색
+  svg: "#f59e0b",      // 황색 (이미지와 동일)
+  section: "#3b82f6",  // 파란색
+  database: "#8b5cf6", // 보라색
+  repeat: "#ef4444"    // 빨간색
+};
+```
+
+### SelectionOverlayManager
+- **동적 오버레이**: 선택된 요소에만 오버레이 표시
+- **실시간 업데이트**: 선택 변경 시 즉시 반영
+- **성능 최적화**: 필요한 오버레이만 렌더링
+
+## 🔍 디버깅 시스템
+
+### 문제 해결 과정
+1. **문제 발견**: 선택이 전혀 되지 않음
+2. **디버깅 추가**: 상세한 console.log 추가
+3. **원인 파악**: text 플러그인의 잘못된 매칭 로직
+4. **해결**: element 기반 매칭으로 수정
+
+### 디버깅 로그
+```typescript
+console.log('🖱️ Click detected at:', { x: clientX, y: clientY });
+console.log('📍 Elements at point:', elementsAtPoint);
+console.log('🔍 getSelectableConfig called with:', element);
+console.log('🎯 Found plugin:', plugin?.name);
+```
+
+## ⚡ 성능 최적화
+
+### 메모이제이션
+```typescript
+const selectableTree = useMemo(() => {
+  return buildSelectableTree(parsedElements);
+}, [parsedElements]);
+```
+
+### 이벤트 최적화
+- **이벤트 위임**: 단일 문서 레벨 리스너
+- **조기 반환**: 불필요한 처리 방지
+- **정확한 타겟팅**: elementsFromPoint로 정확한 요소 감지
+
+## 🚀 향후 개선 계획
+
+### 단기 계획
+- [ ] 드래그 앤 드롭 선택
+- [ ] 다중 선택 지원
+- [ ] 선택 히스토리
+
+### 장기 계획
+- [ ] 터치 디바이스 최적화
+- [ ] 접근성 향상 (키보드 네비게이션)
+- [ ] 선택 애니메이션 개선
+
+## 🐛 알려진 이슈
+
+### 해결된 이슈
+- ✅ ~~선택이 전혀 되지 않는 문제~~ → elementsFromPoint로 해결
+- ✅ ~~텍스트 플러그인 매칭 실패~~ → element 기반 매칭으로 수정
+- ✅ ~~자식 요소 선택 불가~~ → buildSelectableTree 개선으로 해결
+
+### 현재 이슈
+- 없음 (모든 주요 이슈 해결됨)

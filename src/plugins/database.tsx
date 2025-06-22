@@ -55,7 +55,7 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
   };
 
   // Get avatar/profile image
-  const getAvatarUrl = (record: DatabaseRecord) => {
+  const getAvatarUrl = (record: DatabaseRecord): string => {
     // Try common avatar field names
     const avatarFields = [
       "avatar",
@@ -65,7 +65,8 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
       "profileImage",
     ];
     for (const field of avatarFields) {
-      if (record[field]) return record[field];
+      const value = record[field];
+      if (value && typeof value === 'string') return value;
     }
     // Generate avatar based on name or email
     const name = String(record.name || record.email || record.id);
@@ -85,8 +86,9 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
   const getSecondaryInfo = (record: DatabaseRecord) => {
     if (record.email && record.name) return String(record.email);
     const company = record.company;
-    if (company && typeof company === 'object' && 'name' in company) {
-      return String(company.name);
+    if (company && typeof company === 'object' && company !== null && 'name' in company) {
+      const companyObj = company as { name: string | number | boolean | null };
+      if (companyObj.name) return String(companyObj.name);
     }
     if (record.phone) return String(record.phone);
     return null;
@@ -155,10 +157,10 @@ const DatabaseCard: React.FC<DatabaseCardProps> = ({ record, columns }) => {
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                       {Array.isArray(value) ? value.join(", ") : String(value)}
                     </span>
-                  ) : typeof value === "object" && value && 'name' in value ? (
-                    <span className="truncate">{String(value.name)}</span>
-                  ) : typeof value === "object" && value && 'city' in value ? (
-                    <span className="truncate">{String(value.city)}</span>
+                  ) : typeof value === "object" && value && value !== null && 'name' in value ? (
+                    <span className="truncate">{String((value as { name: string | number | boolean | null }).name)}</span>
+                  ) : typeof value === "object" && value && value !== null && 'city' in value ? (
+                    <span className="truncate">{String((value as { city: string | number | boolean | null }).city)}</span>
                   ) : (
                     <span className="truncate">{String(value)}</span>
                   )}
@@ -318,7 +320,7 @@ const DatabaseTable: React.FC<DatabaseTableProps> = ({ data, columns }) => {
                     column.type === "multiselect" ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                       {Array.isArray(record[column.id])
-                        ? (record[column.id] as Array<any>).join(", ")
+                        ? (record[column.id] as unknown as string[]).join(", ")
                         : String(record[column.id])}
                     </span>
                   ) : (

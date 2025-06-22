@@ -1,0 +1,403 @@
+# Development Guidelines
+
+## 🛠️ 개발 환경 설정
+
+### 필수 요구사항
+- **Node.js**: 18+ 버전
+- **Package Manager**: pnpm (필수)
+- **TypeScript**: Strict mode 활성화
+- **ESLint**: 모든 규칙 준수
+
+### 개발 명령어
+```bash
+# 개발 서버 실행
+pnpm dev
+
+# 프로덕션 빌드 (TypeScript 검사 포함)
+pnpm build
+
+# 린트 검사
+pnpm lint
+
+# 미리보기
+pnpm preview
+```
+
+## 📋 테스트 규칙
+
+### 필수 테스트 절차
+> "VERY IMPORTANT: When you have completed a task, you MUST run the lint and typecheck commands to ensure your code is correct."
+
+1. **개발 중**: `pnpm dev`로 핫 리로드 테스트
+2. **완료 후**: `pnpm build`로 TypeScript 검증
+3. **커밋 전**: `pnpm lint`로 코드 품질 검사
+
+### 테스트 우선순위
+```bash
+# 1순위: TypeScript 컴파일 확인
+pnpm build
+
+# 2순위: 개발 서버에서 기능 테스트  
+pnpm dev
+
+# 3순위: 린트 규칙 준수
+pnpm lint
+```
+
+## 🎯 코딩 표준
+
+### TypeScript 규칙
+```typescript
+// ✅ 권장: 엄격한 타입 정의
+interface SelectableConfig {
+  enabled: boolean;
+  name: string;
+  color: string;
+  elementType: "block" | "inline";
+}
+
+// ❌ 금지: any 타입 사용
+const plugin: any = { ... };
+
+// ✅ 권장: 함수형 컴포넌트
+const MyComponent: React.FC<Props> = ({ prop1, prop2 }) => {
+  return <div>{prop1}</div>;
+};
+
+// ❌ 금지: 클래스 컴포넌트 (특별한 경우 제외)
+class MyComponent extends React.Component { ... }
+```
+
+### React 패턴
+```typescript
+// ✅ 권장: useCallback으로 함수 메모이제이션
+const handleClick = useCallback((id: string) => {
+  setSelection({ selectedElementId: id });
+}, [setSelection]);
+
+// ✅ 권장: useMemo로 계산 캐싱
+const selectableTree = useMemo(() => {
+  return buildSelectableTree(parsedElements);
+}, [parsedElements]);
+
+// ✅ 권장: 조건부 렌더링
+{isSelected && <EditingToolbar />}
+
+// ❌ 금지: 불필요한 상태
+const [unused, setUnused] = useState();
+```
+
+## 🎨 스타일링 가이드라인
+
+### Tailwind CSS 우선
+```tsx
+// ✅ 권장: Tailwind 클래스 사용
+<div className="flex items-center gap-2 p-4 bg-white border rounded-lg shadow-lg">
+
+// ❌ 금지: 인라인 스타일 (특별한 경우 제외)
+<div style={{ display: 'flex', padding: '16px' }}>
+
+// ✅ 권장: cn() 함수로 조건부 클래스
+<div className={cn(
+  "base-class",
+  isSelected && "selected-class",
+  className
+)}>
+```
+
+### 일관된 색상 시스템
+```typescript
+const ELEMENT_COLORS = {
+  text: "#10b981",      // green
+  image: "#f59e0b",     // amber  
+  svg: "#f59e0b",       // amber (이미지와 동일)
+  section: "#3b82f6",   // blue
+  database: "#8b5cf6",  // purple
+  repeat: "#ef4444"     // red
+} as const;
+```
+
+### 크기 단위 표준
+```css
+/* 권장: 4px 배수 사용 */
+gap-1    /* 4px */
+gap-2    /* 8px */
+gap-4    /* 16px */
+p-3      /* 12px */
+h-6      /* 24px */
+
+/* 특별한 경우: 픽셀 단위 */
+h-[1px]  /* 1px border */
+w-[240px] /* 정확한 크기 필요시 */
+```
+
+## 🔧 플러그인 개발 가이드
+
+### 플러그인 구조
+```typescript
+// 1. 플러그인 파일 생성: src/plugins/my-plugin.tsx
+export const myPlugin: Plugin = {
+  name: "my-plugin",
+  version: "1.0.0",
+  description: "My plugin description",
+
+  selectable: {
+    enabled: true,
+    name: "My Element",
+    color: "#06b6d4",
+    elementType: "block",
+  },
+
+  match: (element: Element) => {
+    // 매칭 로직
+  },
+
+  parse: (element: Element) => {
+    // 파싱 로직
+  },
+
+  render: ({ parsedElement }) => {
+    // 렌더링 로직
+  },
+};
+```
+
+### 타입 정의 추가
+```typescript
+// 2. src/types.ts에 타입 추가
+interface MyElement {
+  type: "my-element";
+  id: string;
+  // 추가 프로퍼티들
+}
+
+// ParsedElement 유니온에 추가
+type ParsedElement = TextElement | MyElement | ...;
+```
+
+### 플러그인 등록
+```typescript
+// 3. src/plugins/index.ts에 등록
+import { myPlugin } from './my-plugin';
+
+export function registerDefaultPlugins() {
+  // ...
+  pluginManager.register(myPlugin);
+}
+```
+
+## 🎯 선택 기반 편집 구현
+
+### 기본 패턴
+```typescript
+const EditableComponent: React.FC<Props> = ({ elementId }) => {
+  const selection = useEditorStore(state => state.selection);
+  const isSelected = selection.selectedElementId === elementId;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isSelected) {
+      // 선택되지 않은 상태: 선택 시스템에 위임
+      return;
+    }
+    
+    // 선택된 상태: 편집 도구 활성화
+    e.stopPropagation();
+    openEditingInterface();
+  };
+
+  return (
+    <div 
+      data-block-element-id={elementId}
+      onClick={handleClick}
+    >
+      {/* 컨텐츠 렌더링 */}
+      
+      {isSelected && (
+        <FloatingEditButton onClick={openEditingInterface} />
+      )}
+    </div>
+  );
+};
+```
+
+### Popover 기반 편집 UI
+```typescript
+// ✅ 권장: 미니멀한 Popover
+<Popover open={open} onOpenChange={setOpen}>
+  <PopoverContent 
+    className="w-60 p-0 bg-white"
+    side="top"
+    align="center"
+    sideOffset={8}
+  >
+    {/* 편집 인터페이스 */}
+  </PopoverContent>
+</Popover>
+
+// ❌ 금지: 복잡한 Dialog
+<Dialog>
+  <DialogContent className="max-w-2xl">
+    {/* 큰 모달 인터페이스 */}
+  </DialogContent>
+</Dialog>
+```
+
+## 🐛 디버깅 가이드라인
+
+### 콘솔 로그 사용
+```typescript
+// ✅ 개발 중: 상세한 디버깅 로그
+console.log('🖱️ Click detected at:', { x: clientX, y: clientY });
+console.log('📍 Elements at point:', elementsAtPoint);
+console.log('🔍 getSelectableConfig called with:', element);
+
+// ✅ 프로덕션: 중요한 정보만
+if (process.env.NODE_ENV === 'development') {
+  console.log('Debug info:', data);
+}
+```
+
+### 에러 처리
+```typescript
+// ✅ 권장: 안전한 에러 처리
+try {
+  const result = dangerousOperation();
+  return result;
+} catch (error) {
+  console.error('Operation failed:', error);
+  return fallbackValue;
+}
+
+// ✅ 권장: 타입 가드 사용
+if (element.type === 'text') {
+  // 타입이 확실한 경우에만 진행
+  handleTextElement(element);
+}
+```
+
+## 📊 성능 최적화 가이드
+
+### React 최적화
+```typescript
+// ✅ 메모이제이션 적극 활용
+const MemoizedComponent = React.memo(({ prop1, prop2 }) => {
+  return <div>{prop1}</div>;
+});
+
+// ✅ 의존성 배열 최적화
+const expensiveValue = useMemo(() => {
+  return computeExpensiveValue(data);
+}, [data]); // 필요한 것만 의존성에 포함
+
+// ✅ 조건부 렌더링으로 불필요한 컴포넌트 방지
+{shouldRender && <ExpensiveComponent />}
+```
+
+### 이벤트 최적화
+```typescript
+// ✅ 이벤트 위임 사용
+const handleDocumentClick = useCallback((e: MouseEvent) => {
+  const target = e.target as Element;
+  // 하나의 리스너로 모든 클릭 처리
+}, []);
+
+// ✅ 불필요한 리렌더링 방지
+const handleClick = useCallback((id: string) => {
+  setSelection({ selectedElementId: id });
+}, []); // 의존성 최소화
+```
+
+## 🚀 배포 가이드라인
+
+### 커밋 메시지 규칙
+```bash
+# 형식: type: description
+feat: add SVG plugin with popover UI
+fix: resolve selection system bug
+refactor: improve plugin architecture
+docs: update development guidelines
+
+# 상세 설명이 필요한 경우
+feat: implement selection-based editing workflow
+
+- Add document.elementsFromPoint for accurate targeting
+- Create Builder.io-style popover interface
+- Include shadcn/ui components integration
+- Fix tab switching bug in popover
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### 빌드 검증
+```bash
+# 1. TypeScript 검사
+pnpm build
+
+# 2. 린트 통과 확인
+pnpm lint
+
+# 3. 수동 테스트
+pnpm dev
+# 브라우저에서 기능 테스트
+
+# 4. 커밋 및 푸시
+git add .
+git commit -m "feat: implement new feature"
+git push
+```
+
+## 🔒 보안 가이드라인
+
+### XSS 방지
+```typescript
+// ✅ 안전한 HTML 렌더링
+<div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+
+// ❌ 위험한 직접 삽입
+<div innerHTML={userInput} /> // 절대 금지
+
+// ✅ 사용자 입력 검증
+const isValidSvg = (input: string) => {
+  return input.startsWith('<svg') && input.endsWith('</svg>');
+};
+```
+
+### 민감 정보 보호
+```typescript
+// ❌ 금지: 콘솔에 민감 정보 출력
+console.log('User data:', userData);
+
+// ✅ 권장: 개발 환경에서만 제한적 로깅
+if (process.env.NODE_ENV === 'development') {
+  console.log('Debug info (no sensitive data)');
+}
+```
+
+## 📚 학습 리소스
+
+### 필수 문서
+- [React 공식 문서](https://react.dev/)
+- [TypeScript 핸드북](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS 문서](https://tailwindcss.com/docs)
+- [shadcn/ui 컴포넌트](https://ui.shadcn.com/)
+
+### 프로젝트 특화 지식
+- [Zustand 상태 관리](https://zustand-demo.pmnd.rs/)
+- [Radix UI 프리미티브](https://www.radix-ui.com/)
+- [Builder.io 디자인 철학](https://www.builder.io/)
+
+## ❓ 문제 해결
+
+### 자주 발생하는 이슈
+1. **선택이 안 되는 경우**: `buildSelectableTree` 디버깅
+2. **타입 에러**: `pnpm build`로 확인
+3. **스타일링 문제**: Tailwind 클래스 충돌 확인
+4. **성능 이슈**: React DevTools Profiler 사용
+
+### 도움 요청 시
+1. 에러 메시지 전문 공유
+2. 재현 단계 설명
+3. 예상 동작 vs 실제 동작
+4. 관련 코드 스니펫 첨부

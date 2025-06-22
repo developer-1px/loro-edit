@@ -1,0 +1,232 @@
+# SVG Plugin Implementation
+
+## 📋 요구사항 히스토리
+
+### 초기 요구사항
+> "plugins svg를 추가할거야. 선택하면 img와 동일한 색상으로 선택할 수 있게 해주고 선택 되어 있는 상태에서 클릭시 미리 만들어진 샘플 중에서 선택을 하거나 svg를 직접 입력할 수 있거나 하는 식의 기능을 추가해줘"
+
+### 구현 방향 수정
+> "의도가 너무 잘못되었는데 어떻게 구현했는지 설명해봐."
+
+**문제점**: 처음에 복잡한 Modal 기반 UI를 구현
+**해결책**: Builder.io 스타일의 미니멀한 선택 기반 워크플로우로 변경
+
+## 🎯 최종 구현 방향
+
+### 선택 기반 편집 워크플로우
+1. **첫 번째 클릭**: SVG 요소 선택 (amber 오버레이 표시)
+2. **두 번째 클릭**: 편집 팝오버 열기
+3. **편집**: 샘플 선택 또는 커스텀 코드 입력
+4. **적용**: 즉시 반영되고 팝오버 닫기
+
+### 이미지와 동일한 처리
+- **선택 색상**: `#f59e0b` (amber) - 이미지와 동일
+- **인라인 요소**: `elementType: "inline"`로 그룹 선택 지원
+- **편집 패턴**: 선택 → 클릭 → 편집 (이미지 업로드와 동일한 패턴)
+
+## 🎨 UI 디자인 진화
+
+### 1차 시도: Dialog 기반 (❌ 거부됨)
+```tsx
+// 복잡한 Modal UI - Builder.io 철학에 맞지 않음
+<Dialog>
+  <DialogTrigger>
+    <div onClick={handleClick}>...</div>
+  </DialogTrigger>
+  <DialogContent className="max-w-2xl">
+    <Tabs>...</Tabs>
+  </DialogContent>
+</Dialog>
+```
+
+### 2차 개선: Popover 기반 (✅ 채택)
+```tsx
+// 미니멀한 Popover UI
+<Popover>
+  <PopoverContent 
+    className="w-60 max-h-80"
+    side="top"
+    align="center"
+    style={{ backgroundColor: 'white' }}
+  >
+    <Tabs defaultValue="samples">...</Tabs>
+  </PopoverContent>
+</Popover>
+```
+
+### 최종 요구사항
+> "가운데 어두운 배경의 오버레이 전환 말고 조금더 팝오버+ 드롭다운 같은 형식으로 만들어줘"
+> "배경을 dimmed를 깔지 말고 팝업에는 흰 배경을 깔아줘"
+> "위치에 맞게 상단 중앙에 띄우려고 해줘"
+
+## 🛠️ 기술 구현
+
+### SVG Plugin 구조
+```typescript
+export const svgPlugin: Plugin = {
+  name: "svg",
+  version: "1.0.0",
+  description: "Handles SVG elements with sample selection and custom input",
+
+  selectable: {
+    enabled: true,
+    name: "SVG",
+    color: "#f59e0b", // amber - same as image
+    description: "SVG with customizable content",
+    level: "element",
+    elementType: "inline",
+  },
+
+  match: (element: Element) => {
+    return element.tagName.toLowerCase() === "svg";
+  },
+
+  parse: (element: Element) => {
+    // SVG 요소 파싱 로직
+  },
+
+  render: ({ parsedElement }) => {
+    // EditableSvg 컴포넌트 렌더링
+  },
+};
+```
+
+### 선택 상태 기반 UI
+```typescript
+const EditableSvg: React.FC<EditableSvgProps> = ({ elementId, ... }) => {
+  const selection = useEditorStore((state) => state.selection);
+  const isSelected = selection.selectedElementId === elementId;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isSelected) {
+      // 선택되지 않은 상태: 선택 시스템에 위임
+      return;
+    }
+    
+    // 선택된 상태: 편집 팝오버 열기
+    e.stopPropagation();
+    setOpen(true);
+  };
+};
+```
+
+## 📦 shadcn/ui 통합
+
+### 필요한 컴포넌트 설치
+```bash
+npx shadcn@latest add popover
+npx shadcn@latest add tabs
+npx shadcn@latest add textarea
+npx shadcn@latest add button
+```
+
+### 수동 생성한 컴포넌트
+```typescript
+// src/components/ui/popover.tsx
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+```
+
+## 🎨 미니멀 UI 특징
+
+### Ultra-Compact 디자인
+- **크기**: 240px × 320px (w-60 × max-h-80)
+- **위치**: 상단 중앙 (side="top", align="center")
+- **배경**: 순수 흰색 (`bg-white` + `style={{ backgroundColor: 'white' }}`)
+
+### 샘플 그리드
+```typescript
+const SVG_SAMPLES = [
+  { name: "Heart", content: "<svg>...</svg>" },
+  { name: "Star", content: "<svg>...</svg>" },
+  { name: "Check Circle", content: "<svg>...</svg>" },
+  { name: "Arrow Right", content: "<svg>...</svg>" },
+  { name: "Plus Circle", content: "<svg>...</svg>" },
+  { name: "Info", content: "<svg>...</svg>" }
+];
+```
+
+- **레이아웃**: 3×2 그리드 (grid-cols-3)
+- **아이콘 크기**: 6×6px (w-6 h-6)
+- **즉시 적용**: 클릭하면 바로 적용되고 팝오버 닫기
+
+### 커스텀 코드 입력
+- **텍스트 영역**: 16px 높이 (h-16)
+- **실시간 미리보기**: 8×8px 아이콘으로 즉시 확인
+- **폰트**: `font-mono text-xs` 코드 입력에 최적화
+
+## 🐛 해결된 버그들
+
+### 1. Popover 컴포넌트 누락
+**문제**: `Failed to resolve import "@/components/ui/popover"`
+**해결**: 수동으로 popover.tsx 생성 및 dependencies 설치
+
+### 2. 탭 전환 시 팝업 닫힘
+**문제**: Code 탭 클릭 시 팝오버가 닫혀버림
+**해결**: Radix UI 탭 요소들을 외부 클릭 감지에서 제외
+
+```typescript
+onInteractOutside={(e) => {
+  const target = e.target as Element;
+  if (
+    target.closest('[data-radix-tabs-trigger]') ||
+    target.closest('[data-radix-tabs-list]') ||
+    target.closest('[data-radix-tabs-content]')
+  ) {
+    e.preventDefault();
+    return;
+  }
+  setOpen(false);
+}}
+```
+
+### 3. 위치 정렬 문제
+**문제**: 팝오버가 원하는 위치에 나타나지 않음
+**해결**: `side="top"`, `align="center"`, `sideOffset={8}` 설정
+
+## 🎯 사용자 경험
+
+### Floating Edit Button
+선택된 상태에서 hover 시 나타나는 편집 버튼:
+
+```tsx
+{/* Floating edit button */}
+{svgContent && isSelected && (
+  <div className="absolute -top-8 left-0 opacity-0 group-hover:opacity-100">
+    <div className="bg-white border shadow-lg px-3 py-1.5 flex items-center gap-2">
+      <Edit3 className="w-4 h-4 text-gray-600" />
+      <span className="text-gray-700 font-medium">Edit SVG</span>
+    </div>
+  </div>
+)}
+```
+
+### Modal-like 외부 클릭 처리
+- **투명 배경**: dimmed overlay 없음
+- **외부 클릭**: 팝오버 닫기
+- **ESC 키**: 팝오버 닫기
+- **내부 클릭**: 팝오버 유지
+
+## 📊 성능 최적화
+
+### 상태 관리
+```typescript
+const [open, setOpen] = useState(false);
+const [customSvg, setCustomSvg] = useState(svgContent);
+```
+
+### 이벤트 최적화
+- **stopPropagation**: 선택된 상태에서만 팝오버 열기
+- **preventDefault**: 불필요한 기본 동작 방지
+- **조건부 렌더링**: 선택된 상태에서만 편집 도구 표시
+
+## 🚀 향후 개선 계획
+
+### 기능 확장
+- [ ] SVG 색상 변경 도구
+- [ ] SVG 크기 조절 핸들
+- [ ] 더 많은 프리셋 샘플
+
+### UX 개선
+- [ ] 드래그 앤 드롭으로 SVG 업로드
+- [ ] SVG 애니메이션 지원
+- [ ] 벡터 편집 도구 통합

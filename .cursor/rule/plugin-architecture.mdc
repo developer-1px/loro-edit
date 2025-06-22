@@ -1,0 +1,365 @@
+# Plugin Architecture
+
+## 🏗️ 플러그인 시스템 개요
+
+Loro Edit의 플러그인 아키텍처는 확장 가능하고 모듈화된 HTML 요소 처리를 제공합니다.
+
+## 🔧 Plugin Interface
+
+### 기본 구조
+```typescript
+interface Plugin {
+  name: string;
+  version: string;
+  description: string;
+  selectable?: SelectableConfig;
+  match: (element: Element) => boolean;
+  parse: (element: Element) => ParsedElement | null;
+  render: (context: PluginRenderContext) => React.ReactNode;
+}
+```
+
+### SelectableConfig
+```typescript
+interface SelectableConfig {
+  enabled: boolean;
+  name: string;
+  color: string;
+  description?: string;
+  level: "element" | "component";
+  elementType?: "block" | "inline";
+}
+```
+
+## 📦 등록된 플러그인들
+
+### 1. Text Plugin
+```typescript
+export const textPlugin: Plugin = {
+  name: "text",
+  selectable: {
+    enabled: true,
+    name: "Text",
+    color: "#10b981", // green
+    elementType: "inline",
+  },
+  match: (element) => element.getAttribute("data-element-type") === "text",
+  parse: (element) => ({ type: "text", content: element.textContent }),
+  render: ({ parsedElement }) => <EditableText {...parsedElement} />
+};
+```
+
+### 2. SVG Plugin  
+```typescript
+export const svgPlugin: Plugin = {
+  name: "svg",
+  selectable: {
+    enabled: true,
+    name: "SVG",
+    color: "#f59e0b", // amber - same as image
+    elementType: "inline",
+  },
+  match: (element) => element.tagName.toLowerCase() === "svg",
+  parse: (element) => ({ type: "svg", svgContent: element.outerHTML }),
+  render: ({ parsedElement }) => <EditableSvg {...parsedElement} />
+};
+```
+
+### 3. Image Plugin
+```typescript
+export const imagePlugin: Plugin = {
+  name: "image",
+  selectable: {
+    enabled: true,
+    name: "Image",
+    color: "#f59e0b", // amber
+    elementType: "inline",
+  },
+  match: (element) => ["img", "picture"].includes(element.tagName.toLowerCase()),
+  // ...
+};
+```
+
+### 4. Section Plugin
+```typescript
+export const sectionPlugin: Plugin = {
+  name: "section",
+  selectable: {
+    enabled: true,
+    name: "Section",
+    color: "#3b82f6", // blue
+    elementType: "block",
+  },
+  match: (element) => ["section", "header", "footer", "nav"].includes(element.tagName.toLowerCase()),
+  // ...
+};
+```
+
+### 5. Database Plugin
+```typescript
+export const databasePlugin: Plugin = {
+  name: "database",
+  selectable: {
+    enabled: true,
+    name: "Database",
+    color: "#8b5cf6", // purple
+    elementType: "block",
+  },
+  match: (element) => element.hasAttribute("data-database"),
+  // ...
+};
+```
+
+### 6. Repeat Container Plugin
+```typescript
+export const repeatContainerPlugin: Plugin = {
+  name: "repeat-container",
+  selectable: {
+    enabled: true,
+    name: "Repeat Container",
+    color: "#ef4444", // red
+    elementType: "block",
+  },
+  match: (element) => element.hasAttribute("data-repeat-container"),
+  // ...
+};
+```
+
+### 7. Element Plugin (Fallback)
+```typescript
+export const elementPlugin: Plugin = {
+  name: "element",
+  selectable: {
+    enabled: false, // 선택 불가능한 기본 요소
+    name: "Element",
+    color: "#6b7280", // gray
+  },
+  match: (element) => true, // 모든 요소 매칭 (fallback)
+  // ...
+};
+```
+
+## 🔄 플러그인 라이프사이클
+
+### 1. 등록 (Registration)
+```typescript
+// src/plugins/index.ts
+export function registerDefaultPlugins() {
+  if (pluginManager.plugins.length > 0) {
+    console.log('Plugins already registered, skipping...');
+    return;
+  }
+
+  console.log('Registering default plugins...');
+  
+  pluginManager.register(imagePlugin);
+  pluginManager.register(svgPlugin);
+  pluginManager.register(repeatContainerPlugin);
+  pluginManager.register(databasePlugin);
+  pluginManager.register(sectionPlugin);
+  pluginManager.register(elementPlugin); // fallback
+  pluginManager.register(textPlugin);
+}
+```
+
+### 2. 매칭 (Matching)
+```typescript
+// PluginManager.ts
+parseElement(element: Element): ParsedElement | null {
+  for (const plugin of this.plugins) {
+    if (plugin.match(element)) {
+      console.log(`Plugin "${plugin.name}" matched element:`, element);
+      return plugin.parse(element);
+    }
+  }
+  return null;
+}
+```
+
+### 3. 파싱 (Parsing)
+HTML Element → ParsedElement 변환
+
+### 4. 렌더링 (Rendering)
+```typescript
+renderElement(mockElement: Element, parsedElement: ParsedElement, context: PluginContext): React.ReactNode {
+  for (const plugin of this.plugins) {
+    if (plugin.match(mockElement)) {
+      return plugin.render({
+        parsedElement,
+        ...context,
+        renderElement: context.renderElement
+      });
+    }
+  }
+  return null;
+}
+```
+
+## 🎯 선택 시스템 통합
+
+### getSelectableConfig 함수
+```typescript
+function getSelectableConfig(element: ParsedElement): SelectableConfig | null {
+  const plugin = pluginManager.plugins.find(p => {
+    switch (element.type) {
+      case 'text': return p.name === 'text';
+      case 'svg': return p.name === 'svg';
+      case 'img': case 'picture': return p.name === 'image';
+      case 'database': return p.name === 'database';
+      case 'repeat-container': return p.name === 'repeat-container';
+      case 'element':
+        if ('tagName' in element) {
+          const tagName = element.tagName;
+          if (['section', 'header', 'footer', 'nav'].includes(tagName)) {
+            return p.name === 'section';
+          }
+        }
+        return p.name === 'element';
+      default: return false;
+    }
+  });
+
+  return plugin?.selectable?.enabled ? plugin.selectable : null;
+}
+```
+
+## 🔧 플러그인 개발 가이드
+
+### 새 플러그인 생성
+```typescript
+// src/plugins/my-plugin.tsx
+export const myPlugin: Plugin = {
+  name: "my-element",
+  version: "1.0.0",
+  description: "My custom element handler",
+
+  selectable: {
+    enabled: true,
+    name: "My Element",
+    color: "#06b6d4", // cyan
+    elementType: "block",
+  },
+
+  match: (element: Element) => {
+    return element.hasAttribute("data-my-element");
+  },
+
+  parse: (element: Element) => {
+    return {
+      type: "my-element" as const,
+      id: element.id || crypto.randomUUID(),
+      customProperty: element.getAttribute("data-custom") || "",
+    };
+  },
+
+  render: ({ parsedElement, selection, setSelection }) => {
+    return <MyElementComponent {...parsedElement} />;
+  },
+};
+```
+
+### 타입 정의 추가
+```typescript
+// src/types.ts
+interface MyElement {
+  type: "my-element";
+  id: string;
+  customProperty: string;
+}
+
+// ParsedElement 유니온에 추가
+type ParsedElement = 
+  | TextElement 
+  | ImageElement 
+  | SvgElement
+  | MyElement  // 새 타입 추가
+  | ...;
+```
+
+### 플러그인 등록
+```typescript
+// src/plugins/index.ts
+import { myPlugin } from './my-plugin';
+
+export function registerDefaultPlugins() {
+  // ...
+  pluginManager.register(myPlugin);
+}
+```
+
+## 🎨 선택 기반 편집 패턴
+
+### 요구사항
+> "svg 선택하면 나오는 팝업 화면을 계속 구현해봐"
+> "선택기능부터 제대로 개선해보자"
+
+### 구현 패턴
+1. **선택 감지**: 플러그인의 `selectable.enabled` 확인
+2. **시각적 피드백**: 고유 색상으로 오버레이 표시
+3. **편집 도구**: 선택된 상태에서 컨텍스트 도구 제공
+4. **즉시 적용**: 변경사항 실시간 반영
+
+```typescript
+const EditableComponent: React.FC = ({ elementId }) => {
+  const selection = useEditorStore(state => state.selection);
+  const isSelected = selection.selectedElementId === elementId;
+
+  return (
+    <div data-block-element-id={elementId}>
+      {/* 컨텐츠 렌더링 */}
+      
+      {isSelected && (
+        <FloatingToolbar onEdit={() => setOpen(true)} />
+      )}
+    </div>
+  );
+};
+```
+
+## 🚀 성능 최적화
+
+### 플러그인 매칭 최적화
+```typescript
+// 빠른 매칭을 위한 우선순위
+const MATCH_PRIORITY = [
+  'text',           // 가장 빈번
+  'image',          // 자주 사용
+  'svg',            // 새로 추가
+  'section',        // 구조 요소
+  'database',       // 특수 기능
+  'repeat-container', // 복잡한 로직
+  'element'         // fallback (항상 마지막)
+];
+```
+
+### 메모이제이션
+```typescript
+// 선택 가능한 요소 트리 캐싱
+const selectableTree = useMemo(() => {
+  return buildSelectableTree(parsedElements);
+}, [parsedElements]);
+```
+
+### 조건부 렌더링
+```typescript
+// 선택된 상태에서만 편집 도구 렌더링
+{isSelected && <EditingTools />}
+```
+
+## 🔮 확장 계획
+
+### 플러그인 시스템 개선
+- [ ] 플러그인 의존성 관리
+- [ ] 런타임 플러그인 로딩
+- [ ] 플러그인 설정 인터페이스
+
+### 새 플러그인 후보
+- [ ] Video Plugin
+- [ ] Table Plugin  
+- [ ] Form Plugin
+- [ ] Chart Plugin
+
+### 고급 기능
+- [ ] 플러그인 간 통신
+- [ ] 커스텀 훅 지원
+- [ ] 플러그인 마켓플레이스

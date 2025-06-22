@@ -117,16 +117,16 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h3>
         <p class="text-lg text-gray-600 max-w-2xl mx-auto">Hear from companies who have transformed their business with TechCorp.</p>
       </div>
-      <div class="grid md:grid-cols-3 gap-8 text-center">
-        <div class="bg-white p-8 rounded-lg shadow">
+      <div class="grid md:grid-cols-3 gap-8 text-center" data-repeat-container="testimonials">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-1">
           <blockquote class="text-gray-600 italic">"The AI-powered analytics have given us insights we never thought possible. It's a game-changer for our marketing strategy."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Alex Johnson, CEO of Innovate Co.</p>
         </div>
-        <div class="bg-white p-8 rounded-lg shadow">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-2">
           <blockquote class="text-gray-600 italic">"Integration was seamless, and the support team is incredibly responsive. We saw a <strong>40% increase</strong> in efficiency within the first quarter."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Samantha Lee, CTO of Future Systems</p>
         </div>
-        <div class="bg-white p-8 rounded-lg shadow">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-3">
           <blockquote class="text-gray-600 italic">"A truly powerful and intuitive platform. The ability to customize workflows has been invaluable for our unique business needs."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Michael Chen, Head of Operations at DataCorp</p>
         </div>

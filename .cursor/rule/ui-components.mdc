@@ -1,0 +1,283 @@
+# UI Components & shadcn/ui Integration
+
+## 🎨 UI 라이브러리 통합
+
+### shadcn/ui 도입 배경
+> "shadcn/ui 를 설치하고 기본적인 UI를 shadcn/ui을 통해서 구현해줘"
+
+Builder.io 스타일의 미니멀하고 일관된 UI를 위해 shadcn/ui를 선택했습니다.
+
+### 설치된 컴포넌트
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add dialog  
+npx shadcn@latest add tabs
+npx shadcn@latest add textarea
+npx shadcn@latest add popover
+npx shadcn@latest add toggle
+npx shadcn@latest add toggle-group
+```
+
+## 📦 컴포넌트 구조
+
+### 설치된 shadcn/ui 컴포넌트
+```
+src/components/ui/
+├── button.tsx         # 버튼 컴포넌트
+├── dialog.tsx         # 다이얼로그 (사용 안함)
+├── popover.tsx        # 팝오버 (SVG 편집에서 사용)
+├── tabs.tsx           # 탭 네비게이션
+├── textarea.tsx       # 텍스트 입력 영역
+├── toggle.tsx         # 토글 버튼
+└── toggle-group.tsx   # 토글 그룹
+```
+
+### 추가 유틸리티
+```
+src/lib/
+└── utils.ts          # cn() 함수 등 유틸리티
+
+@/                     # Path alias 설정
+└── components/ui/     # shadcn/ui 컴포넌트 alias
+```
+
+## 🔧 components.json 설정
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/index.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+```
+
+## 🎯 컴포넌트 사용 패턴
+
+### Popover 컴포넌트 (SVG Plugin)
+```tsx
+<Popover open={open} onOpenChange={handleOpenChange}>
+  <PopoverTrigger asChild>
+    <button style={{ display: 'none' }} />
+  </PopoverTrigger>
+  
+  <PopoverContent 
+    className="w-60 max-h-80 overflow-hidden p-0 border shadow-lg bg-white"
+    side="top"
+    align="center"
+    sideOffset={8}
+    style={{ backgroundColor: 'white' }}
+  >
+    {/* 컨텐츠 */}
+  </PopoverContent>
+</Popover>
+```
+
+### Tabs 컴포넌트 (샘플/커스텀 전환)
+```tsx
+<Tabs defaultValue="samples" className="flex flex-col">
+  <div className="px-3 py-1 border-b border-gray-100">
+    <TabsList className="grid w-full grid-cols-2 h-6 bg-gray-100 p-0.5">
+      <TabsTrigger value="samples" className="text-xs">
+        Icons
+      </TabsTrigger>
+      <TabsTrigger value="custom" className="text-xs">
+        Code
+      </TabsTrigger>
+    </TabsList>
+  </div>
+
+  <TabsContent value="samples">
+    {/* 샘플 그리드 */}
+  </TabsContent>
+
+  <TabsContent value="custom">
+    {/* 커스텀 입력 */}
+  </TabsContent>
+</Tabs>
+```
+
+### Button 컴포넌트 (액션 버튼)
+```tsx
+<Button
+  size="sm"
+  onClick={handleSave}
+  disabled={!customSvg.trim()}
+  className="bg-amber-500 hover:bg-amber-600 text-white text-xs h-6 px-2"
+>
+  Apply
+</Button>
+
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => setOpen(false)}
+  className="text-xs h-6 px-2"
+>
+  Cancel
+</Button>
+```
+
+### Textarea 컴포넌트 (코드 입력)
+```tsx
+<Textarea
+  value={customSvg}
+  onChange={(e) => setCustomSvg(e.target.value)}
+  className="h-16 font-mono text-xs resize-none"
+  placeholder="<svg>...</svg>"
+/>
+```
+
+## 🎨 커스텀 스타일링
+
+### 크기 조정
+- **Ultra-compact**: 기본 크기보다 작게 조정
+- **일관된 간격**: 8px, 4px 단위 사용
+- **타이포그래피**: `text-xs` 주로 사용
+
+### 색상 테마
+```css
+/* Amber theme for SVG plugin */
+.bg-amber-500 { background-color: #f59e0b; }
+.hover:bg-amber-600:hover { background-color: #d97706; }
+.border-amber-400 { border-color: #fbbf24; }
+.text-amber-600 { color: #d97706; }
+```
+
+### 그리드 레이아웃
+```tsx
+<div className="grid grid-cols-3 gap-1.5">
+  {SVG_SAMPLES.map((sample, index) => (
+    <button className="group p-2 border border-gray-200 rounded hover:border-amber-400">
+      <div className="w-6 h-6 text-gray-600 group-hover:text-amber-600" />
+      <span className="text-xs">{sample.name.split(' ')[0]}</span>
+    </button>
+  ))}
+</div>
+```
+
+## 🚫 사용하지 않는 컴포넌트
+
+### Dialog (Modal) - 사용 금지
+**이유**: Builder.io 철학에 맞지 않는 침투적 UI
+```tsx
+// ❌ 사용 금지 - 복잡하고 침투적
+<Dialog>
+  <DialogContent className="max-w-2xl">
+    {/* 큰 모달 인터페이스 */}
+  </DialogContent>
+</Dialog>
+```
+
+**대안**: Popover 사용
+```tsx
+// ✅ 권장 - 미니멀하고 컨텍스트적
+<Popover>
+  <PopoverContent className="w-60">
+    {/* 작고 깔끔한 인터페이스 */}
+  </PopoverContent>
+</Popover>
+```
+
+## 🔧 Path Alias 설정
+
+### vite.config.ts
+```typescript
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+```
+
+### tsconfig.app.json
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+## 📱 반응형 디자인
+
+### 모바일 최적화
+- **터치 친화적**: 충분한 터치 영역
+- **작은 화면**: 컴팩트한 팝오버 크기
+- **스크롤 가능**: 긴 컨텐츠 대응
+
+### 데스크톱 최적화
+- **호버 효과**: 마우스 상호작용
+- **키보드 단축키**: 접근성 향상
+- **정밀한 클릭**: 작은 버튼들
+
+## 🎯 접근성 (a11y)
+
+### 키보드 네비게이션
+- **Tab 순서**: 논리적인 탭 순서
+- **ESC 키**: 팝오버 닫기
+- **Enter/Space**: 버튼 활성화
+
+### 스크린 리더 지원
+- **ARIA 레이블**: 적절한 라벨링
+- **포커스 관리**: 팝오버 열릴 때 포커스 이동
+- **상태 알림**: 선택 상태 변경 알림
+
+## 🚀 성능 최적화
+
+### 조건부 렌더링
+```tsx
+{isSelected && (
+  <div className="absolute -top-8 left-0 opacity-0 group-hover:opacity-100">
+    {/* 선택된 상태에서만 렌더링 */}
+  </div>
+)}
+```
+
+### 메모이제이션
+```tsx
+const memoizedSamples = useMemo(() => 
+  SVG_SAMPLES.map(sample => ({ ...sample })), 
+  []
+);
+```
+
+### 이벤트 최적화
+- **이벤트 위임**: 최소한의 이벤트 리스너
+- **stopPropagation**: 불필요한 버블링 방지
+- **useCallback**: 함수 재생성 방지
+
+## 🔮 향후 계획
+
+### 추가 컴포넌트
+- [ ] Command palette
+- [ ] Tooltip
+- [ ] Dropdown menu
+- [ ] Select
+
+### 테마 시스템
+- [ ] 다크 모드 지원
+- [ ] 사용자 정의 색상
+- [ ] 고대비 모드
+
+### 애니메이션
+- [ ] Framer Motion 통합
+- [ ] 마이크로 인터랙션
+- [ ] 전환 애니메이션
