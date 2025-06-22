@@ -19,8 +19,6 @@ export interface PluginContext {
     columns: import("../types").DatabaseColumn[]
   ) => void;
   handleDatabaseFetch?: (databaseId: string) => Promise<void>;
-  canEditText?: boolean;
-  showHoverEffects?: boolean;
 }
 
 export interface PluginRenderProps {
@@ -28,16 +26,25 @@ export interface PluginRenderProps {
   parsedElement: ParsedElement;
   context: PluginContext;
   renderElement: (element: ParsedElement) => React.ReactNode;
-  isInSelectedContainer: boolean;
   canEditText: boolean;
-  showHoverEffects: boolean;
-  isSelected?: boolean;
+}
+
+export interface SelectableConfig {
+  enabled: boolean;
+  name: string;
+  color?: string;
+  description?: string;
+  level?: 'element' | 'item' | 'container';
+  elementType?: 'block' | 'inline';
 }
 
 export interface Plugin {
   name: string;
   version: string;
   description?: string;
+
+  // Selection configuration
+  selectable?: SelectableConfig;
 
   // Matching conditions - when should this plugin handle an element
   match: (element: Element) => boolean;

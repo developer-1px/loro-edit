@@ -113,18 +113,13 @@ class PluginManager implements IPluginManager {
       context.selection.mode === "text" &&
       parsedElement.type === "text" &&
       context.selection.selectedTextElementId === parsedElement.id;
-    const showHoverEffects =
-      context.selection.mode === "block" &&
-      context.selection.selectedElementId === parsedElement.id;
 
     const renderProps: PluginRenderProps = {
       element,
       parsedElement,
       context,
       renderElement,
-      isInSelectedContainer: false, // Not used in new selection logic
       canEditText,
-      showHoverEffects,
     };
 
     try {

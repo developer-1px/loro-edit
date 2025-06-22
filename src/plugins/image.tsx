@@ -71,12 +71,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
   };
 
   return (
-    <div className={`${className} relative group`} data-element-id={elementId}>
+    <div className={`${className} relative group`} data-block-element-id={elementId}>
       {src ? (
         <img
           src={src}
           alt={alt || "Editable image"}
-          className="transition-all duration-200 group-hover:opacity-75"
+          className="block"
           onPaste={handlePaste}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -86,7 +86,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
         />
       ) : (
         <div
-          className={`border-2 border-dashed border-gray-300 rounded-lg text-center transition-all duration-200 hover:border-gray-400 focus:border-blue-500 focus:outline-none flex items-center justify-center ${
+          className={`border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center ${
             dragOver ? "border-blue-500 bg-blue-50" : ""
           }`}
           onPaste={handlePaste}
@@ -114,9 +114,6 @@ const EditableImage: React.FC<EditableImageProps> = ({
         </div>
       )}
 
-      {src && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded"></div>
-      )}
     </div>
   );
 };
@@ -125,6 +122,15 @@ export const imagePlugin: Plugin = {
   name: "image",
   version: "1.0.0",
   description: "Handles image elements with drag & drop upload capabilities",
+
+  selectable: {
+    enabled: true,
+    name: "Image",
+    color: "#f59e0b", // amber
+    description: "Image with upload capabilities",
+    level: "element",
+    elementType: "inline",
+  },
 
   match: (element: Element) => {
     return (

@@ -10,7 +10,6 @@ interface EditableTextProps {
   className?: string;
   elementId: string;
   isEditable?: boolean;
-  showHoverEffects?: boolean;
 }
 
 const EditableText: React.FC<EditableTextProps> = ({
@@ -18,7 +17,6 @@ const EditableText: React.FC<EditableTextProps> = ({
   className,
   elementId,
   isEditable = true,
-  showHoverEffects = false,
 }) => {
   const [currentText, setCurrentText] = useState(text || "");
   const textRef = useRef<HTMLSpanElement>(null);
@@ -103,7 +101,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   }, [isTextMode]);
 
   const getTextStyles = () => {
-    const baseStyles = `${className} rounded px-1 transition-all duration-200 inline-block min-w-[20px] min-h-[1em]`;
+    const baseStyles = `${className} inline-block min-w-[20px] min-h-[1em]`;
 
     // 텍스트 모드에서는 편집 가능하지 않아도 cursor-text 적용
     const cursorStyle =
@@ -113,13 +111,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       return `${baseStyles} ${cursorStyle}`;
     }
 
-    let editableStyles = `${baseStyles} ${cursorStyle} focus:outline-none focus:ring-1 focus:ring-blue-400`;
-
-    if (showHoverEffects) {
-      editableStyles += ` underline hover:bg-blue-50 hover:text-blue-700`;
-    }
-
-    return editableStyles;
+    return `${baseStyles} ${cursorStyle} outline-none`;
   };
 
   // Helper function to render text with line breaks
@@ -162,6 +154,15 @@ export const textPlugin: Plugin = {
   version: "1.0.0",
   description: "Handles text elements with inline editing capabilities",
 
+  selectable: {
+    enabled: true,
+    name: "Text",
+    color: "#10b981", // green
+    description: "Editable text content",
+    level: "element",
+    elementType: "inline",
+  },
+
   match: (element: Element) => {
     // Only match actual text nodes, not element nodes
     return element.nodeType === Node.TEXT_NODE;
@@ -180,7 +181,7 @@ export const textPlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, canEditText, showHoverEffects }) => {
+  render: ({ parsedElement, canEditText }) => {
     const textElement = parsedElement as TextElement;
 
     return (
@@ -189,7 +190,6 @@ export const textPlugin: Plugin = {
         elementId={textElement.id}
         text={textElement.content}
         isEditable={canEditText}
-        showHoverEffects={showHoverEffects}
       />
     );
   },

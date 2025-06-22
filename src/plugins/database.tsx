@@ -479,14 +479,10 @@ const DatabaseSettings: React.FC<DatabaseSettingsProps> = ({
 
 interface DatabaseViewProps {
   element: DatabaseElement;
-  showHoverEffects?: boolean;
-  isSelected?: boolean;
 }
 
 const DatabaseView: React.FC<DatabaseViewProps> = ({
   element,
-  showHoverEffects = false,
-  isSelected = false,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -510,28 +506,8 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
     }
   };
 
-  const getContainerStyles = () => {
-    const baseStyles = "relative transition-all duration-200";
-
-    if (isSelected) {
-      return `${baseStyles} ring-2 ring-blue-500`;
-    }
-
-    if (showHoverEffects) {
-      return `${baseStyles} ring-1 ring-blue-300 bg-blue-50 bg-opacity-30`;
-    }
-
-    return baseStyles;
-  };
-
   return (
-    <div className={getContainerStyles()} data-block-element-id={element.id}>
-      {/* Selection indicator */}
-      {isSelected && (
-        <div className="absolute -top-2 -left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium shadow-md z-10">
-          Selected: {element.database}
-        </div>
-      )}
+    <div className="relative" data-block-element-id={element.id}>
 
       {/* Compact toolbar as chips */}
       <div className="flex items-center gap-2 mb-3">
@@ -633,6 +609,15 @@ export const databasePlugin: Plugin = {
   version: "1.0.0",
   description: "Handles database connections with card and table views",
 
+  selectable: {
+    enabled: true,
+    name: "Database",
+    color: "#3b82f6", // blue
+    description: "Database with data visualization",
+    level: "element",
+    elementType: "block",
+  },
+
   match: (element: Element) =>
     element.tagName.toLowerCase() === "div" &&
     element.hasAttribute("data-database-id"),
@@ -666,15 +651,13 @@ export const databasePlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, showHoverEffects, isSelected }) => {
+  render: ({ parsedElement }) => {
     const databaseElement = parsedElement as DatabaseElement;
 
     return (
       <DatabaseView
         key={databaseElement.id}
         element={databaseElement}
-        showHoverEffects={showHoverEffects}
-        isSelected={isSelected}
       />
     );
   },

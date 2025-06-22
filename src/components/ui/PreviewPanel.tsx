@@ -1,13 +1,15 @@
 // src/components/ui/PreviewPanel.tsx
 
 import React from 'react';
-import type { ParsedElement } from '../../types';
+import type { ParsedElement, SelectionState } from '../../types';
+import { SelectionOverlayManager } from './SelectionOverlayManager';
 
 interface PreviewPanelProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
   parsedElements: ParsedElement[];
   renderElement: (element: ParsedElement) => React.ReactNode;
   onClick: (e: React.MouseEvent) => void;
+  selection: SelectionState;
 }
 
 const previewWidths = {
@@ -21,11 +23,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   parsedElements,
   renderElement,
   onClick,
+  selection,
 }) => {
   return (
     <div className="flex-1 flex justify-center items-start">
       <div
-        className="bg-white rounded-lg shadow-lg border transition-all duration-300"
+        className="bg-white rounded-lg shadow-lg border transition-all duration-300 relative"
         style={{
           width: previewWidths[previewMode],
           maxWidth: '100%',
@@ -37,6 +40,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               : '600px',
         }}
         onClick={onClick}
+        data-preview-container
       >
         <div className="p-4 h-full overflow-y-auto">
           {parsedElements.map((element, index) => {
@@ -47,6 +51,17 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             return <div key={element.id || index}>{rendered}</div>;
           })}
         </div>
+        
+        {/* Selection Overlay Manager */}
+        <SelectionOverlayManager
+          parsedElements={parsedElements}
+          selectedElementId={selection.selectedElementId}
+          selectedRepeatItemId={selection.selectedRepeatItemId}
+          selectedRepeatContainerId={selection.selectedRepeatContainerId}
+          selectedTextElementId={selection.selectedTextElementId}
+          selectionMode={selection.mode}
+          showHoverEffects={selection.mode === 'block'}
+        />
       </div>
     </div>
   );

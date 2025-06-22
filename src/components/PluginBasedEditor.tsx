@@ -99,17 +99,6 @@ export const PluginBasedEditor: React.FC = () => {
       console.log("Rendering database element:", parsedElement);
     }
 
-    // New selection logic: text is only editable in text mode for the selected text element
-    const canEditText =
-      selection.mode === "text" &&
-      parsedElement.type === "text" &&
-      selection.selectedTextElementId === parsedElement.id;
-
-    // Show hover effects when in block mode and element is selected
-    const showHoverEffects =
-      selection.mode === "block" &&
-      selection.selectedElementId === parsedElement.id;
-
     // For the new plugin system, we need to create a mock DOM element to pass to the plugin
     // This is a temporary solution until we fully refactor to work with DOM elements
     const tagName = "tagName" in parsedElement ? parsedElement.tagName : "div";
@@ -143,11 +132,7 @@ export const PluginBasedEditor: React.FC = () => {
     const result = pluginManager.renderElement(
       mockElement,
       parsedElement,
-      {
-        ...pluginContext,
-        canEditText,
-        showHoverEffects,
-      },
+      pluginContext,
       renderElement
     );
 
@@ -179,6 +164,7 @@ export const PluginBasedEditor: React.FC = () => {
             parsedElements={parsedElements}
             renderElement={renderElement}
             onClick={handleDocumentClick}
+            selection={selection}
           />
 
           <div className="mt-4 text-center">

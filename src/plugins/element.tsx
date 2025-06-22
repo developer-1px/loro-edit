@@ -10,6 +10,14 @@ export const elementPlugin: Plugin = {
   description:
     "Handles generic HTML elements that are not handled by other plugins",
 
+  selectable: {
+    enabled: false,
+    name: "Element",
+    color: "#6b7280", // gray
+    description: "Generic HTML element",
+    level: "element",
+  },
+
   match: (element: Element) => {
     // Do not match elements that are explicitly text
     if (element.getAttribute("data-element-type") === "text") {
@@ -48,7 +56,7 @@ export const elementPlugin: Plugin = {
       {
         key: regularElement.id,
         className: regularElement.className,
-        "data-element-id": regularElement.id,
+        "data-block-element-id": regularElement.id,
       },
       (regularElement.children || []).map(renderElement).filter(Boolean)
     );
