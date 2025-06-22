@@ -64,7 +64,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
               <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                 <span class="text-white text-xs">✓</span>
               </div>
-              <p class="text-gray-600">Customizable workflows and automations</p>
+              <p class="text-gray-600">Customizable <code>workflows</code> and <em>automations</em></p>
             </div>
             <div class="flex items-start space-x-3">
               <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -84,28 +84,94 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
 
       <div class="grid md:grid-cols-3 gap-8" data-repeat-container="features">
         <div class="text-center p-6" data-repeat-item="feature-1">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Speed Icon" class="w-full h-full rounded-lg">
-          </picture>
+          <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-blue-100 rounded-lg">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          </div>
           <h4 class="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h4>
-          <p class="text-gray-600">Process data at incredible speeds with our optimized AI algorithms and cloud infrastructure.</p>
+          <p class="text-gray-600">Process data at <em>incredible speeds</em> with our optimized AI algorithms and cloud infrastructure.</p>
         </div>
         
         <div class="text-center p-6" data-repeat-item="feature-2">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Security Icon" class="w-full h-full rounded-lg">
-          </picture>
+          <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 rounded-lg">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.417l5.611-1.549a12.019 12.019 0 01.44-2.008l4.062-1.132a12.019 12.019 0 01.44 2.008l5.611 1.549A12.02 12.02 0 0021 8.984a11.955 11.955 0 01-2.382-3.001z"></path></svg>
+          </div>
           <h4 class="text-xl font-semibold text-gray-900 mb-3">Enterprise Security</h4>
-          <p class="text-gray-600">Bank-level security with end-to-end encryption and compliance with global standards.</p>
+          <p class="text-gray-600">Bank-level security with <code>end-to-end</code> encryption and compliance with global standards.</p>
         </div>
         
         <div class="text-center p-6" data-repeat-item="feature-3">
-          <picture class="w-16 h-16 mx-auto mb-4 block">
-            <img src="" alt="Analytics Icon" class="w-full h-full rounded-lg">
-          </picture>
+          <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-purple-100 rounded-lg">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg>
+          </div>
           <h4 class="text-xl font-semibold text-gray-900 mb-3">Advanced Analytics</h4>
-          <p class="text-gray-600">Get deep insights with real-time analytics and customizable dashboards.</p>
+          <p class="text-gray-600">Get deep insights with real-time analytics and <strong>customizable</strong> dashboards.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h3>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Hear from companies who have transformed their business with TechCorp.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div class="bg-white p-8 rounded-lg shadow">
+          <blockquote class="text-gray-600 italic">"The AI-powered analytics have given us insights we never thought possible. It's a game-changer for our marketing strategy."</blockquote>
+          <p class="mt-4 font-semibold text-gray-900">- Alex Johnson, CEO of Innovate Co.</p>
+        </div>
+        <div class="bg-white p-8 rounded-lg shadow">
+          <blockquote class="text-gray-600 italic">"Integration was seamless, and the support team is incredibly responsive. We saw a <strong>40% increase</strong> in efficiency within the first quarter."</blockquote>
+          <p class="mt-4 font-semibold text-gray-900">- Samantha Lee, CTO of Future Systems</p>
+        </div>
+        <div class="bg-white p-8 rounded-lg shadow">
+          <blockquote class="text-gray-600 italic">"A truly powerful and intuitive platform. The ability to customize workflows has been invaluable for our unique business needs."</blockquote>
+          <p class="mt-4 font-semibold text-gray-900">- Michael Chen, Head of Operations at DataCorp</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Flexible Pricing for Teams of All Sizes</h3>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Choose a plan that fits your needs and scale as you grow.</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th class="py-4 px-6 bg-gray-50 font-bold uppercase text-sm text-gray-600 border-b">Plan</th>
+              <th class="py-4 px-6 bg-gray-50 font-bold uppercase text-sm text-gray-600 border-b">Features</th>
+              <th class="py-4 px-6 bg-gray-50 font-bold uppercase text-sm text-gray-600 border-b">Price</th>
+              <th class="py-4 px-6 bg-gray-50 font-bold uppercase text-sm text-gray-600 border-b"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="hover:bg-gray-100">
+              <td class="py-4 px-6 border-b border-gray-200">Starter</td>
+              <td class="py-4 px-6 border-b border-gray-200">Basic AI tools, 5GB storage, Community support</td>
+              <td class="py-4 px-6 border-b border-gray-200">$49/mo</td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-500 text-white px-4 py-2 rounded">Choose</button></td>
+            </tr>
+            <tr class="hover:bg-gray-100">
+              <td class="py-4 px-6 border-b border-gray-200">Professional</td>
+              <td class="py-4 px-6 border-b border-gray-200">Advanced AI tools, 50GB storage, Priority email support</td>
+              <td class="py-4 px-6 border-b border-gray-200">$99/mo</td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-600 text-white px-4 py-2 rounded">Choose</button></td>
+            </tr>
+            <tr class="hover:bg-gray-100">
+              <td class="py-4 px-6 border-b border-gray-200">Enterprise</td>
+              <td class="py-4 px-6 border-b border-gray-200">All features, Unlimited storage, 24/7 dedicated support</td>
+              <td class="py-4 px-6 border-b border-gray-200">Contact Us</td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="border border-gray-400 text-gray-600 px-4 py-2 rounded">Contact</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -161,6 +227,33 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
         <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Start Your Free Trial</button>
         <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">Contact Sales</button>
       </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Contact Our Team</h3>
+        <p class="text-lg text-gray-600">Have a question? We'd love to hear from you.</p>
+      </div>
+      <form class="bg-white p-8 rounded-lg shadow-md space-y-6">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+          <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+          <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">Send Message</button>
+        </div>
+      </form>
     </div>
   </section>
 

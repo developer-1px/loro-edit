@@ -2,6 +2,7 @@
 
 import type { ParsedElement, RegularElement } from "../types";
 import { pluginManager } from "../plugins/PluginManager";
+import { VOID_ELEMENTS } from "./voidElements";
 
 export const parseAndRenderHTML = (html: string): ParsedElement[] => {
   const parser = new DOMParser();
@@ -13,11 +14,17 @@ export const parseAndRenderHTML = (html: string): ParsedElement[] => {
 const processElement = (element: Element | null): ParsedElement | null => {
   if (!element) return null;
 
+  const tagName = element.tagName.toLowerCase();
+  const isVoidElement = VOID_ELEMENTS.has(tagName);
+
   // Try to use plugin system to parse the element
   const parsed = pluginManager.parseElement(element);
   if (parsed) {
     // Recursively parse children if this is a container element
-    if (parsed.type === "element" || parsed.type === "repeat-container") {
+    if (
+      !isVoidElement &&
+      (parsed.type === "element" || parsed.type === "repeat-container")
+    ) {
       const children: ParsedElement[] = Array.from(element.childNodes)
         .map((child) => {
           if (child.nodeType === Node.TEXT_NODE) {
@@ -62,35 +69,39 @@ const processElement = (element: Element | null): ParsedElement | null => {
   }
 
   // Fallback for elements not handled by plugins
-  const tagName = element.tagName.toLowerCase();
-  const className = element.getAttribute("class") || "";
-  const repeatItem = element.getAttribute("data-repeat-item");
   const id = crypto.randomUUID();
 
-  const children: ParsedElement[] = Array.from(element.childNodes)
-    .map((child) => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent?.trim();
-        if (text) {
-          return {
-            type: "text",
-            content: text,
-            id: crypto.randomUUID(),
-          } as ParsedElement;
-        }
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        return processElement(child as Element);
-      }
-      return null;
-    })
-    .filter((child): child is ParsedElement => child !== null);
+  const attributes = Array.from(element.attributes).reduce((acc, attr) => {
+    acc[attr.name] = attr.value;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const children: ParsedElement[] = isVoidElement
+    ? []
+    : Array.from(element.childNodes)
+        .map((child) => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            const text = child.textContent?.trim();
+            if (text) {
+              return {
+                type: "text",
+                content: text,
+                id: crypto.randomUUID(),
+              } as ParsedElement;
+            }
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            return processElement(child as Element);
+          }
+          return null;
+        })
+        .filter((child): child is ParsedElement => child !== null);
 
   return {
     type: "element",
     tagName,
-    className,
+    attributes,
     children,
     id,
-    repeatItem: repeatItem || undefined,
+    repeatItem: attributes["data-repeat-item"],
   };
 };

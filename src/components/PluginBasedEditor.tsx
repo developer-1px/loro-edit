@@ -159,14 +159,6 @@ export const PluginBasedEditor: React.FC = () => {
             futureStates={futureStates?.length || 0}
           />
 
-          <PreviewPanel
-            previewMode={previewMode}
-            parsedElements={parsedElements}
-            renderElement={renderElement}
-            onClick={handleDocumentClick}
-            selection={selection}
-          />
-
           <div className="mt-4 text-center">
             <div className="text-xs text-gray-500">
               {previewMode === "mobile" && "375px × 667px"}
@@ -174,6 +166,14 @@ export const PluginBasedEditor: React.FC = () => {
               {previewMode === "desktop" && "100% width"}
             </div>
           </div>
+
+          <PreviewPanel
+            previewMode={previewMode}
+            parsedElements={parsedElements}
+            renderElement={renderElement}
+            onClick={handleDocumentClick}
+            selection={selection}
+          />
         </div>
 
         <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />

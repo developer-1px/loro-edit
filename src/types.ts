@@ -2,7 +2,6 @@
 
 export interface BaseElement {
   id: string;
-  className: string;
   tagName: string;
 }
 
@@ -17,10 +16,12 @@ export interface ImageElement extends BaseElement {
   src: string;
   alt: string;
   repeatItem?: string;
+  attributes: Record<string, string>;
 }
 
 export interface RegularElement extends BaseElement {
   type: "element";
+  attributes: Record<string, string>;
   children: ParsedElement[];
   repeatItem?: string;
 }
@@ -28,9 +29,9 @@ export interface RegularElement extends BaseElement {
 export interface RepeatContainer extends BaseElement {
   type: "repeat-container";
   repeatContainer: string;
+  attributes: Record<string, string>;
   items: RegularElement[];
   children: ParsedElement[];
-  id: string;
 }
 
 export interface DatabaseElement extends BaseElement {
@@ -38,14 +39,14 @@ export interface DatabaseElement extends BaseElement {
   database: string; // database name/identifier
   apiUrl?: string;
   viewMode: "cards" | "table";
+  attributes: Record<string, string>;
   data: DatabaseRecord[];
   columns: DatabaseColumn[];
-  id: string;
 }
 
 export interface DatabaseRecord {
   id: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null;
 }
 
 export interface DatabaseColumn {

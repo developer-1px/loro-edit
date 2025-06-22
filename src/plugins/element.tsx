@@ -2,7 +2,9 @@
 
 import React from "react";
 import type { Plugin } from "./types";
-import type { RegularElement } from "../types";
+import type { ParsedElement, RegularElement } from "../types";
+import { VOID_ELEMENTS } from "../utils/voidElements";
+import { attributesToReactProps } from "../utils/attributesToReactProps";
 
 export const elementPlugin: Plugin = {
   name: "element",
@@ -35,30 +37,44 @@ export const elementPlugin: Plugin = {
     return !hasSpecialAttributes;
   },
 
-  parse: (element: Element) => {
+  parse: (element: Element): ParsedElement | null => {
+    const attributes = Array.from(element.attributes).reduce((acc, attr) => {
+      acc[attr.name] = attr.value;
+      return acc;
+    }, {} as Record<string, string>);
     // Parse generic HTML elements
     return {
       type: "element" as const,
-      id: element.id || crypto.randomUUID(),
-      className: element.className || "",
+      id: attributes.id || crypto.randomUUID(),
+      attributes,
       tagName: element.tagName.toLowerCase(),
+      repeatItem: attributes["data-repeat-item"],
       children: [], // Will be filled by htmlParser
-      repeatItem: element.getAttribute("data-repeat-item") || undefined,
     };
   },
 
   render: ({ parsedElement, renderElement }) => {
     const regularElement = parsedElement as RegularElement;
     const Tag = regularElement.tagName as keyof React.JSX.IntrinsicElements;
+    const isVoid = VOID_ELEMENTS.has(Tag);
 
-    return React.createElement(
-      Tag,
-      {
-        key: regularElement.id,
-        className: regularElement.className,
-        "data-block-element-id": regularElement.id,
-      },
-      (regularElement.children || []).map(renderElement).filter(Boolean)
-    );
+    const originalAttributes = { ...regularElement.attributes };
+    delete originalAttributes.id; // it's used for key, not a good idea to spread
+
+    const props = {
+      ...attributesToReactProps(originalAttributes),
+      key: regularElement.id,
+      "data-block-element-id": regularElement.id,
+    };
+
+    const children =
+      !isVoid && regularElement.children
+        ? regularElement.children.map(renderElement).filter(Boolean)
+        : null;
+
+    if (children && children.length > 0) {
+      return React.createElement(Tag, props, ...children);
+    }
+    return React.createElement(Tag, props);
   },
 };
