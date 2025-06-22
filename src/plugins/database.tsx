@@ -1,6 +1,7 @@
 // src/plugins/database.tsx
 
 import React, { useState, useRef, useEffect } from "react";
+import { useAsyncOperation } from "../hooks/useAsyncOperation";
 import {
   Table,
   Grid,
@@ -485,8 +486,6 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
   element,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const handleViewModeChange = useEditorStore(
     (state) => state.handleDatabaseViewModeChange
   );
@@ -494,17 +493,23 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
     (state) => state.handleDatabaseFetch
   );
 
-  const handleFetchData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  // Use the new useAsyncOperation hook for data fetching
+  const dataFetch = useAsyncOperation(
+    async () => {
       await storeHandleFetchData(element.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "An unknown error occurred.");
-    } finally {
-      setIsLoading(false);
+    },
+    [element.id],
+    {
+      retryAttempts: 2,
+      retryDelay: 1000,
+      onSuccess: () => {
+        console.log("Database data fetched successfully");
+      },
+      onError: (error) => {
+        console.error("Failed to fetch database data:", error);
+      },
     }
-  };
+  );
 
   return (
     <div className="relative" data-block-element-id={element.id}>
@@ -549,13 +554,13 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
         {/* Action chips */}
         {element.apiUrl && (
           <button
-            onClick={handleFetchData}
-            disabled={isLoading}
+            onClick={() => dataFetch.execute()}
+            disabled={dataFetch.loading}
             className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs hover:bg-green-200 disabled:opacity-50 transition-colors"
             title="Fetch Data"
           >
             <ExternalLink className="w-3 h-3" />
-            {isLoading ? "Fetching..." : "Fetch"}
+            {dataFetch.loading ? "Fetching..." : "Fetch"}
           </button>
         )}
 
@@ -596,10 +601,31 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
         />
       )}
 
-      {isLoading && (
-        <p className="text-center text-gray-500">Loading data...</p>
+      {dataFetch.loading && (
+        <div className="text-center py-4">
+          <div className="inline-flex items-center gap-2 text-gray-500">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+            Loading data...
+          </div>
+        </div>
       )}
-      {error && <p className="text-center text-red-500">Error: {error}</p>}
+      {dataFetch.error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2 text-red-800">
+            <X className="w-4 h-4" />
+            <span className="font-medium">Error loading data</span>
+          </div>
+          <p className="text-red-700 mt-1">{dataFetch.error}</p>
+          {dataFetch.canRetry && (
+            <button
+              onClick={() => dataFetch.retry()}
+              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
