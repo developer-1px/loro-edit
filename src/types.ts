@@ -19,6 +19,15 @@ export interface ImageElement extends BaseElement {
   attributes: Record<string, string>;
 }
 
+export interface SvgElement extends BaseElement {
+  type: "svg";
+  svgContent: string;
+  width?: string;
+  height?: string;
+  repeatItem?: string;
+  attributes: Record<string, string>;
+}
+
 export interface RegularElement extends BaseElement {
   type: "element";
   attributes: Record<string, string>;
@@ -59,6 +68,7 @@ export interface DatabaseColumn {
 export type ParsedElement =
   | TextElement
   | ImageElement
+  | SvgElement
   | RegularElement
   | RepeatContainer
   | DatabaseElement;

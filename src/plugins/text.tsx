@@ -164,16 +164,16 @@ export const textPlugin: Plugin = {
   },
 
   match: (element: Element) => {
-    // Only match actual text nodes, not element nodes
-    return element.nodeType === Node.TEXT_NODE;
+    // Match elements that have been marked as text elements
+    return element.getAttribute("data-element-type") === "text";
   },
 
   parse: (element: Element) => {
-    // Only parse text nodes
-    if (element.nodeType === Node.TEXT_NODE) {
+    // Parse elements marked as text elements
+    if (element.getAttribute("data-element-type") === "text") {
       return {
         type: "text" as const,
-        id: crypto.randomUUID(),
+        id: element.id || crypto.randomUUID(),
         content: element.textContent || "",
       };
     }

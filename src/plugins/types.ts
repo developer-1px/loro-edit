@@ -9,6 +9,7 @@ export interface PluginContext {
   handleItemAdd: (containerId: string) => void;
   handleTextChange: (elementId: string, newText: string) => void;
   handleImageChange: (elementId: string, newSrc: string) => void;
+  handleSvgChange: (elementId: string, newSvgContent: string) => void;
   handleDatabaseViewModeChange?: (
     databaseId: string,
     viewMode: "cards" | "table"

@@ -30,10 +30,13 @@ export const sectionPlugin: Plugin = {
       return {
         type: "element" as const,
         id: element.id || crypto.randomUUID(),
-        className: element.className || "",
         tagName: tagName,
         children: [], // Would be parsed from child elements
         repeatItem: element.getAttribute("data-repeat-item") || undefined,
+        attributes: Array.from(element.attributes).reduce((acc, attr) => {
+          acc[attr.name] = attr.value;
+          return acc;
+        }, {} as Record<string, string>),
       };
     }
     return null;
@@ -47,7 +50,7 @@ export const sectionPlugin: Plugin = {
       Tag,
       { 
         key: sectionElement.id, 
-        className: sectionElement.className,
+        className: sectionElement.attributes?.class || "",
         'data-block-element-id': sectionElement.id,
       },
       (sectionElement.children || []).map(renderElement).filter(Boolean)

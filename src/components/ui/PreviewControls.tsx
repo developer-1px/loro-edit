@@ -3,6 +3,9 @@
 import React from 'react';
 import { Smartphone, Tablet, Monitor, Eye, X, Undo2, Redo2 } from 'lucide-react';
 import type { SelectionState } from '../../types';
+import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
 
 interface PreviewControlsProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
@@ -26,89 +29,81 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
   futureStates = 0,
 }) => {
   return (
-    <div className="mb-4 flex items-center justify-between">
+    <div className="mb-4 flex items-center justify-between border-b pb-4">
       <div className="flex items-center gap-4">
-        <Eye className="w-5 h-5 text-gray-700" />
-        <div className="flex gap-2">
-          <button
-            onClick={() => onPreviewModeChange('mobile')}
-            className={`p-2 rounded transition-colors ${
-              previewMode === 'mobile'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-            title="Mobile view (375px)"
-          >
-            <Smartphone className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onPreviewModeChange('tablet')}
-            className={`p-2 rounded transition-colors ${
-              previewMode === 'tablet'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-            title="Tablet view (768px)"
-          >
-            <Tablet className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onPreviewModeChange('desktop')}
-            className={`p-2 rounded transition-colors ${
-              previewMode === 'desktop'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-            title="Desktop view (100%)"
-          >
-            <Monitor className="w-4 h-4" />
-          </button>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Eye className="w-5 h-5" />
+          <span className="text-sm font-medium">Preview</span>
         </div>
+        
+        <ToggleGroup 
+          type="single" 
+          value={previewMode} 
+          onValueChange={(value) => value && onPreviewModeChange(value as 'mobile' | 'tablet' | 'desktop')}
+          className="gap-1"
+        >
+          <ToggleGroupItem value="mobile" aria-label="Mobile view" size="sm">
+            <Smartphone className="w-4 h-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="tablet" aria-label="Tablet view" size="sm">
+            <Tablet className="w-4 h-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="desktop" aria-label="Desktop view" size="sm">
+            <Monitor className="w-4 h-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
       
       <div className="flex items-center gap-2">
         <div
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
+          className={cn(
+            "px-3 py-1 rounded-full text-xs font-medium",
             selection.mode === 'block'
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-green-100 text-green-700'
-          }`}
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+              : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+          )}
           title={`Current mode: ${
             selection.mode === 'block'
               ? 'Block Selection Mode'
               : 'Text Edit Mode'
           }`}
         >
-          {selection.mode === 'block' ? 'B' : 'T'}
+          {selection.mode === 'block' ? 'Block' : 'Text'}
         </div>
         
         {(selection.selectedElementId || selection.selectedTextElementId) && (
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={onClearSelection}
-            className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+            className="h-8 w-8 p-0"
             title="Clear selection (ESC)"
           >
             <X className="w-3 h-3" />
-          </button>
+          </Button>
         )}
         
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onUndo}
-          className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
           disabled={pastStates === 0}
           title={`Undo (${pastStates} available)`}
+          className="h-8 w-8 p-0"
         >
           <Undo2 className="w-4 h-4" />
-        </button>
+        </Button>
         
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onRedo}
-          className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
           disabled={futureStates === 0}
           title={`Redo (${futureStates} available)`}
+          className="h-8 w-8 p-0"
         >
           <Redo2 className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

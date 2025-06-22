@@ -30,6 +30,7 @@ export const PluginBasedEditor: React.FC = () => {
     handleItemAdd,
     handleTextChange,
     handleImageChange,
+    handleSvgChange,
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
@@ -47,9 +48,10 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Custom hooks
   const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
-  const { handleDeselect, handleDocumentClick } = useSelectionHandling({
+  const { handleDeselect, handleDocumentClick, selectableTree } = useSelectionHandling({
     selection,
     setSelection,
+    parsedElements,
   });
 
   useEditorHotkeys();
@@ -87,6 +89,7 @@ export const PluginBasedEditor: React.FC = () => {
     handleItemAdd,
     handleTextChange,
     handleImageChange,
+    handleSvgChange,
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
@@ -102,8 +105,7 @@ export const PluginBasedEditor: React.FC = () => {
     // For the new plugin system, we need to create a mock DOM element to pass to the plugin
     // This is a temporary solution until we fully refactor to work with DOM elements
     const tagName = "tagName" in parsedElement ? parsedElement.tagName : "div";
-    const className =
-      "className" in parsedElement ? parsedElement.className : "";
+    const className = "attributes" in parsedElement && parsedElement.attributes?.class || "";
     const mockElement = document.createElement(tagName || "div");
     if (className) {
       mockElement.className = className;
@@ -173,6 +175,7 @@ export const PluginBasedEditor: React.FC = () => {
             renderElement={renderElement}
             onClick={handleDocumentClick}
             selection={selection}
+            selectableTree={selectableTree}
           />
         </div>
 

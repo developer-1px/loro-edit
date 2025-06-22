@@ -23,6 +23,7 @@ export interface EditorState {
   handleRepeatItemPaste: (containerId: string) => void;
   handleTextChange: (textId: string, newText: string) => void;
   handleImageChange: (imageId: string, newSrc: string) => void;
+  handleSvgChange: (svgId: string, newSvgContent: string) => void;
   handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => void;
   handleDatabaseSettingsUpdate: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
   handleDatabaseFetch: (databaseId: string) => Promise<void>;
@@ -126,6 +127,34 @@ export const useEditorStore = create<EditorState>()(
         };
         set((state) => ({
           parsedElements: state.parsedElements.map(updateElementImage),
+        }));
+      },
+
+      handleSvgChange: (svgId: string, newSvgContent: string) => {
+        const updateElementSvg = (element: ParsedElement): ParsedElement => {
+          if (element.type === "svg") {
+            return element.id === svgId
+              ? { ...element, svgContent: newSvgContent }
+              : element;
+          }
+          if ("children" in element && element.children) {
+            return {
+              ...element,
+              children: element.children.map(updateElementSvg),
+            };
+          }
+          if ("items" in element && element.items) {
+            return {
+              ...element,
+              items: element.items.map(
+                (el) => updateElementSvg(el) as RegularElement
+              ),
+            };
+          }
+          return element;
+        };
+        set((state) => ({
+          parsedElements: state.parsedElements.map(updateElementSvg),
         }));
       },
 

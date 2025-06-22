@@ -3,6 +3,7 @@
 import { pluginManager } from "./PluginManager";
 import { textPlugin } from "./text";
 import { imagePlugin } from "./image";
+import { svgPlugin } from "./svg";
 import { repeatContainerPlugin } from "./repeat-container";
 import { sectionPlugin } from "./section";
 import { elementPlugin } from "./element";
@@ -20,6 +21,7 @@ export const registerDefaultPlugins = () => {
   console.log("Registering default plugins...");
   // Register plugins in order (higher priority plugins first)
   pluginManager.register(imagePlugin);
+  pluginManager.register(svgPlugin);
   pluginManager.register(repeatContainerPlugin);
   pluginManager.register(databasePlugin);
   pluginManager.register(sectionPlugin);
@@ -37,6 +39,7 @@ export { pluginManager } from "./PluginManager";
 export * from "./types";
 export { textPlugin } from "./text";
 export { imagePlugin } from "./image";
+export { svgPlugin } from "./svg";
 export { repeatContainerPlugin } from "./repeat-container";
 export { databasePlugin } from "./database";
 export { sectionPlugin } from "./section";

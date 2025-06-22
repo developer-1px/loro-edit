@@ -74,11 +74,14 @@ export const repeatContainerPlugin: Plugin = {
       return {
         type: "repeat-container" as const,
         id: element.id || crypto.randomUUID(),
-        className: element.className || "",
         tagName: element.tagName.toLowerCase(),
         repeatContainer: repeatAttribute,
         items: items,
         children: [], // Would be parsed from child elements
+        attributes: Array.from(element.attributes).reduce((acc, attr) => {
+          acc[attr.name] = attr.value;
+          return acc;
+        }, {} as Record<string, string>),
       };
     }
     return null;
@@ -91,7 +94,7 @@ export const repeatContainerPlugin: Plugin = {
       <RepeatableContainer
         key={repeatElement.id}
         containerId={repeatElement.id}
-        className={repeatElement.className}
+        className={repeatElement.attributes?.class || ""}
         items={repeatElement.items}
         renderItem={renderElement}
       />

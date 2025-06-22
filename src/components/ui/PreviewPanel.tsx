@@ -2,6 +2,7 @@
 
 import React from 'react';
 import type { ParsedElement, SelectionState } from '../../types';
+import type { SelectableElement } from '../../utils/selectionUtils';
 import { SelectionOverlayManager } from './SelectionOverlayManager';
 
 interface PreviewPanelProps {
@@ -10,6 +11,7 @@ interface PreviewPanelProps {
   renderElement: (element: ParsedElement) => React.ReactNode;
   onClick: (e: React.MouseEvent) => void;
   selection: SelectionState;
+  selectableTree: SelectableElement[];
 }
 
 const previewWidths = {
@@ -24,6 +26,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   renderElement,
   onClick,
   selection,
+  selectableTree,
 }) => {
   return (
     <div className="flex-1 flex justify-center items-start">
@@ -54,7 +57,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         
         {/* Selection Overlay Manager */}
         <SelectionOverlayManager
-          parsedElements={parsedElements}
+          selectableTree={selectableTree}
           selectedElementId={selection.selectedElementId}
           selectedRepeatItemId={selection.selectedRepeatItemId}
           selectedRepeatContainerId={selection.selectedRepeatContainerId}

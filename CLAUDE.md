@@ -21,15 +21,24 @@ This is a sophisticated React + TypeScript + Vite application featuring a plugin
 
 This project uses **pnpm** as the package manager (evidenced by `pnpm-lock.yaml`). Use `pnpm` commands instead of `npm` or `yarn`.
 
+## Design Philosophy
+
+The editor follows a minimalist approach inspired by Builder.io-style WYSIWYG editors:
+- **Content over structure**: Maintains design templates while allowing content editing
+- **Selection-driven workflow**: Primary interactions are select, delete, copy, paste
+- **Contextual tools**: Editing tools appear only when needed, at the right location
+- **Keyboard-first**: Core shortcuts (Ctrl/Cmd + C/V, Delete) are primary interface
+
 ## Architecture Overview
 
 ### Core Technologies
-- **Frontend Framework**: React 19 with TypeScript
+- **Frontend Framework**: React 19 with TypeScript (strict mode)
 - **Build Tool**: Vite with SWC plugin for fast compilation
-- **State Management**: Zustand with temporal (undo/redo) capabilities via Zundo
+- **State Management**: Zustand with temporal (undo/redo) capabilities via Zundo  
 - **Styling**: Tailwind CSS with PostCSS
 - **UI Icons**: Lucide React and Huge Icons React
 - **Keyboard Shortcuts**: react-hotkeys-hook
+- **Common Utilities**: react-use library for reusable patterns
 - **Linting**: ESLint with TypeScript and React-specific rules
 
 ### Application Structure
@@ -74,9 +83,13 @@ The editor implements a dual-mode selection system:
 - **Text Mode**: Edit text content inline within selected elements
 
 #### Hooks (`src/hooks/`)
-- **useEditorHotkeys** - Keyboard shortcut handling
+- **useEditorHotkeys** - Keyboard shortcut handling  
 - **useSelectionHandling** - Mouse/click selection logic
 - **useResizeHandling** - Panel resizing functionality
+- **useClipboardOperations** - Copy/cut/paste operations
+- **useModalForm** - Modal dialog management
+- **useAsyncOperation** - Async operation handling
+- **useDeepTreeOperations** - Deep tree manipulation utilities
 
 ### Key Features
 
@@ -111,3 +124,40 @@ The project uses a composite TypeScript setup:
 - `tsconfig.json` - Root configuration referencing app and node configs
 - `tsconfig.app.json` - Application-specific TypeScript settings
 - `tsconfig.node.json` - Node.js/build tool specific settings
+
+## Development Guidelines
+
+### Code Style Requirements
+- Use TypeScript strict mode (no `any` types)
+- Implement functional components with React.FC
+- Use React Hooks pattern consistently
+- Follow ESLint rules without exceptions
+- Apply Tailwind CSS for all styling
+
+### Plugin Development Process
+When adding new element types:
+1. Create plugin file in `src/plugins/` implementing the `Plugin` interface
+2. Define `match()` function to identify target elements
+3. Implement `parse()` for DOM → ParsedElement conversion
+4. Create `render()` function returning React components
+5. Register plugin in `src/plugins/index.ts`
+6. Test with `pnpm build` to ensure type safety
+
+### State Management Rules
+- Use Zustand store (`src/store/editorStore.ts`) for all state
+- Maintain immutability in state updates
+- Leverage temporal middleware for undo/redo
+- Distinguish between block/text selection modes
+- Handle clipboard operations through store actions
+
+### Selection System Implementation
+- **Block Mode**: Structural element selection and manipulation
+- **Text Mode**: Inline text editing within selected elements  
+- **Visual Feedback**: Clear selection indicators and overlays
+- **Keyboard Navigation**: Full keyboard shortcut support
+
+### Performance Optimization
+- Use React.memo, useMemo, useCallback appropriately
+- Avoid unnecessary re-renders through proper state management
+- Optimize plugin matching logic for large DOM trees
+- Implement efficient clipboard operations

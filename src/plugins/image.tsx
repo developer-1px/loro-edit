@@ -153,11 +153,14 @@ export const imagePlugin: Plugin = {
           ? "picture"
           : "img") as "img" | "picture",
         id: element.id || crypto.randomUUID(),
-        className: element.className || "",
         tagName: element.tagName.toLowerCase(),
         src: img?.getAttribute("src") || "",
         alt: img?.alt || "",
         repeatItem: element.getAttribute("data-repeat-item") || undefined,
+        attributes: Array.from(element.attributes).reduce((acc, attr) => {
+          acc[attr.name] = attr.value;
+          return acc;
+        }, {} as Record<string, string>),
       };
     }
     return null;
@@ -172,7 +175,7 @@ export const imagePlugin: Plugin = {
         elementId={imageElement.id}
         src={imageElement.src}
         alt={imageElement.alt}
-        className={imageElement.className}
+        className={imageElement.attributes?.class || ""}
       />
     );
   },
