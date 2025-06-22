@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useRef } from "react";
 import type { SelectableConfig } from "../../plugins/types";
+import { useElementRect } from "../../hooks/useElementRect";
 
 interface SelectionOverlayProps {
   targetSelector: string;
@@ -9,13 +10,6 @@ interface SelectionOverlayProps {
   showHoverEffects?: boolean;
 }
 
-interface BoundingRect {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-}
-
 export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   targetSelector,
   selectable,
@@ -23,52 +17,12 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   isHovered = false,
   showHoverEffects = false,
 }) => {
-  const [boundingRect, setBoundingRect] = useState<BoundingRect | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const updateBoundingRect = () => {
-      const targetElement = document.querySelector(targetSelector);
-      if (targetElement) {
-        const rect = targetElement.getBoundingClientRect();
-        const containerRect = targetElement
-          .closest("[data-preview-container]")
-          ?.getBoundingClientRect();
-
-        if (containerRect) {
-          setBoundingRect({
-            top: rect.top - containerRect.top,
-            left: rect.left - containerRect.left,
-            width: rect.width,
-            height: rect.height,
-          });
-        }
-      }
-    };
-
-    updateBoundingRect();
-
-    // Update on scroll and resize
-    const handleUpdate = () => updateBoundingRect();
-    window.addEventListener("scroll", handleUpdate, true);
-    window.addEventListener("resize", handleUpdate);
-
-    // Use ResizeObserver for more precise updates
-    let resizeObserver: ResizeObserver | null = null;
-    const targetElement = document.querySelector(targetSelector);
-    if (targetElement) {
-      resizeObserver = new ResizeObserver(handleUpdate);
-      resizeObserver.observe(targetElement);
-    }
-
-    return () => {
-      window.removeEventListener("scroll", handleUpdate, true);
-      window.removeEventListener("resize", handleUpdate);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, [targetSelector]);
+  
+  const { boundingRect } = useElementRect(targetSelector, {
+    containerSelector: "[data-preview-container]",
+    enabled: Boolean(targetSelector),
+  });
 
   if (!boundingRect || (!isSelected && (!showHoverEffects || !isHovered))) {
     return null;

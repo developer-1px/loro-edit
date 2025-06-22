@@ -1,7 +1,6 @@
 // src/plugins/repeat-container.tsx
 
 import React from "react";
-import { useEditorStore } from "../store/editorStore";
 import type { RegularElement, RepeatContainer } from "../types";
 import type { Plugin } from "./types";
 

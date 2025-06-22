@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SelectionOverlay } from './SelectionOverlay';
 import { pluginManager } from '../../plugins';
+import { useHoverState } from '../../hooks/useHoverState';
 import type { ParsedElement } from '../../types';
 import type { SelectableConfig } from '../../plugins/types';
 
@@ -32,7 +33,7 @@ export const SelectionOverlayManager: React.FC<SelectionOverlayManagerProps> = (
   showHoverEffects = false,
 }) => {
   const [overlays, setOverlays] = useState<OverlayData[]>([]);
-  const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+  const { hoveredElementId } = useHoverState({ enabled: showHoverEffects });
 
   // Collect all selectable elements and their configurations
   const collectSelectableElements = (elements: ParsedElement[]): OverlayData[] => {
@@ -144,43 +145,6 @@ export const SelectionOverlayManager: React.FC<SelectionOverlayManagerProps> = (
     selectionMode
   ]);
 
-  // Handle hover effects
-  useEffect(() => {
-    if (!showHoverEffects) return;
-
-    const handleMouseEnter = (event: Event) => {
-      const target = event.target as HTMLElement;
-      const blockElementId = target.getAttribute('data-block-element-id');
-      const textElementId = target.getAttribute('data-text-element-id');
-      const repeatItemId = target.getAttribute('data-repeat-item-id');
-      
-      // For repeat items, use the item ID for hover detection
-      if (repeatItemId) {
-        setHoveredElementId(repeatItemId);
-      } else if (textElementId && selectionMode === 'text') {
-        setHoveredElementId(textElementId);
-      } else if (blockElementId && selectionMode === 'block') {
-        setHoveredElementId(blockElementId);
-      }
-    };
-
-    const handleMouseLeave = () => {
-      setHoveredElementId(null);
-    };
-
-    const previewContainer = document.querySelector('[data-preview-container]');
-    if (previewContainer) {
-      previewContainer.addEventListener('mouseover', handleMouseEnter, true);
-      previewContainer.addEventListener('mouseleave', handleMouseLeave, true);
-    }
-
-    return () => {
-      if (previewContainer) {
-        previewContainer.removeEventListener('mouseover', handleMouseEnter, true);
-        previewContainer.removeEventListener('mouseleave', handleMouseLeave, true);
-      }
-    };
-  }, [showHoverEffects, selectionMode]);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
