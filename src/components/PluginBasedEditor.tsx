@@ -58,7 +58,6 @@ export const PluginBasedEditor: React.FC = () => {
       // Clear old mappings before parsing new elements
       pluginManager.clearElementMapping();
       const elements = parseAndRenderHTML(html);
-      console.log("Parsed elements:", elements);
       setParsedElements(elements);
       // Reset history for new HTML
       if (clear) clear();
@@ -73,7 +72,6 @@ export const PluginBasedEditor: React.FC = () => {
     // Clear old mappings and parse initial HTML
     pluginManager.clearElementMapping();
     const elements = parseAndRenderHTML(INITIAL_HTML);
-    console.log("Parsed elements:", elements);
     setParsedElements(elements);
     // Reset history for new HTML
     if (clear) clear();
@@ -95,11 +93,6 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Plugin-based rendering
   const renderElement = (parsedElement: ParsedElement): React.ReactNode => {
-    // Debug log for database elements
-    if (parsedElement.type === "database") {
-      console.log("Rendering database element:", parsedElement);
-    }
-
     // For the new plugin system, we need to create a mock DOM element to pass to the plugin
     // This is a temporary solution until we fully refactor to work with DOM elements
     const tagName = "tagName" in parsedElement ? parsedElement.tagName : "div";
@@ -158,14 +151,6 @@ export const PluginBasedEditor: React.FC = () => {
             pastStates={pastStates?.length || 0}
             futureStates={futureStates?.length || 0}
           />
-
-          <div className="mt-4 text-center">
-            <div className="text-xs text-gray-500">
-              {previewMode === "mobile" && "375px × 667px"}
-              {previewMode === "tablet" && "768px × 1024px"}
-              {previewMode === "desktop" && "100% width"}
-            </div>
-          </div>
 
           <PreviewPanel
             previewMode={previewMode}

@@ -5,16 +5,14 @@ import type { Plugin } from "./types";
 
 export const repeatItemPlugin: Plugin = {
   name: "repeat-item",
-  version: "1.0.0",
-  description: "Handles individual repeatable items for selection and editing",
 
   selectable: {
     enabled: true,
     name: "Repeat Item", 
-    color: "#8b5cf6", // purple
-    description: "Individual repeatable item",
-    level: "item",
+    color: "#8b5cf6",
+    level: "element",
     elementType: "block",
+    priority: 1
   },
 
   match: (element: Element) => {
@@ -40,7 +38,7 @@ export const repeatItemPlugin: Plugin = {
     };
   },
 
-  render: ({ parsedElement, renderElement }) => {
+  render: ({ parsedElement, renderElement, isSelected }) => {
     const element = parsedElement as RepeatItemElement;
 
     return (
@@ -48,6 +46,7 @@ export const repeatItemPlugin: Plugin = {
         key={element.id}
         data-element-id={element.id}
         className={element.attributes?.class || ""}
+        style={isSelected ? { outline: '2px solid #8b5cf6' } : undefined}
       >
         {element.children.map(renderElement)}
       </div>

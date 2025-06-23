@@ -45,6 +45,7 @@ interface EditableSvgProps {
   height?: string;
   className?: string;
   elementId: string;
+  isSelected?: boolean;
 }
 
 const EditableSvg: React.FC<EditableSvgProps> = ({
@@ -53,14 +54,11 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
   height,
   className,
   elementId,
+  isSelected,
 }) => {
   const [open, setOpen] = useState(false);
   const [customSvg, setCustomSvg] = useState(svgContent);
   const updateElement = useEditorStore((state) => state.updateElement);
-  const selection = useEditorStore((state) => state.selection);
-  
-  // 현재 SVG 요소가 선택되어 있는지 확인
-  const isSelected = selection.selectedElementId === elementId;
 
   const handleSvgSelect = (newSvgContent: string) => {
     updateElement(elementId, { svgContent: newSvgContent });
@@ -328,16 +326,14 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
 
 export const svgPlugin: Plugin = {
   name: "svg",
-  version: "1.0.0",
-  description: "Handles SVG elements with sample selection and custom input",
 
   selectable: {
     enabled: true,
     name: "SVG",
     color: "#f59e0b", // amber - same as image
-    description: "SVG with customizable content",
     level: "element",
     elementType: "inline",
+    priority: 0
   },
 
   match: (element: Element) => {
@@ -364,7 +360,7 @@ export const svgPlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement }) => {
+  render: ({ parsedElement, isSelected }) => {
     const svgElement = parsedElement as SvgElement;
 
     return (
@@ -375,6 +371,7 @@ export const svgPlugin: Plugin = {
         width={svgElement.width}
         height={svgElement.height}
         className={svgElement.attributes?.class || ""}
+        isSelected={isSelected}
       />
     );
   },

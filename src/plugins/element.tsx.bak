@@ -15,9 +15,10 @@ export const elementPlugin: Plugin = {
   selectable: {
     enabled: false,
     name: "Element",
-    color: "#6b7280", // gray
-    description: "Generic HTML element",
+    color: "#6b7280",
     level: "element",
+    elementType: "block",
+    priority: 999
   },
 
   match: (element: Element) => {

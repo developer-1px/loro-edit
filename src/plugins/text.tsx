@@ -129,16 +129,14 @@ const EditableText: React.FC<EditableTextProps> = ({
 
 export const textPlugin: Plugin = {
   name: "text",
-  version: "1.0.0",
-  description: "Text elements with inline editing",
 
   selectable: {
     enabled: true,
     name: "Text",
     color: "#10b981",
-    description: "Editable text",
-    level: "element",
+    level: "content",
     elementType: "inline",
+    priority: 0
   },
 
   match: (element: Element) => {

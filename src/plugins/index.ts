@@ -2,37 +2,27 @@
 
 import { pluginManager } from "./PluginManager";
 import { textPlugin } from "./text";
+import { buttonPlugin } from "./button";
+import { sectionPlugin } from "./section";
 import { imagePlugin } from "./image";
 import { svgPlugin } from "./svg";
-import { buttonPlugin } from "./button";
 import { repeatItemPlugin } from "./repeat-item";
-import { sectionPlugin } from "./section";
-import { elementPlugin } from "./element";
+import { fallbackPlugin as elementPlugin } from "./fallback";
 
 let pluginsRegistered = false;
 
 // Register all default plugins
 export const registerDefaultPlugins = () => {
-  if (pluginsRegistered) {
-    console.log("Plugins already registered, skipping...");
-    return;
-  }
+  if (pluginsRegistered) return;
   
-  console.log("Registering default plugins...");
-  // Register plugins in order (higher priority plugins first)
+  // Register plugins in priority order
+  pluginManager.register(repeatItemPlugin); // Higher priority for repeat items
+  pluginManager.register(buttonPlugin);
   pluginManager.register(imagePlugin);
   pluginManager.register(svgPlugin);
-  pluginManager.register(buttonPlugin);
-  pluginManager.register(repeatItemPlugin);
-  // pluginManager.register(repeatContainerPlugin);
-  // pluginManager.register(databasePlugin);
   pluginManager.register(sectionPlugin);
-  pluginManager.register(elementPlugin); // Fallback plugin with lowest priority
   pluginManager.register(textPlugin);
-  console.log(
-    "Registered plugins:",
-    pluginManager.plugins.map((p) => p.name)
-  );
+  pluginManager.register(elementPlugin); // Must be last as fallback
   pluginsRegistered = true;
 };
 
@@ -40,9 +30,9 @@ export const registerDefaultPlugins = () => {
 export { pluginManager } from "./PluginManager";
 export * from "./types";
 export { textPlugin } from "./text";
+export { buttonPlugin } from "./button";
+export { sectionPlugin } from "./section";
 export { imagePlugin } from "./image";
 export { svgPlugin } from "./svg";
-export { buttonPlugin } from "./button";
 export { repeatItemPlugin } from "./repeat-item";
-export { sectionPlugin } from "./section";
-export { elementPlugin } from "./element";
+export { fallbackPlugin as elementPlugin } from "./fallback";

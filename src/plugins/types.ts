@@ -20,49 +20,29 @@ export interface PluginContext {
 }
 
 export interface PluginRenderProps {
-  element: Element;
   parsedElement: ParsedElement;
   context: PluginContext;
   renderElement: (element: ParsedElement) => React.ReactNode;
-  canEditText: boolean;
   isSelected?: boolean;
-  onSelect?: () => void;
+  canEditText?: boolean;
 }
 
 export interface SelectableConfig {
   enabled: boolean;
   name: string;
   color?: string;
-  description?: string;
-  level?: 'element' | 'item' | 'container';
-  elementType?: 'block' | 'inline';
+  level: 'container' | 'element' | 'content';  // 선택 계층 명확화
+  elementType: 'block' | 'inline';
+  priority: number;  // 동일 레벨 내 우선순위 (0=highest)
+  allowDeepSelection?: boolean;  // 내부 요소로 진입 가능 여부
 }
 
 export interface Plugin {
   name: string;
-  version: string;
-  description?: string;
-
-  // Selection configuration
-  selectable?: SelectableConfig;
-
-  // Matching conditions - when should this plugin handle an element
+  selectable: SelectableConfig;
   match: (element: Element) => boolean;
-
-  // DOM parsing - how to parse HTML into element data
   parse: (element: Element) => ParsedElement | null;
-
-  // Rendering - how to render the element
   render: (props: PluginRenderProps) => React.ReactNode;
-
-  // Selection handling - how to handle selection for this element type
-  onSelect?: (parsedElement: ParsedElement, context: PluginContext) => void;
-
-  // Initialization - called when plugin is registered
-  init?: () => void;
-
-  // Cleanup - called when plugin is unregistered
-  destroy?: () => void;
 }
 
 export interface PluginManager {

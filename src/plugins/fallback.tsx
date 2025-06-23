@@ -1,36 +1,36 @@
-// src/plugins/section.tsx
+// src/plugins/fallback.tsx
 
 import React from "react";
 import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
+import { VOID_ELEMENTS } from "../utils/voidElements";
 
-export const sectionPlugin: Plugin = {
-  name: "section",
+export const fallbackPlugin: Plugin = {
+  name: "element",
   
   selectable: {
-    enabled: true,
-    name: "Section",
-    color: "#3b82f6",
-    level: "container",
+    enabled: false,
+    name: "Element",
+    color: "#6b7280",
+    level: "element",
     elementType: "block",
-    priority: 0,
-    allowDeepSelection: true
+    priority: 999
   },
 
-  match: (element: Element) => 
-    ["section", "header", "footer", "nav", "div"].includes(element.tagName.toLowerCase()),
+  match: () => true, // Match everything as fallback
 
   parse: (element: Element) => parseBasicElement(element, "element"),
 
   render: ({ parsedElement, renderElement, isSelected }) => {
     const element = parsedElement as RegularElement;
     const Tag = element.tagName as keyof React.JSX.IntrinsicElements;
+    const isVoidElement = VOID_ELEMENTS.has(element.tagName);
     
     return React.createElement(
       Tag,
       createElementProps(element, isSelected),
-      element.children.map(renderElement)
+      isVoidElement ? undefined : element.children.map(renderElement)
     );
   },
 };

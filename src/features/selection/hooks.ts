@@ -37,8 +37,12 @@ export const useSelectionHandling = ({
   const handleClick = useCallback((event: React.MouseEvent) => {
     const { clientX, clientY } = event;
 
-    // Use pluginManager's optimized elementsFromPoint method
-    const result = pluginManager.findSelectableAtPoint(clientX, clientY);
+    // Pass current selection for hierarchical selection
+    const result = pluginManager.findSelectableAtPoint(
+      clientX, 
+      clientY, 
+      selection.selectedElementId || undefined
+    );
     
     if (!result) {
       clearSelection();
@@ -47,7 +51,7 @@ export const useSelectionHandling = ({
 
     const { elementId, mode } = result;
     setSelection({ mode, selectedElementId: elementId });
-  }, [setSelection, clearSelection]);
+  }, [setSelection, clearSelection, selection.selectedElementId]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
     const result = pluginManager.findSelectableAtPoint(event.clientX, event.clientY);

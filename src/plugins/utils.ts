@@ -1,0 +1,34 @@
+// src/plugins/utils.ts
+
+import type { ParsedElement } from '../types';
+
+// 공통 DOM 속성 파싱 유틸리티
+export function parseAttributes(element: Element): Record<string, string> {
+  return Array.from(element.attributes).reduce((acc, attr) => {
+    acc[attr.name] = attr.value;
+    return acc;
+  }, {} as Record<string, string>);
+}
+
+// 기본 요소 파싱 유틸리티
+export function parseBasicElement(element: Element, type: ParsedElement['type']): ParsedElement {
+  return {
+    type,
+    id: element.id || crypto.randomUUID(),
+    tagName: element.tagName.toLowerCase(),
+    attributes: parseAttributes(element),
+    children: [], // Children handled by parent parser
+    repeatItem: element.getAttribute("data-repeat-item") || undefined,
+  } as ParsedElement;
+}
+
+// 공통 래퍼 컴포넌트 속성 생성
+export function createElementProps(parsedElement: ParsedElement, isSelected?: boolean) {
+  const hasAttributes = 'attributes' in parsedElement;
+  return {
+    key: parsedElement.id,
+    'data-element-id': parsedElement.id,
+    className: hasAttributes ? parsedElement.attributes?.class || "" : "",
+    style: isSelected ? { outline: '2px solid #3b82f6' } : undefined
+  };
+}

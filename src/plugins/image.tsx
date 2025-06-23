@@ -158,16 +158,14 @@ const EditableImage: React.FC<EditableImageProps> = ({
 
 export const imagePlugin: Plugin = {
   name: "image",
-  version: "1.0.0",
-  description: "Handles image elements with drag & drop upload capabilities",
 
   selectable: {
     enabled: true,
     name: "Image",
-    color: "#f59e0b", // amber
-    description: "Image with upload capabilities",
+    color: "#f59e0b",
     level: "element",
     elementType: "inline",
+    priority: 0
   },
 
   match: (element: Element) => {
@@ -204,9 +202,8 @@ export const imagePlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, context }) => {
+  render: ({ parsedElement, isSelected }) => {
     const imageElement = parsedElement as ImageElement;
-    const isSelected = context.selection.selectedElementId === imageElement.id;
 
     return (
       <EditableImage
