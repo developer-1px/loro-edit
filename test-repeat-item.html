@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repeat Item Test</title>
+    <style>
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            padding: 16px;
+        }
+        .testimonial {
+            text-align: center;
+        }
+        .testimonial img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+        }
+        .testimonial h4 {
+            margin: 8px 0;
+            color: #333;
+        }
+        .testimonial p {
+            color: #666;
+            line-height: 1.5;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Repeat Item Selection Test</h1>
+    
+    <!-- Testimonials Grid - Each card should be selectable -->
+    <div class="grid">
+        <div data-repeat-item-id="testimonial-1" class="card testimonial">
+            <img src="https://via.placeholder.com/60" alt="Profile">
+            <h4>김영희</h4>
+            <p>"정말 훌륭한 서비스입니다. 사용하기 쉽고 효과적이에요!"</p>
+        </div>
+        
+        <div data-repeat-item-id="testimonial-2" class="card testimonial">
+            <img src="https://via.placeholder.com/60" alt="Profile">
+            <h4>이철수</h4>
+            <p>"고객 지원이 탁월하고 기능이 매우 직관적입니다."</p>
+        </div>
+        
+        <div data-repeat-item-id="testimonial-3" class="card testimonial">
+            <img src="https://via.placeholder.com/60" alt="Profile">
+            <h4>박민정</h4>
+            <p>"가격 대비 성능이 뛰어나고 신뢰할 수 있는 서비스예요."</p>
+        </div>
+    </div>
+
+    <!-- Feature List - Each list item should be selectable -->
+    <div style="max-width: 600px; margin: 32px auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="padding: 16px; margin: 0; border-bottom: 1px solid #eee;">주요 기능</h3>
+        
+        <div data-repeat-item-id="feature-1" class="list-item">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <strong>자동 백업</strong>
+                <p style="margin: 4px 0 0 0; color: #666;">데이터가 자동으로 안전하게 백업됩니다</p>
+            </div>
+        </div>
+        
+        <div data-repeat-item-id="feature-2" class="list-item">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <strong>실시간 동기화</strong>
+                <p style="margin: 4px 0 0 0; color: #666;">모든 기기에서 실시간으로 동기화됩니다</p>
+            </div>
+        </div>
+        
+        <div data-repeat-item-id="feature-3" class="list-item">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <strong>보안 강화</strong>
+                <p style="margin: 4px 0 0 0; color: #666;">엔터프라이즈급 보안으로 데이터를 보호합니다</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Cards - Each product should be selectable -->
+    <div class="grid">
+        <div data-repeat-item-id="product-1" class="card">
+            <img src="https://via.placeholder.com/200x150" alt="Product 1" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 12px;">
+            <h3 style="margin: 0 0 8px 0;">프리미엄 플랜</h3>
+            <p style="color: #666; margin: 0 0 12px 0;">모든 기능을 포함한 완전한 솔루션</p>
+            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">₩29,000/월</div>
+        </div>
+        
+        <div data-repeat-item-id="product-2" class="card">
+            <img src="https://via.placeholder.com/200x150" alt="Product 2" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 12px;">
+            <h3 style="margin: 0 0 8px 0;">스탠다드 플랜</h3>
+            <p style="color: #666; margin: 0 0 12px 0;">개인 사용자를 위한 기본 기능</p>
+            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">₩19,000/월</div>
+        </div>
+        
+        <div data-repeat-item-id="product-3" class="card">
+            <img src="https://via.placeholder.com/200x150" alt="Product 3" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 12px;">
+            <h3 style="margin: 0 0 8px 0;">베이직 플랜</h3>
+            <p style="color: #666; margin: 0 0 12px 0;">시작하기에 적합한 입문 플랜</p>
+            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">₩9,000/월</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -71,7 +71,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
   };
 
   return (
-    <div className={`${className} relative group`} data-block-element-id={elementId}>
+    <div className={`${className} relative group`} data-element-id={elementId}>
       {src ? (
         <img
           src={src}

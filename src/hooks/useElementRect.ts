@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useUpdateEffect, useEvent } from 'react-use';
 
 interface BoundingRect {
@@ -62,6 +62,38 @@ export const useElementRect = (
   // Set up resize and scroll event listeners
   useEvent('resize', enabled ? updateBoundingRect : null);
   useEvent('scroll', enabled ? updateBoundingRect : null, document, { capture: true, passive: true });
+
+  // Set up ResizeObserver to detect element size changes
+  useEffect(() => {
+    if (!enabled || !targetSelector) return;
+
+    const targetElement = document.querySelector(targetSelector);
+    if (!targetElement) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateBoundingRect();
+    });
+
+    resizeObserver.observe(targetElement);
+
+    // Also observe mutations for text content changes
+    const mutationObserver = new MutationObserver(() => {
+      updateBoundingRect();
+    });
+
+    mutationObserver.observe(targetElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [targetSelector, enabled, updateBoundingRect]);
 
   return {
     boundingRect,

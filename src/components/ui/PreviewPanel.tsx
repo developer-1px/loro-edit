@@ -1,9 +1,9 @@
 // src/components/ui/PreviewPanel.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { ParsedElement, SelectionState } from '../../types';
-import type { SelectableElement } from '../../utils/selectionUtils';
 import { SelectionOverlayManager } from './SelectionOverlayManager';
+import { pluginManager } from '../../plugins/PluginManager';
 
 interface PreviewPanelProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
@@ -11,7 +11,6 @@ interface PreviewPanelProps {
   renderElement: (element: ParsedElement) => React.ReactNode;
   onClick: (e: React.MouseEvent) => void;
   selection: SelectionState;
-  selectableTree: SelectableElement[];
 }
 
 const previewWidths = {
@@ -26,8 +25,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   renderElement,
   onClick,
   selection,
-  selectableTree,
 }) => {
+  // Clear mapping before re-rendering to ensure fresh state
+  useEffect(() => {
+    pluginManager.clearElementMapping();
+  }, [parsedElements]);
+
   return (
     <div className="flex-1 flex justify-center items-start">
       <div
@@ -57,12 +60,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         
         {/* Selection Overlay Manager */}
         <SelectionOverlayManager
-          selectableTree={selectableTree}
-          selectedElementId={selection.selectedElementId}
-          selectedRepeatItemId={selection.selectedRepeatItemId}
-          selectedRepeatContainerId={selection.selectedRepeatContainerId}
-          selectedTextElementId={selection.selectedTextElementId}
-          selectionMode={selection.mode}
+          selection={selection}
           showHoverEffects={selection.mode === 'block'}
         />
       </div>

@@ -4,12 +4,7 @@ import { useEditorStore } from "../store/editorStore";
 export const useEditorHotkeys = () => {
   const { 
     selection, 
-    setSelection, 
-    handleItemDelete, 
-    clipboard,
-    handleRepeatItemCopy,
-    handleRepeatItemCut,
-    handleRepeatItemPaste 
+    setSelection,
   } = useEditorStore();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,11 +15,8 @@ export const useEditorHotkeys = () => {
     "esc",
     () => {
       setSelection({
-        mode: "block",
+        mode: null,
         selectedElementId: null,
-        selectedTextElementId: null,
-        selectedRepeatItemId: null,
-        selectedRepeatContainerId: null,
       });
     },
     {
@@ -51,22 +43,12 @@ export const useEditorHotkeys = () => {
     { preventDefault: true }
   );
 
-  // Delete/Backspace for repeat items
+  // Delete/Backspace - simplified
   useHotkeys(
     "delete,backspace",
-    (e) => {
-      if (selection.selectedRepeatItemId && selection.selectedRepeatContainerId) {
-        e.preventDefault();
-        handleItemDelete(selection.selectedRepeatContainerId, selection.selectedRepeatItemId);
-        // Clear selection after deletion
-        setSelection({
-          mode: "block",
-          selectedElementId: null,
-          selectedTextElementId: null,
-          selectedRepeatItemId: null,
-          selectedRepeatContainerId: null,
-        });
-      }
+    () => {
+      // TODO: Implement element deletion with new selection system
+      console.log("Delete requested for:", selection.selectedElementId);
     },
     {
       enableOnContentEditable: false,
@@ -74,14 +56,12 @@ export const useEditorHotkeys = () => {
     }
   );
 
-  // Copy repeat item
+  // Copy - simplified
   useHotkeys(
     "mod+c",
-    (e) => {
-      if (selection.selectedRepeatItemId && selection.selectedRepeatContainerId) {
-        e.preventDefault();
-        handleRepeatItemCopy();
-      }
+    () => {
+      // TODO: Implement copy with new selection system
+      console.log("Copy requested for:", selection.selectedElementId);
     },
     {
       enableOnContentEditable: false,
@@ -89,22 +69,12 @@ export const useEditorHotkeys = () => {
     }
   );
 
-  // Cut repeat item
+  // Cut - simplified
   useHotkeys(
     "mod+x",
-    (e) => {
-      if (selection.selectedRepeatItemId && selection.selectedRepeatContainerId) {
-        e.preventDefault();
-        handleRepeatItemCut();
-        // Clear selection after cut
-        setSelection({
-          mode: "block",
-          selectedElementId: null,
-          selectedTextElementId: null,
-          selectedRepeatItemId: null,
-          selectedRepeatContainerId: null,
-        });
-      }
+    () => {
+      // TODO: Implement cut with new selection system
+      console.log("Cut requested for:", selection.selectedElementId);
     },
     {
       enableOnContentEditable: false,
@@ -112,19 +82,12 @@ export const useEditorHotkeys = () => {
     }
   );
 
-  // Paste repeat item
+  // Paste - simplified
   useHotkeys(
     "mod+v",
-    (e) => {
-      if (clipboard && clipboard.type === "repeat-item") {
-        e.preventDefault();
-        // If we have a selected repeat item, paste to its container
-        // If no repeat item is selected, paste to the source container
-        const targetContainerId = selection.selectedRepeatContainerId || clipboard.sourceContainerId;
-        if (targetContainerId) {
-          handleRepeatItemPaste(targetContainerId);
-        }
-      }
+    () => {
+      // TODO: Implement paste with new selection system
+      console.log("Paste requested for:", selection.selectedElementId);
     },
     {
       enableOnContentEditable: false,

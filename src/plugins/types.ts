@@ -28,6 +28,8 @@ export interface PluginRenderProps {
   context: PluginContext;
   renderElement: (element: ParsedElement) => React.ReactNode;
   canEditText: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export interface SelectableConfig {
@@ -78,4 +80,21 @@ export interface PluginManager {
     context: PluginContext,
     renderElement: (element: ParsedElement) => React.ReactNode
   ) => React.ReactNode;
+  
+  // New utility functions for mapping-based selection
+  getPluginById: (elementId: string) => Plugin | null;
+  getElementInfo: (elementId: string) => {
+    plugin: Plugin;
+    parsedElement: ParsedElement;
+    isSelectable: boolean;
+    mode: 'text' | 'block';
+  } | null;
+  findSelectableAtPoint: (x: number, y: number) => {
+    elementId: string;
+    plugin: Plugin;
+    mode: 'text' | 'block';
+  } | null;
+  getElementsForPlugin: (pluginName: string) => string[];
+  clearElementMapping: () => void;
+  getMappingSize: () => number;
 }

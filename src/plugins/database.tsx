@@ -517,7 +517,7 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
   );
 
   return (
-    <div className="relative" data-block-element-id={element.id}>
+    <div className="relative" data-element-id={element.id}>
 
       {/* Compact toolbar as chips */}
       <div className="flex items-center gap-2 mb-3">

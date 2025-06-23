@@ -5,11 +5,11 @@ import type { Plugin } from "./types";
 import type { SvgElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
 import { Edit3, Palette } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { Button } from "../components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Textarea } from "../components/ui/textarea";
+import { cn } from "../lib/utils";
 
 // SVG 샘플 데이터
 const SVG_SAMPLES = [
@@ -133,7 +133,7 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
           isSelected ? "cursor-pointer hover:shadow-md" : "cursor-default",
           className
         )} 
-        data-block-element-id={elementId}
+        data-element-id={elementId}
         onClick={handleClick}
       >
         {svgContent ? (

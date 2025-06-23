@@ -9,7 +9,7 @@ export { useHoverState } from './useHoverState';
 export { useModalForm } from './useModalForm';
 export { useMouseDrag } from './useMouseDrag';
 export { useScrollButtons } from './useScrollButtons';
-export { useSelectionManager } from './useSelectionManager';
+// export { useSelectionManager } from './useSelectionManager'; // Disabled for simplification
 
 // Re-export existing hooks
 export { useEditorHotkeys } from './useEditorHotkeys';

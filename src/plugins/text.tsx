@@ -142,7 +142,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       onKeyDown={isEditable ? handleKeyDown : undefined}
       onMouseDown={handleMouseDown}
       className={getTextStyles()}
-      data-text-element-id={elementId}
+      data-element-id={elementId}
     >
       {renderTextWithLineBreaks(currentText)}
     </span>

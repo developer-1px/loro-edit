@@ -4,10 +4,10 @@ import { pluginManager } from "./PluginManager";
 import { textPlugin } from "./text";
 import { imagePlugin } from "./image";
 import { svgPlugin } from "./svg";
-import { repeatContainerPlugin } from "./repeat-container";
+import { buttonPlugin } from "./button";
+import { repeatItemPlugin } from "./repeat-item";
 import { sectionPlugin } from "./section";
 import { elementPlugin } from "./element";
-import { databasePlugin } from "./database";
 
 let pluginsRegistered = false;
 
@@ -22,8 +22,10 @@ export const registerDefaultPlugins = () => {
   // Register plugins in order (higher priority plugins first)
   pluginManager.register(imagePlugin);
   pluginManager.register(svgPlugin);
-  pluginManager.register(repeatContainerPlugin);
-  pluginManager.register(databasePlugin);
+  pluginManager.register(buttonPlugin);
+  pluginManager.register(repeatItemPlugin);
+  // pluginManager.register(repeatContainerPlugin);
+  // pluginManager.register(databasePlugin);
   pluginManager.register(sectionPlugin);
   pluginManager.register(elementPlugin); // Fallback plugin with lowest priority
   pluginManager.register(textPlugin);
@@ -40,7 +42,7 @@ export * from "./types";
 export { textPlugin } from "./text";
 export { imagePlugin } from "./image";
 export { svgPlugin } from "./svg";
-export { repeatContainerPlugin } from "./repeat-container";
-export { databasePlugin } from "./database";
+export { buttonPlugin } from "./button";
+export { repeatItemPlugin } from "./repeat-item";
 export { sectionPlugin } from "./section";
 export { elementPlugin } from "./element";

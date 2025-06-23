@@ -48,7 +48,7 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Custom hooks
   const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
-  const { handleDeselect, handleDocumentClick, selectableTree } = useSelectionHandling({
+  const { handleDeselect, handleDocumentClick } = useSelectionHandling({
     selection,
     setSelection,
     parsedElements,
@@ -175,7 +175,6 @@ export const PluginBasedEditor: React.FC = () => {
             renderElement={renderElement}
             onClick={handleDocumentClick}
             selection={selection}
-            selectableTree={selectableTree}
           />
         </div>
 

@@ -82,8 +82,8 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
         </div>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-8" data-repeat-container="features">
-        <div class="text-center p-6" data-repeat-item="feature-1">
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center p-6" data-repeat-item="feature">
           <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-blue-100 rounded-lg">
             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
@@ -91,7 +91,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
           <p class="text-gray-600">Process data at <em>incredible speeds</em> with our optimized AI algorithms and cloud infrastructure.</p>
         </div>
         
-        <div class="text-center p-6" data-repeat-item="feature-2">
+        <div class="text-center p-6" data-repeat-item="feature">
           <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 rounded-lg">
             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.417l5.611-1.549a12.019 12.019 0 01.44-2.008l4.062-1.132a12.019 12.019 0 01.44 2.008l5.611 1.549A12.02 12.02 0 0021 8.984a11.955 11.955 0 01-2.382-3.001z"></path></svg>
           </div>
@@ -99,7 +99,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
           <p class="text-gray-600">Bank-level security with <code>end-to-end</code> encryption and compliance with global standards.</p>
         </div>
         
-        <div class="text-center p-6" data-repeat-item="feature-3">
+        <div class="text-center p-6" data-repeat-item="feature">
           <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-purple-100 rounded-lg">
             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg>
           </div>
@@ -117,16 +117,16 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h3>
         <p class="text-lg text-gray-600 max-w-2xl mx-auto">Hear from companies who have transformed their business with TechCorp.</p>
       </div>
-      <div class="grid md:grid-cols-3 gap-8 text-center" data-repeat-container="testimonials">
-        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-1">
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial">
           <blockquote class="text-gray-600 italic">"The AI-powered analytics have given us insights we never thought possible. It's a game-changer for our marketing strategy."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Alex Johnson, CEO of Innovate Co.</p>
         </div>
-        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-2">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial">
           <blockquote class="text-gray-600 italic">"Integration was seamless, and the support team is incredibly responsive. We saw a <strong>40% increase</strong> in efficiency within the first quarter."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Samantha Lee, CTO of Future Systems</p>
         </div>
-        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial-3">
+        <div class="bg-white p-8 rounded-lg shadow" data-repeat-item="testimonial">
           <blockquote class="text-gray-600 italic">"A truly powerful and intuitive platform. The ability to customize workflows has been invaluable for our unique business needs."</blockquote>
           <p class="mt-4 font-semibold text-gray-900">- Michael Chen, Head of Operations at DataCorp</p>
         </div>
@@ -179,20 +179,20 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
   <!-- Stats Section -->
   <section class="py-16 bg-gray-900 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" data-repeat-container="stats">
-        <div data-repeat-item="stat-1">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div data-repeat-item="stat">
           <div class="text-3xl md:text-4xl font-bold text-blue-400 mb-2">10M+</div>
           <div class="text-gray-300">Users Worldwide</div>
         </div>
-        <div data-repeat-item="stat-2">
+        <div data-repeat-item="stat">
           <div class="text-3xl md:text-4xl font-bold text-green-400 mb-2">99.9%</div>
           <div class="text-gray-300">Uptime Guarantee</div>
         </div>
-        <div data-repeat-item="stat-3">
+        <div data-repeat-item="stat">
           <div class="text-3xl md:text-4xl font-bold text-purple-400 mb-2">150+</div>
           <div class="text-gray-300">Countries Served</div>
         </div>
-        <div data-repeat-item="stat-4">
+        <div data-repeat-item="stat">
           <div class="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">24/7</div>
           <div class="text-gray-300">Customer Support</div>
         </div>

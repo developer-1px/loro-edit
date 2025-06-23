@@ -74,11 +74,8 @@ export type ParsedElement =
   | DatabaseElement;
 
 export interface SelectionState {
-  mode: "block" | "text";
-  selectedElementId: string | null;
-  selectedTextElementId: string | null; // text 모드일 때 편집 중인 텍스트 요소
-  selectedRepeatItemId: string | null; // 선택된 반복 요소 ID
-  selectedRepeatContainerId: string | null; // 선택된 반복 요소의 컨테이너 ID
+  mode: "block" | "text" | null;
+  selectedElementId: string | null; // Unified element ID using data-element-id
 }
 
 export interface ClipboardItem {

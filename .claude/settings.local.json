@@ -20,7 +20,9 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(mv:*)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(sed:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

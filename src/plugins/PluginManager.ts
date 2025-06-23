@@ -11,6 +11,11 @@ import React from "react";
 
 class PluginManager implements IPluginManager {
   private _plugins: Plugin[] = [];
+  // Element ID를 통해 plugin 메타데이터에 바로 접근할 수 있는 매핑
+  private _elementPluginMap: Map<string, {
+    plugin: Plugin;
+    parsedElement: ParsedElement;
+  }> = new Map();
 
   get plugins(): Plugin[] {
     return [...this._plugins];
@@ -74,7 +79,7 @@ class PluginManager implements IPluginManager {
 
     // Try specific plugins first (not text plugin)
     for (const plugin of this._plugins) {
-      if (plugin.name !== "text") {
+      if (plugin.name !== "text" && plugin.match(element)) {
         const result = plugin.parse(element);
         if (result) {
           // console.log("Plugin", plugin.name, "parsed:", result);
@@ -108,11 +113,17 @@ class PluginManager implements IPluginManager {
       return null;
     }
 
-    // Calculate render props using simple selection logic
+    // Register element-plugin mapping for quick lookup during selection
+    this._elementPluginMap.set(parsedElement.id, {
+      plugin,
+      parsedElement
+    });
+
+    // Calculate render props using unified selection logic
     const canEditText =
       context.selection.mode === "text" &&
       parsedElement.type === "text" &&
-      context.selection.selectedTextElementId === parsedElement.id;
+      context.selection.selectedElementId === parsedElement.id;
 
     const renderProps: PluginRenderProps = {
       element,
@@ -129,6 +140,114 @@ class PluginManager implements IPluginManager {
       console.error('Error rendering element with plugin', plugin.name, ':', error);
       return null;
     }
+  }
+
+  // New utility functions for the unified selection system
+  
+  /**
+   * Get plugin by element ID from mapping (no DOM query needed)
+   */
+  getPluginById(elementId: string): Plugin | null {
+
+    console.log("_elementPluginMap_elementPluginMap_elementPluginMap", _elementPluginMap)
+
+    const mapping = this._elementPluginMap.get(elementId);
+    return mapping?.plugin || null;
+  }
+
+  /**
+   * Get element information including type and selectable config
+   */
+  getElementInfo(elementId: string): {
+    plugin: Plugin;
+    parsedElement: ParsedElement;
+    isSelectable: boolean;
+    mode: 'text' | 'block';
+  } | null {
+    const mapping = this._elementPluginMap.get(elementId);
+    if (!mapping) return null;
+    
+    const { plugin, parsedElement } = mapping;
+    const isSelectable = plugin.selectable?.enabled || false;
+    
+    // Determine mode based on plugin type
+    const mode = plugin.name === 'text' ? 'text' : 'block';
+
+    return {
+      plugin,
+      parsedElement,
+      isSelectable,
+      mode
+    };
+  }
+
+  /**
+   * Find selectable element at coordinates using elementsFromPoint
+   */
+  findSelectableAtPoint(x: number, y: number): {
+    elementId: string;
+    plugin: Plugin;
+    mode: 'text' | 'block';
+  } | null {
+    const elementsAtPoint = document.elementsFromPoint(x, y);
+    
+    for (const domElement of elementsAtPoint) {
+      // Skip if element doesn't have our data-element-id
+      const elementId = (domElement as HTMLElement).dataset?.elementId;
+      if (!elementId) continue;
+
+      console.log("elementIdelementId", elementId)
+
+      // Use mapping instead of trying to match again
+      const mapping = this._elementPluginMap.get(elementId);
+      if (!mapping) continue;
+
+      const { plugin } = mapping;
+
+      console.log("Checking element at point:", domElement, elementId, plugin?.name, "selectable:", plugin?.selectable?.enabled, plugin);
+
+      if (!plugin?.selectable?.enabled) continue;
+
+      // Determine mode
+      const mode = plugin.name === 'text' ? 'text' : 'block';
+
+      return {
+        elementId,
+        plugin,
+        mode
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Get all elements that match a specific plugin using mapping
+   */
+  getElementsForPlugin(pluginName: string): string[] {
+    const elementIds: string[] = [];
+    
+    for (const [elementId, mapping] of this._elementPluginMap) {
+      if (mapping.plugin.name === pluginName) {
+        elementIds.push(elementId);
+      }
+    }
+
+    return elementIds;
+  }
+
+  /**
+   * Clear the element-plugin mapping (useful for re-rendering)
+   */
+  clearElementMapping(): void {
+    this._elementPluginMap.clear();
+  }
+
+  /**
+   * Get current mapping size (for debugging)
+   */
+  getMappingSize(): number {
+    return this._elementPluginMap.size;
   }
 }
 

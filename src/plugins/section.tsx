@@ -51,7 +51,7 @@ export const sectionPlugin: Plugin = {
       { 
         key: sectionElement.id, 
         className: sectionElement.attributes?.class || "",
-        'data-block-element-id': sectionElement.id,
+        'data-element-id': sectionElement.id,
       },
       (sectionElement.children || []).map(renderElement).filter(Boolean)
     );

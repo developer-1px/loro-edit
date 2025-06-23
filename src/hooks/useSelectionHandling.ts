@@ -5,8 +5,8 @@ import type { SelectionState, ParsedElement } from '../types';
 import { 
   buildSelectableTree, 
   analyzeClick,
-  type SelectableElement 
 } from '../utils/selectionUtils';
+import { pluginManager } from '../plugins';
 
 interface UseSelectionHandlingProps {
   selection: SelectionState;
@@ -33,20 +33,14 @@ export const useSelectionHandling = ({
     setSelection({
       mode: 'block',
       selectedElementId: elementId,
-      selectedTextElementId: null, // 텍스트 편집 해제
-      selectedRepeatItemId: null,
-      selectedRepeatContainerId: null,
     });
   }, [setSelection]);
 
   // 선택 해제
   const handleDeselect = useCallback(() => {
     setSelection({
-      mode: 'block',
+      mode: null,
       selectedElementId: null,
-      selectedTextElementId: null,
-      selectedRepeatItemId: null,
-      selectedRepeatContainerId: null,
     });
   }, [setSelection]);
 
@@ -54,29 +48,21 @@ export const useSelectionHandling = ({
   const handleTextSelect = useCallback((textElementId: string) => {
     setSelection({
       mode: 'text',
-      selectedElementId: null, // 블록 선택 해제
-      selectedTextElementId: textElementId,
-      selectedRepeatItemId: null,
-      selectedRepeatContainerId: null,
+      selectedElementId: textElementId,
     });
   }, [setSelection]);
 
-  // 반복 요소 선택
-  const handleRepeatItemSelect = useCallback((itemId: string, containerId: string) => {
+  // 반복 요소 선택 - simplified
+  const handleRepeatItemSelect = useCallback((itemId: string, _containerId: string) => {
     setSelection({
       mode: 'block',
-      selectedElementId: null,
-      selectedTextElementId: null,
-      selectedRepeatItemId: itemId,
-      selectedRepeatContainerId: containerId,
+      selectedElementId: itemId, // Use itemId as the selected element
     });
   }, [setSelection]);
 
-  // Figma 스타일 계층적 선택
+  // Figma 스타일 계층적 선택 - simplified
   const handleSmartSelect = useCallback((elementId: string) => {
-    const currentSelectedId = selection.selectedElementId || 
-                             selection.selectedTextElementId || 
-                             selection.selectedRepeatItemId;
+    const currentSelectedId = selection.selectedElementId;
 
     const result = analyzeClick(elementId, selectableTree, currentSelectedId);
     
@@ -119,89 +105,50 @@ export const useSelectionHandling = ({
   }, [selection, selectableTree, setSelection, handleBlockSelect, handleTextSelect, handleRepeatItemSelect, handleDeselect]);
 
   const handleDocumentClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
     const clientX = e.clientX;
     const clientY = e.clientY;
     
-    console.log('🖱️ Click detected at:', { x: clientX, y: clientY }, 'on:', target.tagName, target.className);
+    console.log('🖱️ Click detected at:', { x: clientX, y: clientY });
 
-    // document.elementsFromPoint를 사용해서 클릭 위치의 모든 요소들 가져오기
-    const elementsAtPoint = document.elementsFromPoint(clientX, clientY);
-    console.log('📍 Elements at point:', elementsAtPoint.map(el => ({
-      tag: el.tagName,
-      id: el.id,
-      className: el.className,
-      datasets: Object.keys((el as HTMLElement).dataset)
-    })));
+    // Use PluginManager to find selectable element at point
+    const result = pluginManager.findSelectableAtPoint(clientX, clientY);
+    
+    if (result) {
+      console.log('✅ Found selectable element:', {
+        elementId: result.elementId,
+        plugin: result.plugin.name,
+        mode: result.mode
+      });
 
-    // 선택 가능한 요소들을 우선순위대로 찾기
-    for (const element of elementsAtPoint) {
-      const htmlElement = element as HTMLElement;
-      
-      // 1. 텍스트 요소 확인
-      if (htmlElement.dataset.textElementId) {
-        const textElementId = htmlElement.dataset.textElementId;
-        console.log('📝 Text element found:', textElementId);
-        
-        if (selection.mode === 'text' && selection.selectedTextElementId === textElementId) {
-          console.log('📝 Already editing this text element');
-          return;
-        }
-        
-        handleTextSelect(textElementId);
+      // Check if we're already editing this element in text mode
+      if (result.mode === 'text' && 
+          selection.mode === 'text' && 
+          selection.selectedElementId === result.elementId) {
+        console.log('📝 Already editing this text element');
         return;
       }
 
-      // 2. 반복 요소 확인
-      if (htmlElement.dataset.repeatItemId && htmlElement.dataset.repeatContainerId) {
-        const itemId = htmlElement.dataset.repeatItemId;
-        const containerId = htmlElement.dataset.repeatContainerId;
-        console.log('🔄 Repeat item found:', { itemId, containerId });
-        
-        handleRepeatItemSelect(itemId, containerId);
-        return;
-      }
-
-      // 3. 블록 요소 확인
-      if (htmlElement.dataset.blockElementId) {
-        const blockElementId = htmlElement.dataset.blockElementId;
-        console.log('🟦 Block element found:', blockElementId);
-        
-        // 선택 가능한 요소인지 확인
-        const allSelectableElements = selectableTree.flatMap(function flatten(el): SelectableElement[] {
-          return [el, ...el.children.flatMap(flatten)];
-        });
-        
-        const selectableElement = allSelectableElements.find(el => el.id === blockElementId);
-        if (selectableElement) {
-          console.log('✅ Selectable element confirmed:', selectableElement.selectable.name);
-          handleSmartSelect(blockElementId);
-          return;
-        } else {
-          console.log('❌ Element not selectable, continuing search...');
-        }
-      }
+      // Set selection using the unified system
+      setSelection({
+        mode: result.mode,
+        selectedElementId: result.elementId,
+      });
+    } else {
+      console.log('🚫 No selectable elements found - deselecting');
+      setSelection({
+        mode: null,
+        selectedElementId: null,
+      });
     }
-
-    // 4. 선택 가능한 요소를 찾지 못함 - 모든 선택 해제
-    console.log('🚫 No selectable elements found - deselecting');
-    handleDeselect();
-  }, [selection, selectableTree, handleTextSelect, handleRepeatItemSelect, handleSmartSelect, handleDeselect]);
+  }, [selection, setSelection]);
 
   // 선택된 요소의 정보 반환
   const getSelectedElementInfo = useCallback(() => {
-    const currentSelectedId = selection.selectedElementId || 
-                             selection.selectedTextElementId || 
-                             selection.selectedRepeatItemId;
-
-    if (!currentSelectedId) return null;
-
-    const allElements = selectableTree.flatMap(function flatten(el): SelectableElement[] {
-      return [el, ...el.children.flatMap(flatten)];
-    });
-
-    return allElements.find(el => el.id === currentSelectedId) || null;
-  }, [selection, selectableTree]);
+    if (!selection.selectedElementId) return null;
+    
+    // Use PluginManager to get element info
+    return pluginManager.getElementInfo(selection.selectedElementId);
+  }, [selection.selectedElementId]);
 
   return {
     handleBlockSelect,
@@ -211,6 +158,6 @@ export const useSelectionHandling = ({
     handleDocumentClick,
     handleSmartSelect,
     getSelectedElementInfo,
-    selectableTree,
+    selectableTree, // Keep for compatibility, will remove later
   };
 };

@@ -21,20 +21,13 @@ export const elementPlugin: Plugin = {
   },
 
   match: (element: Element) => {
-    // Do not match elements that are explicitly text
+    // Skip text content elements
     if (element.getAttribute("data-element-type") === "text") {
       return false;
     }
 
-    // Handle generic HTML elements that don't have special attributes
-    const hasSpecialAttributes =
-      element.hasAttribute("data-repeat-container") ||
-      element.hasAttribute("data-repeat-item") ||
-      element.hasAttribute("data-database") ||
-      element.tagName.toLowerCase() === "img" ||
-      element.tagName.toLowerCase() === "picture";
-
-    return !hasSpecialAttributes;
+    // Handle all HTML elements as fallback
+    return true;
   },
 
   parse: (element: Element): ParsedElement | null => {
@@ -48,7 +41,6 @@ export const elementPlugin: Plugin = {
       id: attributes.id || crypto.randomUUID(),
       attributes,
       tagName: element.tagName.toLowerCase(),
-      repeatItem: attributes["data-repeat-item"],
       children: [], // Will be filled by htmlParser
     };
   },
@@ -64,7 +56,7 @@ export const elementPlugin: Plugin = {
     const props = {
       ...attributesToReactProps(originalAttributes),
       key: regularElement.id,
-      "data-block-element-id": regularElement.id,
+      "data-element-id": regularElement.id,
     };
 
     const children =

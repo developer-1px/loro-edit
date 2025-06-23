@@ -3,9 +3,9 @@
 import React from 'react';
 import { Smartphone, Tablet, Monitor, Eye, X, Undo2, Redo2 } from 'lucide-react';
 import type { SelectionState } from '../../types';
-import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
+import { Button } from './button';
+import { ToggleGroup, ToggleGroupItem } from './toggle-group';
+import { cn } from '../../lib/utils';
 
 interface PreviewControlsProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
@@ -71,7 +71,7 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           {selection.mode === 'block' ? 'Block' : 'Text'}
         </div>
         
-        {(selection.selectedElementId || selection.selectedTextElementId) && (
+        {selection.selectedElementId && (
           <Button
             variant="destructive"
             size="sm"
