@@ -1,6 +1,6 @@
 // src/plugins/image.tsx
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import type { Plugin } from "./types";
 import type { ImageElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
@@ -10,6 +10,7 @@ interface EditableImageProps {
   alt?: string;
   className?: string;
   elementId: string;
+  isSelected?: boolean;
 }
 
 const EditableImage: React.FC<EditableImageProps> = ({
@@ -17,8 +18,10 @@ const EditableImage: React.FC<EditableImageProps> = ({
   alt,
   className,
   elementId,
+  isSelected,
 }) => {
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const updateElement = useEditorStore((state) => state.updateElement);
 
   const handleImageUpload = (file: File) => {
@@ -70,17 +73,49 @@ const EditableImage: React.FC<EditableImageProps> = ({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Only trigger file upload if image is selected
+    if (isSelected && fileInputRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      // Small delay to ensure selection state is maintained
+      setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 10);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      handleImageUpload(file);
+    }
+    // Reset input value so same file can be selected again
+    e.target.value = "";
+  };
+
   return (
     <div className={`${className} relative group`} data-element-id={elementId}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        onClick={(e) => e.stopPropagation()}
+        onFocus={(e) => e.stopPropagation()}
+        onBlur={(e) => e.stopPropagation()}
+        style={{ display: "none" }}
+      />
       {src ? (
         <img
           src={src}
           alt={alt || "Editable image"}
-          className="block"
+          className={`block ${isSelected ? "cursor-pointer" : ""}`}
           onPaste={handlePaste}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={handleClick}
           tabIndex={0}
           style={{ outline: "none" }}
         />
@@ -88,11 +123,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
         <div
           className={`border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center ${
             dragOver ? "border-blue-500 bg-blue-50" : ""
-          }`}
+          } ${isSelected ? "cursor-pointer" : ""}`}
           onPaste={handlePaste}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={handleClick}
           tabIndex={0}
           style={{ aspectRatio: "auto", minHeight: "auto" }}
         >
@@ -110,10 +146,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
                 strokeLinejoin="round"
               />
             </svg>
+            {isSelected && (
+              <p className="mt-2 text-sm">클릭하여 이미지 업로드</p>
+            )}
           </div>
         </div>
       )}
-
     </div>
   );
 };
@@ -166,8 +204,9 @@ export const imagePlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement }) => {
+  render: ({ parsedElement, context }) => {
     const imageElement = parsedElement as ImageElement;
+    const isSelected = context.selection.selectedElementId === imageElement.id;
 
     return (
       <EditableImage
@@ -176,6 +215,7 @@ export const imagePlugin: Plugin = {
         src={imageElement.src}
         alt={imageElement.alt}
         className={imageElement.attributes?.class || ""}
+        isSelected={isSelected}
       />
     );
   },

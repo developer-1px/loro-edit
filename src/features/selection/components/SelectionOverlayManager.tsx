@@ -1,7 +1,7 @@
 import React from 'react';
 import { SelectionOverlay } from './SelectionOverlay';
-import { pluginManager } from '../../plugins';
-import type { SelectionState } from '../../types';
+import { pluginManager } from '../../../plugins';
+import type { SelectionState } from '../types';
 
 interface SelectionOverlayManagerProps {
   selection: SelectionState;

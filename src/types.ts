@@ -35,6 +35,13 @@ export interface RegularElement extends BaseElement {
   repeatItem?: string;
 }
 
+export interface RepeatItemElement extends BaseElement {
+  type: "repeat-item";
+  attributes: Record<string, string>;
+  children: ParsedElement[];
+  repeatItem: string;
+}
+
 export interface RepeatContainer extends BaseElement {
   type: "repeat-container";
   repeatContainer: string;
@@ -70,16 +77,9 @@ export type ParsedElement =
   | ImageElement
   | SvgElement
   | RegularElement
+  | RepeatItemElement
   | RepeatContainer
   | DatabaseElement;
 
-export interface SelectionState {
-  mode: "block" | "text" | null;
-  selectedElementId: string | null; // Unified element ID using data-element-id
-}
-
-export interface ClipboardItem {
-  type: "repeat-item";
-  data: RegularElement;
-  sourceContainerId: string;
-}
+// Selection types moved to /features/selection
+export type { SelectionState, ClipboardItem } from './features/selection/types';

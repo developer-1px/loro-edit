@@ -1,5 +1,5 @@
-import type { ParsedElement } from '../types';
-import { pluginManager } from '../plugins';
+import type { ParsedElement } from '../../types';
+import { pluginManager } from '../../plugins';
 
 function isElementSelectable(element: ParsedElement): boolean {
   const typeMap: Record<string, string> = {
@@ -7,6 +7,8 @@ function isElementSelectable(element: ParsedElement): boolean {
     img: 'image',
     picture: 'image',
     svg: 'svg',
+    button: 'button',
+    'repeat-item': 'repeat-item',
     database: 'database',
     'repeat-container': 'repeat-container'
   };
@@ -35,16 +37,13 @@ export function getSelectableElements(elements: ParsedElement[]): string[] {
   return result;
 }
 
-
 export function getElementAtPoint(x: number, y: number): string | null {
-  const elementAtPoint = document.elementFromPoint(x, y);
-  if (!elementAtPoint) return null;
+  const elementsAtPoint = document.elementsFromPoint(x, y);
   
-  let currentElement: Element | null = elementAtPoint;
-  while (currentElement) {
-    const elementId = (currentElement as HTMLElement).dataset?.elementId;
+  for (const element of elementsAtPoint) {
+    const elementId = (element as HTMLElement).dataset?.elementId;
     if (elementId) return elementId;
-    currentElement = currentElement.parentElement;
   }
+  
   return null;
 }

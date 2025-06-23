@@ -9,4 +9,4 @@ export { useScrollButtons } from './useScrollButtons';
 // Re-export existing hooks
 export { useEditorHotkeys } from './useEditorHotkeys';
 export { useResizeHandling } from './useResizeHandling';
-export { useSelectionHandling } from './useSelectionHandling';
+// Selection handling moved to /features/selection

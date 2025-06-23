@@ -28,7 +28,7 @@ const processElement = (element: Element | null): ParsedElement | null => {
     // Recursively parse children if this is a container element
     if (
       !isVoidElement &&
-      (parsed.type === "element" || parsed.type === "repeat-container")
+      (parsed.type === "element" || parsed.type === "repeat-container" || parsed.type === "repeat-item")
     ) {
       const children: ParsedElement[] = processChildren(element);
 

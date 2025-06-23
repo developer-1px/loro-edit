@@ -1,7 +1,6 @@
 // src/plugins/repeat-item.tsx
 
-import React from "react";
-import type { RegularElement } from "../types";
+import type { RepeatItemElement } from "../types";
 import type { Plugin } from "./types";
 
 export const repeatItemPlugin: Plugin = {
@@ -29,7 +28,7 @@ export const repeatItemPlugin: Plugin = {
     const repeatItemId = crypto.randomUUID();
     
     return {
-      type: "element" as const,
+      type: "repeat-item" as const,
       id: repeatItemId,
       tagName: element.tagName.toLowerCase(),
       children: [], // Children will be handled by the parent parsing system
@@ -41,38 +40,16 @@ export const repeatItemPlugin: Plugin = {
     };
   },
 
-  render: ({ parsedElement, renderElement, context }) => {
-    const element = parsedElement as RegularElement;
-    const isSelected = context.selection.selectedElementId === element.id;
-    
-    const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      context.setSelection({
-        mode: "block",
-        selectedElementId: element.id,
-      });
-    };
+  render: ({ parsedElement, renderElement }) => {
+    const element = parsedElement as RepeatItemElement;
 
     return (
       <div
         key={element.id}
         data-element-id={element.id}
-        className={`
-          ${element.attributes?.class || ""}
-          ${isSelected 
-            ? "ring-2 ring-purple-500 ring-offset-2 bg-purple-50/50" 
-            : "hover:ring-1 hover:ring-purple-300 hover:bg-purple-50/30"
-          }
-          relative cursor-pointer transition-all duration-200
-        `}
-        onClick={handleClick}
+        className={element.attributes?.class || ""}
       >
         {element.children.map(renderElement)}
-        {isSelected && (
-          <div className="absolute -top-6 left-0 bg-purple-500 text-white text-xs px-2 py-1 rounded text-nowrap pointer-events-none z-10">
-            Repeat Item
-          </div>
-        )}
       </div>
     );
   },

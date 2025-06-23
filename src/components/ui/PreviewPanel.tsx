@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import type { ParsedElement, SelectionState } from '../../types';
-import { SelectionOverlayManager } from './SelectionOverlayManager';
+import { SelectionOverlayManager } from '../../features/selection';
 import { pluginManager } from '../../plugins/PluginManager';
 
 interface PreviewPanelProps {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useElementRect } from "../../hooks/useElementRect";
+import { useElementRect } from "../../../hooks/useElementRect";
 
 interface SelectionOverlayProps {
   targetSelector: string;

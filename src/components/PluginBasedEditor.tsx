@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useEditorStore } from "../store/editorStore";
 import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
-import { useSelectionHandling } from "../hooks/useSelectionHandling";
+import { useSelectionHandling } from "../features/selection";
 import { useResizeHandling } from "../hooks/useResizeHandling";
 import { INITIAL_HTML } from "./INITIAL_HTML";
 
@@ -55,6 +55,8 @@ export const PluginBasedEditor: React.FC = () => {
 
   const handleParseAndRender = useCallback(
     (html: string) => {
+      // Clear old mappings before parsing new elements
+      pluginManager.clearElementMapping();
       const elements = parseAndRenderHTML(html);
       console.log("Parsed elements:", elements);
       setParsedElements(elements);
@@ -68,6 +70,8 @@ export const PluginBasedEditor: React.FC = () => {
     // Set initial HTML input on mount - only run once
     registerDefaultPlugins();
     useEditorStore.setState({ htmlInput: INITIAL_HTML });
+    // Clear old mappings and parse initial HTML
+    pluginManager.clearElementMapping();
     const elements = parseAndRenderHTML(INITIAL_HTML);
     console.log("Parsed elements:", elements);
     setParsedElements(elements);

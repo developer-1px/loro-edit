@@ -48,9 +48,24 @@ class PluginManager implements IPluginManager {
     context: PluginContext,
     renderElement: (element: ParsedElement) => React.ReactNode
   ): React.ReactNode {
-    const plugin = this.getPlugin(element);
+    // Find plugin by parsedElement.type instead of re-matching DOM element
+    const plugin = this._plugins.find(p => {
+      switch (parsedElement.type) {
+        case "text": return p.name === "text";
+        case "img":
+        case "picture": return p.name === "image";
+        case "svg": return p.name === "svg";
+        case "repeat-item": return p.name === "repeat-item";
+        case "repeat-container": return p.name === "repeat-container";
+        case "database": return p.name === "database";
+        case "element": return p.name === "element";
+        default: return p.name === "element";
+      }
+    });
+    
     if (!plugin) return null;
 
+    // Always update mapping for HMR compatibility
     this._elementPluginMap.set(parsedElement.id, { plugin, parsedElement });
 
     const canEditText = context.selection.mode === "text" &&
@@ -70,6 +85,18 @@ class PluginManager implements IPluginManager {
 
   findSelectableAtPoint(x: number, y: number): { elementId: string; mode: 'text' | 'block' } | null {
     const elementsAtPoint = document.elementsFromPoint(x, y);
+    
+    // Skip control elements and hidden inputs
+    const hasControlElement = elementsAtPoint.some(el => {
+      const htmlEl = el as HTMLElement;
+      return htmlEl.closest('[data-selection-overlay]') ||
+             htmlEl.closest('[data-preview-controls]') ||
+             htmlEl.tagName === 'BUTTON' ||
+             htmlEl.closest('button') ||
+             (htmlEl.tagName === 'INPUT' && htmlEl.style.display === 'none');
+    });
+
+    if (hasControlElement) return null;
     
     for (const domElement of elementsAtPoint) {
       const elementId = (domElement as HTMLElement).dataset?.elementId;
