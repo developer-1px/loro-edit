@@ -498,22 +498,12 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
     (state) => state.handleDatabaseFetch
   );
 
-  // Use the new useAsyncOperation hook for data fetching
+  // Use the simplified useAsyncOperation hook for data fetching
   const dataFetch = useAsyncOperation(
     async () => {
       await storeHandleFetchData(element.id);
     },
-    [element.id],
-    {
-      retryAttempts: 2,
-      retryDelay: 1000,
-      onSuccess: () => {
-        console.log("Database data fetched successfully");
-      },
-      onError: (error) => {
-        console.error("Failed to fetch database data:", error);
-      },
-    }
+    [element.id]
   );
 
   return (
@@ -621,14 +611,12 @@ const DatabaseView: React.FC<DatabaseViewProps> = ({
             <span className="font-medium">Error loading data</span>
           </div>
           <p className="text-red-700 mt-1">{dataFetch.error}</p>
-          {dataFetch.canRetry && (
-            <button
-              onClick={() => dataFetch.retry()}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-            >
-              Retry
-            </button>
-          )}
+          <button
+            onClick={() => dataFetch.execute()}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
       )}
     </div>

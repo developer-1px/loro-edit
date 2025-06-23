@@ -56,20 +56,20 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [customSvg, setCustomSvg] = useState(svgContent);
-  const handleSvgChange = useEditorStore((state) => state.handleSvgChange);
+  const updateElement = useEditorStore((state) => state.updateElement);
   const selection = useEditorStore((state) => state.selection);
   
   // 현재 SVG 요소가 선택되어 있는지 확인
   const isSelected = selection.selectedElementId === elementId;
 
   const handleSvgSelect = (newSvgContent: string) => {
-    handleSvgChange(elementId, newSvgContent);
+    updateElement(elementId, { svgContent: newSvgContent });
     setOpen(false);
   };
 
   const handleCustomSvgSave = () => {
     if (customSvg.trim()) {
-      handleSvgChange(elementId, customSvg);
+      updateElement(elementId, { svgContent: customSvg });
       setOpen(false);
     }
   };

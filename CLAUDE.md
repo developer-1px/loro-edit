@@ -134,6 +134,16 @@ The project uses a composite TypeScript setup:
 - Follow ESLint rules without exceptions
 - Apply Tailwind CSS for all styling
 
+### Minimalist Code Conventions
+- **Prefer concise, declarative code**: Write the smallest amount of code that clearly expresses intent
+- **Avoid unnecessary abstractions**: Don't create layers of abstraction unless they solve real complexity
+- **Single responsibility**: Each function/component should do one thing well
+- **Eliminate redundancy**: Remove duplicate logic, unused variables, and dead code
+- **Minimal dependencies**: Use native browser APIs and React hooks before adding external libraries
+- **Inline small utilities**: Don't extract 1-2 line functions unless reused multiple times
+- **Direct state updates**: Prefer simple state changes over complex action patterns
+- **Essential comments only**: Code should be self-documenting; comments only for non-obvious business logic
+
 ### Plugin Development Process
 When adding new element types:
 1. Create plugin file in `src/plugins/` implementing the `Plugin` interface

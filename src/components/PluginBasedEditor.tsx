@@ -28,9 +28,6 @@ export const PluginBasedEditor: React.FC = () => {
     setParsedElements,
     setSelection,
     handleItemAdd,
-    handleTextChange,
-    handleImageChange,
-    handleSvgChange,
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
@@ -48,7 +45,7 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Custom hooks
   const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
-  const { handleDeselect, handleDocumentClick } = useSelectionHandling({
+  const selectionHandlers = useSelectionHandling({
     selection,
     setSelection,
     parsedElements,
@@ -87,9 +84,6 @@ export const PluginBasedEditor: React.FC = () => {
     selection,
     setSelection,
     handleItemAdd,
-    handleTextChange,
-    handleImageChange,
-    handleSvgChange,
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
@@ -154,7 +148,7 @@ export const PluginBasedEditor: React.FC = () => {
             previewMode={previewMode}
             onPreviewModeChange={setPreviewMode}
             selection={selection}
-            onClearSelection={handleDeselect}
+            onClearSelection={selectionHandlers.clearSelection}
             onUndo={undo}
             onRedo={redo}
             pastStates={pastStates?.length || 0}
@@ -173,7 +167,7 @@ export const PluginBasedEditor: React.FC = () => {
             previewMode={previewMode}
             parsedElements={parsedElements}
             renderElement={renderElement}
-            onClick={handleDocumentClick}
+            onClick={selectionHandlers.handleClick}
             selection={selection}
           />
         </div>

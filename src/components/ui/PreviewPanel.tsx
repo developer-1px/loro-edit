@@ -61,7 +61,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         {/* Selection Overlay Manager */}
         <SelectionOverlayManager
           selection={selection}
-          showHoverEffects={selection.mode === 'block'}
         />
       </div>
     </div>

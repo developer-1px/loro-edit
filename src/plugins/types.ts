@@ -7,9 +7,6 @@ export interface PluginContext {
   selection: SelectionState;
   setSelection: (selection: Partial<SelectionState>) => void;
   handleItemAdd: (containerId: string) => void;
-  handleTextChange: (elementId: string, newText: string) => void;
-  handleImageChange: (elementId: string, newSrc: string) => void;
-  handleSvgChange: (elementId: string, newSvgContent: string) => void;
   handleDatabaseViewModeChange?: (
     databaseId: string,
     viewMode: "cards" | "table"
@@ -81,20 +78,10 @@ export interface PluginManager {
     renderElement: (element: ParsedElement) => React.ReactNode
   ) => React.ReactNode;
   
-  // New utility functions for mapping-based selection
   getPluginById: (elementId: string) => Plugin | null;
-  getElementInfo: (elementId: string) => {
-    plugin: Plugin;
-    parsedElement: ParsedElement;
-    isSelectable: boolean;
-    mode: 'text' | 'block';
-  } | null;
   findSelectableAtPoint: (x: number, y: number) => {
     elementId: string;
-    plugin: Plugin;
     mode: 'text' | 'block';
   } | null;
-  getElementsForPlugin: (pluginName: string) => string[];
   clearElementMapping: () => void;
-  getMappingSize: () => number;
 }

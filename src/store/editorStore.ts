@@ -21,9 +21,7 @@ export interface EditorState {
   handleRepeatItemCopy: () => void;
   handleRepeatItemCut: () => void;
   handleRepeatItemPaste: (containerId: string) => void;
-  handleTextChange: (textId: string, newText: string) => void;
-  handleImageChange: (imageId: string, newSrc: string) => void;
-  handleSvgChange: (svgId: string, newSvgContent: string) => void;
+  updateElement: (elementId: string, updates: Record<string, any>) => void;
   handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => void;
   handleDatabaseSettingsUpdate: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
   handleDatabaseFetch: (databaseId: string) => Promise<void>;
@@ -71,88 +69,20 @@ export const useEditorStore = create<EditorState>()(
         set((state) => ({ selection: { ...state.selection, ...selection } })),
       setClipboard: (clipboard) => set({ clipboard }),
 
-      handleTextChange: (textId: string, newText: string) => {
-        const updateElementText = (element: ParsedElement): ParsedElement => {
-          if (element.type === "text") {
-            return element.id === textId
-              ? { ...element, content: newText }
-              : element;
+      updateElement: (elementId: string, updates: Record<string, any>) => {
+        const updateElements = (element: ParsedElement): ParsedElement => {
+          if (element.id === elementId) {
+            return { ...element, ...updates };
           }
           if ("children" in element && element.children) {
-            return {
-              ...element,
-              children: element.children.map(updateElementText),
-            };
+            return { ...element, children: element.children.map(updateElements) };
           }
           if ("items" in element && element.items) {
-            return {
-              ...element,
-              items: element.items.map(
-                (el) => updateElementText(el) as RegularElement
-              ),
-            };
+            return { ...element, items: element.items.map(updateElements) as RegularElement[] };
           }
           return element;
         };
-        set((state) => ({
-          parsedElements: state.parsedElements.map(updateElementText),
-        }));
-      },
-
-      handleImageChange: (imageId: string, newSrc: string) => {
-        const updateElementImage = (element: ParsedElement): ParsedElement => {
-          if (element.type === "img" || element.type === "picture") {
-            return element.id === imageId
-              ? { ...element, src: newSrc }
-              : element;
-          }
-          if ("children" in element && element.children) {
-            return {
-              ...element,
-              children: element.children.map(updateElementImage),
-            };
-          }
-          if ("items" in element && element.items) {
-            return {
-              ...element,
-              items: element.items.map(
-                (el) => updateElementImage(el) as RegularElement
-              ),
-            };
-          }
-          return element;
-        };
-        set((state) => ({
-          parsedElements: state.parsedElements.map(updateElementImage),
-        }));
-      },
-
-      handleSvgChange: (svgId: string, newSvgContent: string) => {
-        const updateElementSvg = (element: ParsedElement): ParsedElement => {
-          if (element.type === "svg") {
-            return element.id === svgId
-              ? { ...element, svgContent: newSvgContent }
-              : element;
-          }
-          if ("children" in element && element.children) {
-            return {
-              ...element,
-              children: element.children.map(updateElementSvg),
-            };
-          }
-          if ("items" in element && element.items) {
-            return {
-              ...element,
-              items: element.items.map(
-                (el) => updateElementSvg(el) as RegularElement
-              ),
-            };
-          }
-          return element;
-        };
-        set((state) => ({
-          parsedElements: state.parsedElements.map(updateElementSvg),
-        }));
+        set((state) => ({ parsedElements: state.parsedElements.map(updateElements) }));
       },
 
       handleItemAdd: (containerId) => {
@@ -216,17 +146,9 @@ export const useEditorStore = create<EditorState>()(
       },
 
       // Simplified repeat functions - TODO: Implement with new selection system
-      handleRepeatItemCopy: () => {
-        console.log("handleRepeatItemCopy called - TODO: implement");
-      },
-
-      handleRepeatItemCut: () => {
-        console.log("handleRepeatItemCut called - TODO: implement");
-      },
-
-      handleRepeatItemPaste: (containerId: string) => {
-        console.log("handleRepeatItemPaste called - TODO: implement", containerId);
-      },
+      handleRepeatItemCopy: () => {},
+      handleRepeatItemCut: () => {},
+      handleRepeatItemPaste: () => {},
 
       handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => {
         set((state) => {

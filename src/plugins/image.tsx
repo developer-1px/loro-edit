@@ -19,13 +19,13 @@ const EditableImage: React.FC<EditableImageProps> = ({
   elementId,
 }) => {
   const [dragOver, setDragOver] = useState(false);
-  const handleImageChange = useEditorStore((state) => state.handleImageChange);
+  const updateElement = useEditorStore((state) => state.updateElement);
 
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        handleImageChange(elementId, e.target.result as string);
+        updateElement(elementId, { src: e.target.result as string });
       }
     };
     reader.readAsDataURL(file);

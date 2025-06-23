@@ -5,26 +5,15 @@ import type { SelectionState } from '../../types';
 
 interface SelectionOverlayManagerProps {
   selection: SelectionState;
-  showHoverEffects?: boolean;
 }
 
 export const SelectionOverlayManager: React.FC<SelectionOverlayManagerProps> = ({
-  selection,
-  showHoverEffects = false,
+  selection
 }) => {
-  // If no element is selected, don't render anything
-  if (!selection.selectedElementId || !selection.mode) {
-    return null;
-  }
+  if (!selection.selectedElementId || !selection.mode) return null;
 
-  // Get element info from PluginManager
-  const elementInfo = pluginManager.getElementInfo(selection.selectedElementId);
-  if (!elementInfo) {
-    return null;
-  }
-
-  // Create simple selector using data-element-id
-  const targetSelector = `[data-element-id="${selection.selectedElementId}"]`;
+  const plugin = pluginManager.getPluginById(selection.selectedElementId);
+  if (!plugin) return null;
 
   return (
     <div style={{ 
@@ -36,16 +25,9 @@ export const SelectionOverlayManager: React.FC<SelectionOverlayManagerProps> = (
       pointerEvents: 'none' 
     }}>
       <SelectionOverlay
-        key={selection.selectedElementId}
-        targetSelector={targetSelector}
-        selectable={elementInfo.plugin.selectable || {
-          enabled: true,
-          name: elementInfo.plugin.name,
-          color: "#3b82f6"
-        }}
-        isSelected={true}
-        isHovered={false}
-        showHoverEffects={showHoverEffects}
+        targetSelector={`[data-element-id="${selection.selectedElementId}"]`}
+        elementName={plugin.selectable?.name || plugin.name}
+        color={plugin.selectable?.color || "#3b82f6"}
       />
     </div>
   );
