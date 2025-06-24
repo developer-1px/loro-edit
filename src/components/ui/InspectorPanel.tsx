@@ -51,15 +51,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 variant={isActive ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 rounded-none border-0 h-12 flex items-center justify-center gap-2 ${
+                className={`flex-1 rounded-none border-0 h-10 flex items-center justify-center gap-1 ${
                   isActive 
                     ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' 
                     : 'hover:bg-gray-50 text-gray-600 border-b-2 border-transparent'
                 }`}
                 title={tab.label}
               >
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
+                <Icon className="w-3 h-3" />
+                <span className="text-xs font-medium">{tab.label}</span>
               </Button>
             );
           })}

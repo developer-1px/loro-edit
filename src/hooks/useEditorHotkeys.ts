@@ -1,9 +1,10 @@
+import React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditorStore } from "../store/editorStore";
 import { useHistoryHotkeys } from "../features/history";
 import { useHistory } from "../features/history";
 
-export const useEditorHotkeys = () => {
+export const useEditorHotkeys = (setShowUI?: React.Dispatch<React.SetStateAction<boolean>>) => {
   const { 
     selection, 
     setSelection,
@@ -147,6 +148,21 @@ export const useEditorHotkeys = () => {
     {
       enableOnContentEditable: false,
       enableOnFormTags: false,
+    }
+  );
+
+  // Toggle UI panels - Cmd+\
+  useHotkeys(
+    "mod+\\",
+    () => {
+      if (setShowUI) {
+        console.log("🎛️ TOGGLE UI: Toggling UI panels visibility");
+        setShowUI((prev) => !prev);
+      }
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
     }
   );
 };

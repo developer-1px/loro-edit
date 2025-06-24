@@ -58,16 +58,17 @@ export const PluginBasedEditor: React.FC = () => {
   const [previewMode, setPreviewMode] = useState<
     "mobile" | "tablet" | "desktop"
   >("desktop");
+  const [showUI, setShowUI] = useState(true);
 
   // Custom hooks
-  const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(75);
+  const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
   const selectionHandlers = useSelectionHandling({
     selection,
     setSelection,
     parsedElements,
   });
 
-  useEditorHotkeys();
+  useEditorHotkeys(setShowUI);
 
   useEffect(() => {
     // Set initial HTML input on mount - only run once
@@ -151,12 +152,12 @@ export const PluginBasedEditor: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <div className="flex h-screen">
           {/* Left Sidebar - Section Library */}
-          <SectionSidebar />
+          {showUI && <SectionSidebar />}
 
           {/* Middle Panel - Responsive Preview */}
           <div
             className="p-6 overflow-y-auto bg-gray-100 flex flex-col"
-            style={{ width: `${leftPanelWidth}%` }}
+            style={{ width: showUI ? `${leftPanelWidth}%` : '100%' }}
           >
             <PreviewControls
               previewMode={previewMode}
@@ -180,18 +181,20 @@ export const PluginBasedEditor: React.FC = () => {
             />
           </div>
 
-          <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />
+          {showUI && <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />}
 
           {/* Right Panel - Inspector */}
-          <div
-            className="bg-white border-l border-gray-200 flex flex-col"
-            style={{ width: `${100 - leftPanelWidth}%` }}
-          >
-            <InspectorPanel
-              selection={selection}
-              parsedElements={parsedElements}
-            />
-          </div>
+          {showUI && (
+            <div
+              className="bg-white border-l border-gray-200 flex flex-col"
+              style={{ width: `${100 - leftPanelWidth}%` }}
+            >
+              <InspectorPanel
+                selection={selection}
+                parsedElements={parsedElements}
+              />
+            </div>
+          )}
         </div>
       </div>
     </DndProvider>
