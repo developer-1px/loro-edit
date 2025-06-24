@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import type { Plugin } from "./types";
 import type { TextElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
@@ -11,7 +11,7 @@ interface EditableTextProps {
   onTextChange?: (elementId: string, newText: string) => void;
 }
 
-const EditableText: React.FC<EditableTextProps> = ({
+const EditableText: React.FC<EditableTextProps> = memo(({
   text,
   className,
   elementId,
@@ -27,14 +27,10 @@ const EditableText: React.FC<EditableTextProps> = ({
   const isTextMode = useEditorStore((state) => state.selection.mode === "text");
 
   useEffect(() => {
-    if (!isCommittingRef.current && !isEditing) {
+    // Only update from props if we're not actively editing or committing
+    if (!isCommittingRef.current && !isEditing && !textRef.current?.matches(':focus')) {
       setCurrentText(text || "");
       originalTextRef.current = text || "";
-      // Only update DOM if the element is currently editable
-      if (textRef.current && textRef.current.contentEditable === "plaintext-only") {
-        const editableText = (text || "").replace(/<br\s*\/?>/gi, "\n");
-        textRef.current.textContent = editableText;
-      }
     }
   }, [text, isEditing]);
 
@@ -58,12 +54,16 @@ const EditableText: React.FC<EditableTextProps> = ({
       
       let newText = textRef.current.textContent || "";
       newText = newText.replace(/\n/g, "<br/>");
+      
+      // Always update local state first
       setCurrentText(newText);
       
-      const originalHtml = text.replace(/\n/g, "<br/>");
-      if (newText !== originalHtml && onTextChange) {
-        // Use callback for text editing (will be handled by history system)
-        onTextChange(elementId, newText);
+      // Compare with the original text from props, not the processed version
+      if (newText !== text && onTextChange) {
+        // Delay the state update to avoid conflicts with blur handling
+        requestAnimationFrame(() => {
+          onTextChange(elementId, newText);
+        });
       }
       
       setTimeout(() => {
@@ -77,6 +77,12 @@ const EditableText: React.FC<EditableTextProps> = ({
       // Store the current value before editing
       originalTextRef.current = currentText;
       setIsEditing(true);
+      
+      // Ensure the content is editable text
+      const editableText = currentText.replace(/<br\s*\/?>/gi, "\n");
+      if (textRef.current.textContent !== editableText) {
+        textRef.current.textContent = editableText;
+      }
     }
   };
 
@@ -148,6 +154,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       onMouseDown={handleMouseDown}
       className={getTextStyles()}
       data-element-id={elementId}
+      data-text-content={currentText} // Store current text in data attribute for debugging
       style={{
         position: 'relative',
         zIndex: 1,
@@ -161,7 +168,16 @@ const EditableText: React.FC<EditableTextProps> = ({
       {!isEditing && isEditable && (currentText || "\u00A0")}
     </span>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return (
+    prevProps.text === nextProps.text &&
+    prevProps.elementId === nextProps.elementId &&
+    prevProps.isEditable === nextProps.isEditable &&
+    prevProps.className === nextProps.className &&
+    prevProps.onTextChange === nextProps.onTextChange
+  );
+});
 
 export const textPlugin: Plugin = {
   name: "text",
