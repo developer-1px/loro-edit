@@ -36,12 +36,17 @@ class ClipboardManagerImpl implements ClipboardManager {
     // Try handlers in reverse order (last registered has priority)
     const handlers = Array.from(this.handlers.values()).reverse();
     
+    console.log('Finding handler for element:', element.type, element);
+    console.log('Available handlers:', handlers.map(h => h.type));
+    
     for (const handler of handlers) {
       if (handler.canHandle(element)) {
+        console.log('Found handler:', handler.type);
         return handler;
       }
     }
     
+    console.log('No handler found');
     return null;
   }
   

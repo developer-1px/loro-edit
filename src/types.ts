@@ -36,6 +36,7 @@ export interface RegularElement extends BaseElement {
   repeatItem?: string;
 }
 
+// @deprecated - Repeat items are now represented as RegularElement with repeatItem property
 export interface RepeatItemElement extends BaseElement {
   type: "repeat-item";
   attributes: Record<string, string>;

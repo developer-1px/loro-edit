@@ -8,9 +8,15 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
   name = 'Repeat Item';
   
   canHandle(element: ParsedElement): boolean {
-    return element.type === 'element' && 
-           'repeatItem' in element && 
-           (element as RegularElement).repeatItem !== undefined;
+    const isRepeatItem = element.type === 'element' && 
+                        'repeatItem' in element && 
+                        (element as RegularElement).repeatItem !== undefined;
+    
+    if (isRepeatItem) {
+      console.log('RepeatItemClipboardHandler can handle:', element);
+    }
+    
+    return isRepeatItem;
   }
   
   canPaste(target: ParsedElement | null, clipboardData: ClipboardData): boolean {
@@ -51,6 +57,11 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
     // Generate new IDs for pasted item
     const pastedItem = this.generateNewIds(JSON.parse(JSON.stringify(clipboardData.data)));
     
+    // Ensure the pasted item is a RegularElement with repeatItem
+    if (pastedItem.type !== 'element' || !pastedItem.repeatItem) {
+      return { success: false, error: 'Invalid repeat item data' };
+    }
+    
     // Find the repeat container and insert position
     const containerInfo = this.findRepeatContainer(context.parsedElements, target.id);
     if (!containerInfo) {
@@ -60,7 +71,7 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
     // Insert the item
     const updatedElements = this.insertRepeatItem(
       context.parsedElements,
-      pastedItem,
+      pastedItem as RegularElement,
       containerInfo.containerId,
       containerInfo.insertIndex
     );
@@ -116,11 +127,11 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
     return null;
   }
   
-  private insertRepeatItem(elements: ParsedElement[], newItem: RegularElement, containerId: string, insertIndex: number): ParsedElement[] {
+  private insertRepeatItem(elements: ParsedElement[], newItem: ParsedElement, containerId: string, insertIndex: number): ParsedElement[] {
     return elements.map(element => {
       if (element.type === 'repeat-container' && element.id === containerId) {
         const updatedItems = [...element.items];
-        updatedItems.splice(insertIndex, 0, newItem);
+        updatedItems.splice(insertIndex, 0, newItem as RegularElement);
         
         return {
           ...element,

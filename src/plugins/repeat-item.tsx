@@ -1,6 +1,6 @@
 // src/plugins/repeat-item.tsx
 
-import type { RepeatItemElement } from "../types";
+import type { RegularElement } from "../types";
 import type { Plugin } from "./types";
 import { RepeatItemClipboardHandler } from "../features/clipboard/handlers/RepeatItemClipboardHandler";
 
@@ -24,11 +24,13 @@ export const repeatItemPlugin: Plugin = {
 
   parse: (element: Element) => {
     // Get ID from either attribute
-    const repeatItemId = crypto.randomUUID();
+    const repeatItemId = element.getAttribute("data-repeat-item") || 
+                       element.getAttribute("data-repeat-item-id") || 
+                       crypto.randomUUID();
     
     return {
-      type: "repeat-item" as const,
-      id: repeatItemId,
+      type: "element" as const,
+      id: crypto.randomUUID(),
       tagName: element.tagName.toLowerCase(),
       children: [], // Children will be handled by the parent parsing system
       attributes: Array.from(element.attributes).reduce((acc, attr) => {
@@ -40,12 +42,13 @@ export const repeatItemPlugin: Plugin = {
   },
 
   render: ({ parsedElement, renderElement }) => {
-    const element = parsedElement as RepeatItemElement;
+    const element = parsedElement as RegularElement;
 
     return (
       <div
         key={element.id}
         data-element-id={element.id}
+        data-repeat-item={element.repeatItem}
         className={element.attributes?.class || ""}
       >
         {element.children.map(renderElement)}
