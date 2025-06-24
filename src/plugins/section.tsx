@@ -4,6 +4,7 @@ import React from "react";
 import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
+import { SectionClipboardHandler } from "../features/clipboard/handlers/SectionClipboardHandler";
 
 export const sectionPlugin: Plugin = {
   name: "section",
@@ -39,4 +40,6 @@ export const sectionPlugin: Plugin = {
       element.children.map(renderElement)
     );
   },
+  
+  clipboardHandler: new SectionClipboardHandler()
 };

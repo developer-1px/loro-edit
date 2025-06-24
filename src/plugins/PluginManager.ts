@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import type { ParsedElement } from "../types";
 import React from "react";
+import { clipboardManager } from "../features/clipboard/ClipboardManager";
 
 class PluginManager implements IPluginManager {
   private _plugins: Plugin[] = [];
@@ -20,11 +21,24 @@ class PluginManager implements IPluginManager {
     const existingIndex = this._plugins.findIndex(p => p.name === plugin.name);
     if (existingIndex !== -1) this.unregister(plugin.name);
     this._plugins.push(plugin);
+    
+    // Register clipboard handler if present
+    if (plugin.clipboardHandler) {
+      clipboardManager.registerHandler(plugin.clipboardHandler);
+    }
   }
 
   unregister(pluginName: string): void {
     const pluginIndex = this._plugins.findIndex(p => p.name === pluginName);
     if (pluginIndex === -1) return;
+    
+    const plugin = this._plugins[pluginIndex];
+    
+    // Unregister clipboard handler if present
+    if (plugin.clipboardHandler) {
+      clipboardManager.unregisterHandler(plugin.clipboardHandler.type);
+    }
+    
     this._plugins.splice(pluginIndex, 1);
   }
 

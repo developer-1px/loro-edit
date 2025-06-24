@@ -1,6 +1,7 @@
 // src/plugins/utils.ts
 
 import type { ParsedElement } from '../types';
+import { VOID_ELEMENTS } from '../utils/voidElements';
 
 // 공통 DOM 속성 파싱 유틸리티
 export function parseAttributes(element: Element): Record<string, string> {
@@ -12,12 +13,15 @@ export function parseAttributes(element: Element): Record<string, string> {
 
 // 기본 요소 파싱 유틸리티
 export function parseBasicElement(element: Element, type: ParsedElement['type']): ParsedElement {
+  const tagName = element.tagName.toLowerCase();
+  const isVoidElement = VOID_ELEMENTS.has(tagName);
+  
   return {
     type,
     id: element.id || crypto.randomUUID(),
-    tagName: element.tagName.toLowerCase(),
+    tagName,
     attributes: parseAttributes(element),
-    children: [], // Children handled by parent parser
+    children: isVoidElement ? undefined : [], // Don't set children for void elements
     repeatItem: element.getAttribute("data-repeat-item") || undefined,
   } as ParsedElement;
 }

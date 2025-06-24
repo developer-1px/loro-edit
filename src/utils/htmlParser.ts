@@ -81,6 +81,9 @@ const processElement = (element: Element | null): ParsedElement | null => {
 
   const children: ParsedElement[] = isVoidElement ? [] : processChildren(element);
 
+  // Generate preview for section elements
+  const preview = tagName === 'section' ? generateSectionPreview(element) : undefined;
+
   return {
     type: "element",
     tagName,
@@ -88,6 +91,7 @@ const processElement = (element: Element | null): ParsedElement | null => {
     children,
     id,
     repeatItem: attributes["data-repeat-item"],
+    preview,
   };
 };
 
@@ -141,4 +145,48 @@ const processChildren = (element: Element): ParsedElement[] => {
   flushTextContent();
 
   return children;
+};
+
+// Generate section preview HTML content
+const generateSectionPreview = (element: Element): string => {
+  // Clone the element to avoid modifying the original
+  const clonedElement = element.cloneNode(true) as Element;
+  
+  // Apply basic styling to make it look good in preview
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    * {
+      font-size: 8px !important;
+      line-height: 1.2 !important;
+      margin: 0 !important;
+      padding: 2px !important;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: bold !important;
+      margin-bottom: 4px !important;
+    }
+    h1 { font-size: 12px !important; }
+    h2 { font-size: 10px !important; }
+    h3 { font-size: 9px !important; }
+    p { margin-bottom: 4px !important; }
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 20px !important;
+    }
+    .repeat-container {
+      border: 1px solid #e5e7eb !important;
+      border-radius: 2px !important;
+    }
+    .repeat-item {
+      border-bottom: 1px solid #f3f4f6 !important;
+    }
+  `;
+  
+  // Create a temporary container
+  const tempContainer = document.createElement('div');
+  tempContainer.appendChild(styleElement);
+  tempContainer.appendChild(clonedElement);
+  
+  return tempContainer.innerHTML;
 };

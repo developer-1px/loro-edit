@@ -3,6 +3,7 @@
 export interface BaseElement {
   id: string;
   tagName: string;
+  preview?: string; // Base64 encoded image or HTML string for section preview
 }
 
 export interface TextElement {

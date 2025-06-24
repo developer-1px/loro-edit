@@ -2,6 +2,7 @@
 
 import type { RepeatItemElement } from "../types";
 import type { Plugin } from "./types";
+import { RepeatItemClipboardHandler } from "../features/clipboard/handlers/RepeatItemClipboardHandler";
 
 export const repeatItemPlugin: Plugin = {
   name: "repeat-item",
@@ -51,4 +52,6 @@ export const repeatItemPlugin: Plugin = {
       </div>
     );
   },
+  
+  clipboardHandler: new RepeatItemClipboardHandler()
 };

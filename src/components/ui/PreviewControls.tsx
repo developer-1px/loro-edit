@@ -1,7 +1,7 @@
 // src/components/ui/PreviewControls.tsx
 
 import React from 'react';
-import { Smartphone, Tablet, Monitor, Eye, X, Undo2, Redo2 } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, X, Undo2, Redo2 } from 'lucide-react';
 import type { SelectionState } from '../../types';
 import { Button } from './button';
 import { ToggleGroup, ToggleGroupItem } from './toggle-group';
@@ -33,46 +33,37 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
   redoDescription,
 }) => {
   return (
-    <div className="mb-4 flex items-center justify-between border-b pb-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Eye className="w-5 h-5" />
-          <span className="text-sm font-medium">Preview</span>
-        </div>
-        
+    <div className="mb-2 flex items-center justify-between border-b pb-2">
+      <div className="flex items-center gap-2">
         <ToggleGroup 
           type="single" 
           value={previewMode} 
           onValueChange={(value) => value && onPreviewModeChange(value as 'mobile' | 'tablet' | 'desktop')}
-          className="gap-1"
+          className="gap-0"
         >
-          <ToggleGroupItem value="mobile" aria-label="Mobile view" size="sm">
-            <Smartphone className="w-4 h-4" />
+          <ToggleGroupItem value="mobile" aria-label="Mobile view" size="sm" className="h-7 w-7 p-0">
+            <Smartphone className="w-3 h-3" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="tablet" aria-label="Tablet view" size="sm">
-            <Tablet className="w-4 h-4" />
+          <ToggleGroupItem value="tablet" aria-label="Tablet view" size="sm" className="h-7 w-7 p-0">
+            <Tablet className="w-3 h-3" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="desktop" aria-label="Desktop view" size="sm">
-            <Monitor className="w-4 h-4" />
+          <ToggleGroupItem value="desktop" aria-label="Desktop view" size="sm" className="h-7 w-7 p-0">
+            <Monitor className="w-3 h-3" />
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <div
           className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium",
+            "px-2 py-0.5 rounded text-xs font-medium",
             selection.mode === 'block'
-              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-              : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+              ? 'bg-blue-100 text-blue-700'
+              : 'bg-green-100 text-green-700'
           )}
-          title={`Current mode: ${
-            selection.mode === 'block'
-              ? 'Block Selection Mode'
-              : 'Text Edit Mode'
-          }`}
+          title={`${selection.mode === 'block' ? 'Block' : 'Text'} mode`}
         >
-          {selection.mode === 'block' ? 'Block' : 'Text'}
+          {selection.mode === 'block' ? 'B' : 'T'}
         </div>
         
         {selection.selectedElementId && (
@@ -80,7 +71,7 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
             variant="destructive"
             size="sm"
             onClick={onClearSelection}
-            className="h-8 w-8 p-0"
+            className="h-6 w-6 p-0"
             title="Clear selection (ESC)"
           >
             <X className="w-3 h-3" />
@@ -93,9 +84,9 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           onClick={onUndo}
           disabled={!canUndo}
           title={canUndo ? `Undo: ${undoDescription || 'Previous action'} (Ctrl+Z)` : 'Nothing to undo'}
-          className="h-8 w-8 p-0"
+          className="h-6 w-6 p-0"
         >
-          <Undo2 className="w-4 h-4" />
+          <Undo2 className="w-3 h-3" />
         </Button>
         
         <Button
@@ -104,9 +95,9 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           onClick={onRedo}
           disabled={!canRedo}
           title={canRedo ? `Redo: ${redoDescription || 'Next action'} (Ctrl+Y)` : 'Nothing to redo'}
-          className="h-8 w-8 p-0"
+          className="h-6 w-6 p-0"
         >
-          <Redo2 className="w-4 h-4" />
+          <Redo2 className="w-3 h-3" />
         </Button>
       </div>
     </div>

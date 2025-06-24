@@ -36,6 +36,6 @@ export const inputPlugin: Plugin = {
         cursor: "default",
         pointerEvents: "auto"
       }
-    });
+    }); // No children for void elements like input
   },
 };

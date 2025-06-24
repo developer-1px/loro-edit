@@ -23,7 +23,8 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(sed:*)",
       "Bash(ls:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

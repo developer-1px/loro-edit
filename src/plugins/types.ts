@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { ParsedElement, SelectionState } from "../types";
+import type { ClipboardHandler } from "../features/clipboard/types";
 
 export interface PluginContext {
   selection: SelectionState;
@@ -44,6 +45,7 @@ export interface Plugin {
   match: (element: Element) => boolean;
   parse: (element: Element) => ParsedElement | null;
   render: (props: PluginRenderProps) => React.ReactNode;
+  clipboardHandler?: ClipboardHandler;
 }
 
 export interface PluginManager {

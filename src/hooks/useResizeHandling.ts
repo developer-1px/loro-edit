@@ -14,7 +14,7 @@ export const useResizeHandling = (initialWidth = 80) => {
     onDrag: ({ deltaX }) => {
       const containerWidth = window.innerWidth;
       const deltaPercent = (deltaX / containerWidth) * 100;
-      const newWidth = Math.min(Math.max(startWidth + deltaPercent, 20), 80);
+      const newWidth = Math.min(Math.max(startWidth + deltaPercent, 15), 75);
       setLeftPanelWidth(newWidth);
     },
   });

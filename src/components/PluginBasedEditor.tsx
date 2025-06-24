@@ -1,6 +1,8 @@
 // src/components/PluginBasedEditor.tsx
 
 import React, { useEffect, useState } from "react";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useEditorStore } from "../store/editorStore";
 import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
 import { useSelectionHandling } from "../features/selection";
@@ -15,6 +17,7 @@ import { PreviewControls } from "./ui/PreviewControls";
 import { PreviewPanel } from "./ui/PreviewPanel";
 import { ResizeHandle } from "./ui/ResizeHandle";
 import { InspectorPanel } from "./ui/InspectorPanel";
+import { SectionSidebar } from "./ui/SectionSidebar";
 
 // Plugin system
 import { pluginManager, registerDefaultPlugins } from "../plugins";
@@ -57,7 +60,7 @@ export const PluginBasedEditor: React.FC = () => {
   >("desktop");
 
   // Custom hooks
-  const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(80);
+  const { leftPanelWidth, isResizing, handleMouseDown } = useResizeHandling(75);
   const selectionHandlers = useSelectionHandling({
     selection,
     setSelection,
@@ -144,48 +147,53 @@ export const PluginBasedEditor: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
-        {/* Left Panel - Responsive Preview */}
-        <div
-          className="p-6 overflow-y-auto bg-gray-100 flex flex-col"
-          style={{ width: `${leftPanelWidth}%` }}
-        >
-          <PreviewControls
-            previewMode={previewMode}
-            onPreviewModeChange={setPreviewMode}
-            selection={selection}
-            onClearSelection={selectionHandlers.clearSelection}
-            onUndo={undo}
-            onRedo={redo}
-            canUndo={undoRedoState.canUndo}
-            canRedo={undoRedoState.canRedo}
-            undoDescription={undoRedoState.undoDescription}
-            redoDescription={undoRedoState.redoDescription}
-          />
+    <DndProvider backend={HTML5Backend}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex h-screen">
+          {/* Left Sidebar - Section Library */}
+          <SectionSidebar />
 
-          <PreviewPanel
-            previewMode={previewMode}
-            parsedElements={parsedElements}
-            renderElement={renderElement}
-            onClick={selectionHandlers.handleClick}
-            selection={selection}
-          />
-        </div>
+          {/* Middle Panel - Responsive Preview */}
+          <div
+            className="p-6 overflow-y-auto bg-gray-100 flex flex-col"
+            style={{ width: `${leftPanelWidth}%` }}
+          >
+            <PreviewControls
+              previewMode={previewMode}
+              onPreviewModeChange={setPreviewMode}
+              selection={selection}
+              onClearSelection={selectionHandlers.clearSelection}
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={undoRedoState.canUndo}
+              canRedo={undoRedoState.canRedo}
+              undoDescription={undoRedoState.undoDescription}
+              redoDescription={undoRedoState.redoDescription}
+            />
 
-        <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />
+            <PreviewPanel
+              previewMode={previewMode}
+              parsedElements={parsedElements}
+              renderElement={renderElement}
+              onClick={selectionHandlers.handleClick}
+              selection={selection}
+            />
+          </div>
 
-        {/* Right Panel - Inspector */}
-        <div
-          className="bg-white border-l border-gray-200 flex flex-col"
-          style={{ width: `${100 - leftPanelWidth}%` }}
-        >
-          <InspectorPanel
-            selection={selection}
-            parsedElements={parsedElements}
-          />
+          <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />
+
+          {/* Right Panel - Inspector */}
+          <div
+            className="bg-white border-l border-gray-200 flex flex-col"
+            style={{ width: `${100 - leftPanelWidth}%` }}
+          >
+            <InspectorPanel
+              selection={selection}
+              parsedElements={parsedElements}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </DndProvider>
   );
 };
