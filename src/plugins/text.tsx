@@ -8,6 +8,7 @@ interface EditableTextProps {
   className?: string;
   elementId: string;
   isEditable?: boolean;
+  onTextChange?: (elementId: string, newText: string) => void;
 }
 
 const EditableText: React.FC<EditableTextProps> = ({
@@ -15,22 +16,27 @@ const EditableText: React.FC<EditableTextProps> = ({
   className,
   elementId,
   isEditable = false,
+  onTextChange,
 }) => {
   const [currentText, setCurrentText] = useState(text || "");
+  const [isEditing, setIsEditing] = useState(false);
   const textRef = useRef<HTMLSpanElement>(null);
   const isCommittingRef = useRef<boolean>(false);
-  const updateElement = useEditorStore((state) => state.updateElement);
+  const originalTextRef = useRef<string>(text || "");
+  // Text editing now uses history feature directly - will be updated in the calling component
   const isTextMode = useEditorStore((state) => state.selection.mode === "text");
 
   useEffect(() => {
-    if (!isCommittingRef.current) {
+    if (!isCommittingRef.current && !isEditing) {
       setCurrentText(text || "");
-      if (textRef.current) {
+      originalTextRef.current = text || "";
+      // Only update DOM if the element is currently editable
+      if (textRef.current && textRef.current.contentEditable === "plaintext-only") {
         const editableText = (text || "").replace(/<br\s*\/?>/gi, "\n");
         textRef.current.textContent = editableText;
       }
     }
-  }, [text]);
+  }, [text, isEditing]);
 
   useEffect(() => {
     if (textRef.current) {
@@ -38,17 +44,26 @@ const EditableText: React.FC<EditableTextProps> = ({
     }
   }, [isEditable]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isCommittingRef.current = false;
+    };
+  }, []);
+
   const handleBlur = () => {
     if (textRef.current && !isCommittingRef.current) {
       isCommittingRef.current = true;
+      setIsEditing(false);
       
       let newText = textRef.current.textContent || "";
       newText = newText.replace(/\n/g, "<br/>");
       setCurrentText(newText);
       
       const originalHtml = text.replace(/\n/g, "<br/>");
-      if (newText !== originalHtml) {
-        updateElement(elementId, { content: newText });
+      if (newText !== originalHtml && onTextChange) {
+        // Use callback for text editing (will be handled by history system)
+        onTextChange(elementId, newText);
       }
       
       setTimeout(() => {
@@ -59,14 +74,24 @@ const EditableText: React.FC<EditableTextProps> = ({
 
   const handleFocus = () => {
     if (textRef.current && isEditable) {
-      const editableText = (currentText || "").replace(/<br\s*\/?>/gi, "\n");
-      textRef.current.textContent = editableText;
+      // Store the current value before editing
+      originalTextRef.current = currentText;
+      setIsEditing(true);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
-      textRef.current?.blur();
+      // Restore original text on escape
+      if (textRef.current) {
+        isCommittingRef.current = true;
+        textRef.current.textContent = originalTextRef.current.replace(/<br\s*\/?>/gi, "\n");
+        setCurrentText(originalTextRef.current);
+        textRef.current.blur();
+        setTimeout(() => {
+          isCommittingRef.current = false;
+        }, 100);
+      }
     }
   };
 
@@ -91,10 +116,11 @@ const EditableText: React.FC<EditableTextProps> = ({
     const parts = text.split(/<br\s*\/?>/gi);
     if (parts.length === 1) return text;
     
+    // Use stable keys based on elementId and index to prevent React DOM errors
     return parts.map((part, index) => (
-      <React.Fragment key={index}>
-        {part}
-        {index < parts.length - 1 && <br />}
+      <React.Fragment key={`${elementId}-text-part-${index}`}>
+        {part || "\u00A0"}
+        {index < parts.length - 1 && <br key={`${elementId}-br-${index}`} />}
       </React.Fragment>
     ));
   };
@@ -110,6 +136,7 @@ const EditableText: React.FC<EditableTextProps> = ({
     return `${baseStyles} ${cursorStyle} outline-none`;
   };
 
+  // When editing, don't render React children to avoid DOM conflicts
   return (
     <span
       ref={textRef}
@@ -124,10 +151,14 @@ const EditableText: React.FC<EditableTextProps> = ({
       style={{
         position: 'relative',
         zIndex: 1,
-        display: 'inline-block'
+        display: 'inline-block',
+        outline: "none",
+        minHeight: '1em',
+        minWidth: '1px'
       }}
     >
-      {renderTextWithLineBreaks(currentText)}
+      {!isEditing && !isEditable && renderTextWithLineBreaks(currentText)}
+      {!isEditing && isEditable && (currentText || "\u00A0")}
     </span>
   );
 };
@@ -162,7 +193,7 @@ export const textPlugin: Plugin = {
     return null;
   },
 
-  render: ({ parsedElement, canEditText }) => {
+  render: ({ parsedElement, canEditText, context }) => {
     const textElement = parsedElement as TextElement;
     return (
       <EditableText
@@ -170,6 +201,7 @@ export const textPlugin: Plugin = {
         elementId={textElement.id}
         text={textElement.content}
         isEditable={canEditText}
+        onTextChange={context.onTextChange}
       />
     );
   },

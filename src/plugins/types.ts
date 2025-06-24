@@ -17,6 +17,7 @@ export interface PluginContext {
     columns: import("../types").DatabaseColumn[]
   ) => void;
   handleDatabaseFetch?: (databaseId: string) => Promise<void>;
+  onTextChange?: (elementId: string, newText: string) => void;
 }
 
 export interface PluginRenderProps {

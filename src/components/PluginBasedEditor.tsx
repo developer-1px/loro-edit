@@ -5,6 +5,7 @@ import { useEditorStore } from "../store/editorStore";
 import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
 import { useSelectionHandling } from "../features/selection";
 import { useResizeHandling } from "../hooks/useResizeHandling";
+import { useHistory } from "../features/history";
 import { INITIAL_HTML } from "./INITIAL_HTML";
 // import { INITIAL_HTML_SIMPLE } from "./INITIAL_HTML_SIMPLE";
 // import { INITIAL_HTML_TEST } from "./INITIAL_HTML_TEST";
@@ -33,10 +34,22 @@ export const PluginBasedEditor: React.FC = () => {
     handleDatabaseFetch,
   } = useEditorStore();
 
+  // Use history feature for command management
+  const {
+    executeTextEdit,
+    undo,
+    redo,
+    getUndoRedoState,
+    clearHistory,
+  } = useHistory();
+
+  // Get command system state
+  const undoRedoState = getUndoRedoState();
+
+  // Fallback to temporal store for now (will be phased out)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const temporalStore = useEditorStore.temporal as any;
-  const { undo, redo, clear } = temporalStore;
-  const { pastStates, futureStates } = temporalStore.getState();
+  const { clear } = temporalStore;
 
   // UI State
   const [previewMode, setPreviewMode] = useState<
@@ -59,7 +72,8 @@ export const PluginBasedEditor: React.FC = () => {
     // Parse initial HTML (mapping will be created during rendering)
     const elements = parseAndRenderHTML(INITIAL_HTML);
     setParsedElements(elements);
-    // Reset history for new HTML
+    // Reset both command history and temporal history for new HTML
+    clearHistory();
     if (clear) clear();
   }, []); // Empty dependency array to run only once
 
@@ -71,6 +85,7 @@ export const PluginBasedEditor: React.FC = () => {
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
+    onTextChange: executeTextEdit, // Add text editing callback
   };
 
   // Plugin-based rendering
@@ -143,8 +158,10 @@ export const PluginBasedEditor: React.FC = () => {
             onClearSelection={selectionHandlers.clearSelection}
             onUndo={undo}
             onRedo={redo}
-            pastStates={pastStates?.length || 0}
-            futureStates={futureStates?.length || 0}
+            canUndo={undoRedoState.canUndo}
+            canRedo={undoRedoState.canRedo}
+            undoDescription={undoRedoState.undoDescription}
+            redoDescription={undoRedoState.redoDescription}
           />
 
           <PreviewPanel

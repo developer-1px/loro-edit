@@ -19,7 +19,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
 
   if (!boundingRect) return null;
 
-  const padding = elementName === "Text" ? 4 : 0;
+  const padding = elementName === "Text" ? 4 : elementName === "Button" ? -1 : 0;
 
   return (
     <div

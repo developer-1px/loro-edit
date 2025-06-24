@@ -6,22 +6,31 @@ import type {
   ClipboardItem,
   RegularElement,
 } from "../types";
+// Commands are now handled by the history feature
+// import { commandManager, type CommandContext, type UndoRedoState } from "../features/history";
 
 export interface EditorState {
   htmlInput: string;
   parsedElements: ParsedElement[];
   selection: SelectionState;
   clipboard: ClipboardItem | null;
+  
+  // Basic setters (non-undoable)
   setHtmlInput: (html: string) => void;
   setParsedElements: (elements: ParsedElement[]) => void;
   setSelection: (selection: Partial<SelectionState>) => void;
   setClipboard: (clipboard: ClipboardItem | null) => void;
+  
+  // History functionality moved to features/history
+  // Use useHistory() hook instead of store methods
+  
+  // Legacy methods (to be migrated to commands)
+  updateElement: (elementId: string, updates: Record<string, any>) => void;
   handleItemAdd: (containerId: string) => void;
   handleItemDelete: (containerId: string, itemId: string) => void;
   handleRepeatItemCopy: () => void;
   handleRepeatItemCut: () => void;
   handleRepeatItemPaste: (containerId: string) => void;
-  updateElement: (elementId: string, updates: Record<string, any>) => void;
   handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => void;
   handleDatabaseSettingsUpdate: (databaseId: string, apiUrl: string, columns: import("../types").DatabaseColumn[]) => void;
   handleDatabaseFetch: (databaseId: string) => Promise<void>;
@@ -54,22 +63,27 @@ const generateNewIds = (element: ParsedElement): ParsedElement => {
 
 export const useEditorStore = create<EditorState>()(
   temporal(
-    (set) => ({
-      htmlInput: "",
-      parsedElements: [],
-      selection: {
-        mode: null,
-        selectedElementId: null,
-      },
-      clipboard: null,
+    (set) => {
+      return {
+        htmlInput: "",
+        parsedElements: [],
+        selection: {
+          mode: null,
+          selectedElementId: null,
+        },
+        clipboard: null,
 
-      setHtmlInput: (html) => set({ htmlInput: html }),
-      setParsedElements: (elements) => set({ parsedElements: elements }),
-      setSelection: (selection) =>
-        set((state) => ({ selection: { ...state.selection, ...selection } })),
-      setClipboard: (clipboard) => set({ clipboard }),
+        // Basic setters (non-undoable)
+        setHtmlInput: (html) => set({ htmlInput: html }),
+        setParsedElements: (elements) => set({ parsedElements: elements }),
+        setSelection: (selection) =>
+          set((state) => ({ selection: { ...state.selection, ...selection } })),
+        setClipboard: (clipboard) => set({ clipboard }),
 
-      updateElement: (elementId: string, updates: Record<string, any>) => {
+        // History functionality moved to features/history - use useHistory() hook
+
+        // Legacy methods (to be migrated to commands)
+        updateElement: (elementId: string, updates: Record<string, any>) => {
         const updateElements = (element: ParsedElement): ParsedElement => {
           if (element.id === elementId) {
             return { ...element, ...updates };
@@ -273,7 +287,8 @@ export const useEditorStore = create<EditorState>()(
           console.error('Failed to fetch database data:', error);
         }
       },
-    }),
+    };
+    },
     {
       limit: 50,
       partialize: (state) => {

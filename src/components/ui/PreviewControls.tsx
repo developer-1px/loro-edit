@@ -14,8 +14,10 @@ interface PreviewControlsProps {
   onClearSelection: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  pastStates?: number;
-  futureStates?: number;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  undoDescription?: string;
+  redoDescription?: string;
 }
 
 export const PreviewControls: React.FC<PreviewControlsProps> = ({
@@ -25,8 +27,10 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
   onClearSelection,
   onUndo,
   onRedo,
-  pastStates = 0,
-  futureStates = 0,
+  canUndo = false,
+  canRedo = false,
+  undoDescription,
+  redoDescription,
 }) => {
   return (
     <div className="mb-4 flex items-center justify-between border-b pb-4">
@@ -87,8 +91,8 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           variant="outline"
           size="sm"
           onClick={onUndo}
-          disabled={pastStates === 0}
-          title={`Undo (${pastStates} available)`}
+          disabled={!canUndo}
+          title={canUndo ? `Undo: ${undoDescription || 'Previous action'} (Ctrl+Z)` : 'Nothing to undo'}
           className="h-8 w-8 p-0"
         >
           <Undo2 className="w-4 h-4" />
@@ -98,8 +102,8 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           variant="outline"
           size="sm"
           onClick={onRedo}
-          disabled={futureStates === 0}
-          title={`Redo (${futureStates} available)`}
+          disabled={!canRedo}
+          title={canRedo ? `Redo: ${redoDescription || 'Next action'} (Ctrl+Y)` : 'Nothing to redo'}
           className="h-8 w-8 p-0"
         >
           <Redo2 className="w-4 h-4" />
