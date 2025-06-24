@@ -100,7 +100,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   };
 
   const getTextStyles = () => {
-    const baseStyles = `${className || ''} inline-block min-w-[20px] min-h-[1em]`;
+    const baseStyles = `${className || ''} inline-block min-w-[20px] min-h-[1em] relative z-10`;
     const cursorStyle = isTextMode || isEditable ? "cursor-text" : "cursor-default";
     
     if (!isEditable) {
@@ -113,7 +113,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   return (
     <span
       ref={textRef}
-      contentEditable={isEditable ? "plaintext-only" : "false"}
+      contentEditable={isEditable ? "plaintext-only" : false}
       suppressContentEditableWarning
       onFocus={isEditable ? handleFocus : undefined}
       onBlur={isEditable ? handleBlur : undefined}
@@ -121,6 +121,11 @@ const EditableText: React.FC<EditableTextProps> = ({
       onMouseDown={handleMouseDown}
       className={getTextStyles()}
       data-element-id={elementId}
+      style={{
+        position: 'relative',
+        zIndex: 1,
+        display: 'inline-block'
+      }}
     >
       {renderTextWithLineBreaks(currentText)}
     </span>
@@ -140,6 +145,9 @@ export const textPlugin: Plugin = {
   },
 
   match: (element: Element) => {
+    // Text plugin handles elements explicitly marked as text
+    // Note: This is primarily for DOM-based matching, but text elements
+    // from parsed HTML are handled directly by PluginManager
     return element.getAttribute("data-element-type") === "text";
   },
 

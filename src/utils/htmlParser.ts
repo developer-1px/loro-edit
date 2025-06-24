@@ -21,10 +21,24 @@ const processElement = (element: Element | null): ParsedElement | null => {
 
   const tagName = element.tagName.toLowerCase();
   const isVoidElement = VOID_ELEMENTS.has(tagName);
+  
+  // Only log important elements to reduce noise
+  if (tagName === 'button' || tagName === 'form' || tagName === 'input' || tagName === 'section') {
+    console.log(`🔧 Processing element: ${tagName}`, {
+      id: element.id,
+      className: element.className,
+      isButton: tagName === 'button',
+      hasButtonClass: element.classList?.contains('button')
+    });
+  }
 
   // Try to use plugin system to parse the element
   const parsed = pluginManager.parseElement(element);
   if (parsed) {
+    if (tagName === 'button' || tagName === 'form' || tagName === 'input' || tagName === 'section') {
+      console.log(`✅ Parsed as type: ${parsed.type}`);
+    }
+    
     // Recursively parse children if this is a container element
     if (
       !isVoidElement &&

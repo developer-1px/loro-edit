@@ -1,9 +1,8 @@
 // src/components/ui/PreviewPanel.tsx
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { ParsedElement, SelectionState } from '../../types';
 import { SelectionOverlayManager } from '../../features/selection';
-import { pluginManager } from '../../plugins/PluginManager';
 
 interface PreviewPanelProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
@@ -27,9 +26,10 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   selection,
 }) => {
   // Clear mapping before re-rendering to ensure fresh state
-  useEffect(() => {
-    pluginManager.clearElementMapping();
-  }, [parsedElements]);
+  // But do it BEFORE rendering, not after
+  // useEffect(() => {
+  //   pluginManager.clearElementMapping();
+  // }, [parsedElements]);
 
   return (
     <div className="flex-1 flex justify-center items-start">

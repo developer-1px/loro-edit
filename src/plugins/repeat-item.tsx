@@ -38,7 +38,7 @@ export const repeatItemPlugin: Plugin = {
     };
   },
 
-  render: ({ parsedElement, renderElement, isSelected }) => {
+  render: ({ parsedElement, renderElement }) => {
     const element = parsedElement as RepeatItemElement;
 
     return (
@@ -46,7 +46,6 @@ export const repeatItemPlugin: Plugin = {
         key={element.id}
         data-element-id={element.id}
         className={element.attributes?.class || ""}
-        style={isSelected ? { outline: '2px solid #8b5cf6' } : undefined}
       >
         {element.children.map(renderElement)}
       </div>

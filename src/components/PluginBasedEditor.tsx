@@ -1,17 +1,19 @@
 // src/components/PluginBasedEditor.tsx
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useEditorStore } from "../store/editorStore";
 import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
 import { useSelectionHandling } from "../features/selection";
 import { useResizeHandling } from "../hooks/useResizeHandling";
 import { INITIAL_HTML } from "./INITIAL_HTML";
+// import { INITIAL_HTML_SIMPLE } from "./INITIAL_HTML_SIMPLE";
+// import { INITIAL_HTML_TEST } from "./INITIAL_HTML_TEST";
 
 // UI Components
 import { PreviewControls } from "./ui/PreviewControls";
 import { PreviewPanel } from "./ui/PreviewPanel";
 import { ResizeHandle } from "./ui/ResizeHandle";
-import { HtmlEditorPanel } from "./ui/HtmlEditorPanel";
+import { InspectorPanel } from "./ui/InspectorPanel";
 
 // Plugin system
 import { pluginManager, registerDefaultPlugins } from "../plugins";
@@ -21,10 +23,8 @@ import type { PluginContext } from "../plugins/types";
 
 export const PluginBasedEditor: React.FC = () => {
   const {
-    htmlInput,
     parsedElements,
     selection,
-    setHtmlInput,
     setParsedElements,
     setSelection,
     handleItemAdd,
@@ -53,33 +53,15 @@ export const PluginBasedEditor: React.FC = () => {
 
   useEditorHotkeys();
 
-  const handleParseAndRender = useCallback(
-    (html: string) => {
-      // Clear old mappings before parsing new elements
-      pluginManager.clearElementMapping();
-      const elements = parseAndRenderHTML(html);
-      setParsedElements(elements);
-      // Reset history for new HTML
-      if (clear) clear();
-    },
-    [setParsedElements, clear]
-  );
-
   useEffect(() => {
     // Set initial HTML input on mount - only run once
     registerDefaultPlugins();
-    useEditorStore.setState({ htmlInput: INITIAL_HTML });
-    // Clear old mappings and parse initial HTML
-    pluginManager.clearElementMapping();
+    // Parse initial HTML (mapping will be created during rendering)
     const elements = parseAndRenderHTML(INITIAL_HTML);
     setParsedElements(elements);
     // Reset history for new HTML
     if (clear) clear();
   }, []); // Empty dependency array to run only once
-
-  const handleNewHTML = () => {
-    handleParseAndRender(htmlInput);
-  };
 
   // Create plugin context
   const pluginContext: PluginContext = {
@@ -101,6 +83,19 @@ export const PluginBasedEditor: React.FC = () => {
     if (className) {
       mockElement.className = className;
     }
+    
+    // For better plugin matching, copy all attributes
+    if ("attributes" in parsedElement && parsedElement.attributes) {
+      Object.entries(parsedElement.attributes).forEach(([key, value]) => {
+        mockElement.setAttribute(key, value);
+      });
+    }
+    
+    // Special handling for button elements to ensure proper plugin matching
+    if (tagName === 'button' && "attributes" in parsedElement) {
+      mockElement.setAttribute("type", parsedElement.attributes?.type || "button");
+    }
+    
     mockElement.setAttribute("data-element-type", parsedElement.type);
 
     // Copy data attributes for matching
@@ -163,17 +158,14 @@ export const PluginBasedEditor: React.FC = () => {
 
         <ResizeHandle isResizing={isResizing} onMouseDown={handleMouseDown} />
 
-        {/* Right Panel - HTML Source */}
+        {/* Right Panel - Inspector */}
         <div
           className="bg-white border-l border-gray-200 flex flex-col"
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
-          <HtmlEditorPanel
-            htmlInput={htmlInput}
-            onHtmlInputChange={setHtmlInput}
-            onApplyHtml={handleNewHTML}
-            pastStates={pastStates?.length || 0}
-            futureStates={futureStates?.length || 0}
+          <InspectorPanel
+            selection={selection}
+            parsedElements={parsedElements}
           />
         </div>
       </div>

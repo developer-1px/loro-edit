@@ -12,9 +12,9 @@ export const buttonPlugin: Plugin = {
     enabled: true,
     name: "Button",
     color: "#3B82F6",
-    level: "element",
+    level: "content",
     elementType: "block",
-    priority: 0,
+    priority: 10,
     allowDeepSelection: true
   },
 
@@ -28,14 +28,22 @@ export const buttonPlugin: Plugin = {
     const element = parsedElement as RegularElement;
     const Tag = element.tagName as keyof React.JSX.IntrinsicElements;
     
+    const handleClick = (e: React.MouseEvent) => {
+      // Prevent default button/link behavior but allow event bubbling for selection
+      e.preventDefault();
+      // Don't stopPropagation - let parent handle selection
+    };
+    
     return React.createElement(
       Tag,
       {
         ...createElementProps(element, isSelected),
         href: element.tagName === "a" ? "#" : undefined,
+        onClick: handleClick,
+        onSubmit: element.tagName === "button" ? (e: React.FormEvent) => e.preventDefault() : undefined,
+        type: element.tagName === "button" ? "button" : undefined, // Prevent form submission
         style: { 
-          pointerEvents: isSelected ? "none" : "auto",
-          cursor: isSelected ? "default" : "pointer"
+          cursor: "default"
         }
       },
       element.children.map(renderElement)

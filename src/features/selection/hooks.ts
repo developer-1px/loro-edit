@@ -36,20 +36,37 @@ export const useSelectionHandling = ({
 
   const handleClick = useCallback((event: React.MouseEvent) => {
     const { clientX, clientY } = event;
+    
+    console.log('🖱️ Click at:', { x: clientX, y: clientY });
+    console.log('🎯 Current selection:', selection.selectedElementId);
+    
+    const elementsAtPoint = document.elementsFromPoint(clientX, clientY);
+    console.log('📍 Elements at point:', elementsAtPoint.map(el => ({
+      tag: el.tagName,
+      id: el.id,
+      className: el.className,
+      dataElementId: (el as HTMLElement).dataset?.elementId,
+      textContent: el.textContent?.substring(0, 20)
+    })));
 
-    // Pass current selection for hierarchical selection
+    // Pass current selection and mode for hierarchical selection
     const result = pluginManager.findSelectableAtPoint(
       clientX, 
       clientY, 
-      selection.selectedElementId || undefined
+      selection.selectedElementId || undefined,
+      selection.mode || undefined
     );
     
+    console.log('🔍 Selection result:', result);
+    
     if (!result) {
+      console.log('❌ No selectable element found');
       clearSelection();
       return;
     }
 
     const { elementId, mode } = result;
+    console.log('✅ Setting selection:', { elementId, mode });
     setSelection({ mode, selectedElementId: elementId });
   }, [setSelection, clearSelection, selection.selectedElementId]);
 

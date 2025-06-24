@@ -7,6 +7,8 @@ import { sectionPlugin } from "./section";
 import { imagePlugin } from "./image";
 import { svgPlugin } from "./svg";
 import { repeatItemPlugin } from "./repeat-item";
+import { formPlugin } from "./form";
+import { inputPlugin } from "./input";
 import { fallbackPlugin as elementPlugin } from "./fallback";
 
 let pluginsRegistered = false;
@@ -15,14 +17,20 @@ let pluginsRegistered = false;
 export const registerDefaultPlugins = () => {
   if (pluginsRegistered) return;
   
+  console.log('📦 Registering plugins...');
+  
   // Register plugins in priority order
   pluginManager.register(repeatItemPlugin); // Higher priority for repeat items
+  pluginManager.register(formPlugin);
   pluginManager.register(buttonPlugin);
+  pluginManager.register(inputPlugin);
   pluginManager.register(imagePlugin);
   pluginManager.register(svgPlugin);
   pluginManager.register(sectionPlugin);
   pluginManager.register(textPlugin);
   pluginManager.register(elementPlugin); // Must be last as fallback
+  
+  console.log('✅ Registered plugins:', pluginManager.plugins.map(p => p.name));
   pluginsRegistered = true;
 };
 
@@ -35,4 +43,6 @@ export { sectionPlugin } from "./section";
 export { imagePlugin } from "./image";
 export { svgPlugin } from "./svg";
 export { repeatItemPlugin } from "./repeat-item";
+export { formPlugin } from "./form";
+export { inputPlugin } from "./input";
 export { fallbackPlugin as elementPlugin } from "./fallback";

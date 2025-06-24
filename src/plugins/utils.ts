@@ -25,10 +25,11 @@ export function parseBasicElement(element: Element, type: ParsedElement['type'])
 // 공통 래퍼 컴포넌트 속성 생성
 export function createElementProps(parsedElement: ParsedElement, isSelected?: boolean) {
   const hasAttributes = 'attributes' in parsedElement;
+  // Currently not using isSelected but keeping for future use
+  void isSelected;
   return {
     key: parsedElement.id,
     'data-element-id': parsedElement.id,
     className: hasAttributes ? parsedElement.attributes?.class || "" : "",
-    style: isSelected ? { outline: '2px solid #3b82f6' } : undefined
   };
 }

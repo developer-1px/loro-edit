@@ -19,13 +19,19 @@ export const sectionPlugin: Plugin = {
   },
 
   match: (element: Element) => 
-    ["section", "header", "footer", "nav", "div"].includes(element.tagName.toLowerCase()),
+    ["section", "header", "footer", "nav"].includes(element.tagName.toLowerCase()),
 
   parse: (element: Element) => parseBasicElement(element, "element"),
 
   render: ({ parsedElement, renderElement, isSelected }) => {
     const element = parsedElement as RegularElement;
     const Tag = element.tagName as keyof React.JSX.IntrinsicElements;
+    
+    // Handle text elements that somehow end up here
+    if (!element.children) {
+      console.error('Section plugin got element without children:', element);
+      return null;
+    }
     
     return React.createElement(
       Tag,
