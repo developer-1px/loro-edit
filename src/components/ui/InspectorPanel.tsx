@@ -1,10 +1,11 @@
 // src/components/ui/InspectorPanel.tsx
 
 import React, { useState } from 'react';
-import { History, Target } from 'lucide-react';
+import { History, Target, Keyboard } from 'lucide-react';
 import type { ParsedElement, SelectionState } from '../../types';
 import { HistoryInspector } from './HistoryInspector';
 import { SelectionInspector } from './SelectionInspector';
+import { KeyboardInspector } from './KeyboardInspector';
 import { Button } from './button';
 
 interface InspectorPanelProps {
@@ -12,7 +13,7 @@ interface InspectorPanelProps {
   parsedElements: ParsedElement[];
 }
 
-type TabType = 'history' | 'selection';
+type TabType = 'history' | 'selection' | 'keyboard';
 
 export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   selection,
@@ -33,6 +34,12 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       label: 'Selection',
       icon: Target,
       component: <SelectionInspector selection={selection} parsedElements={parsedElements} />
+    },
+    {
+      id: 'keyboard' as TabType,
+      label: 'Keyboard',
+      icon: Keyboard,
+      component: <KeyboardInspector />
     }
   ];
 

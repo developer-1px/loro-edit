@@ -155,14 +155,15 @@ export const useEditorHotkeys = (setShowUI?: React.Dispatch<React.SetStateAction
   useHotkeys(
     "mod+\\",
     () => {
+      console.log("🎛️ TOGGLE UI: Hotkey pressed, setShowUI exists:", !!setShowUI);
       if (setShowUI) {
-        console.log("🎛️ TOGGLE UI: Toggling UI panels visibility");
         setShowUI((prev) => !prev);
       }
     },
     {
       enableOnContentEditable: true,
       enableOnFormTags: true,
+      preventDefault: true,
     }
   );
 };
