@@ -3,6 +3,18 @@ import type { Plugin } from "./types";
 import type { TextElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
 
+// Add CSS for placeholder
+const placeholderStyles = `
+  .empty-text[contenteditable="plaintext-only"]:empty::before,
+  .empty-text[contenteditable="plaintext-only"]:focus:empty::before {
+    content: attr(data-placeholder);
+    color: #9ca3af;
+    pointer-events: none;
+    position: absolute;
+    opacity: 0.6;
+  }
+`;
+
 interface EditableTextProps {
   text: string;
   className?: string;
@@ -25,6 +37,21 @@ const EditableText: React.FC<EditableTextProps> = memo(({
   const originalTextRef = useRef<string>(text || "");
   // Text editing now uses history feature directly - will be updated in the calling component
   const isTextMode = useEditorStore((state) => state.selection.mode === "text");
+
+  // Inject placeholder styles
+  useEffect(() => {
+    const styleId = 'text-plugin-placeholder-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = placeholderStyles;
+      document.head.appendChild(style);
+    }
+    
+    return () => {
+      // Cleanup is optional since we want to keep the styles
+    };
+  }, []);
 
   useEffect(() => {
     // Only update from props if we're not actively editing or committing
@@ -80,8 +107,14 @@ const EditableText: React.FC<EditableTextProps> = memo(({
       
       // Ensure the content is editable text
       const editableText = currentText.replace(/<br\s*\/?>/gi, "\n");
-      if (textRef.current.textContent !== editableText) {
-        textRef.current.textContent = editableText;
+      // Only update if the content is different or empty
+      if (!textRef.current.textContent || textRef.current.textContent === "\u00A0") {
+        textRef.current.textContent = editableText || "";
+      }
+      
+      // Apply empty class if needed
+      if (!editableText) {
+        textRef.current.classList.add('empty-text');
       }
     }
   };
@@ -134,12 +167,27 @@ const EditableText: React.FC<EditableTextProps> = memo(({
   const getTextStyles = () => {
     const baseStyles = `${className || ''} inline-block min-w-[20px] min-h-[1em] relative z-10`;
     const cursorStyle = isTextMode || isEditable ? "cursor-text" : "cursor-default";
+    const emptyStyles = (!currentText || currentText === "\u00A0") && isEditable ? "empty-text" : "";
     
     if (!isEditable) {
       return `${baseStyles} ${cursorStyle}`;
     }
     
-    return `${baseStyles} ${cursorStyle} outline-none`;
+    return `${baseStyles} ${cursorStyle} ${emptyStyles} outline-none`;
+  };
+
+  const handleInput = () => {
+    if (textRef.current) {
+      const newText = textRef.current.textContent || "";
+      setCurrentText(newText);
+      
+      // Update class based on content
+      if (!newText && isEditable) {
+        textRef.current.classList.add('empty-text');
+      } else {
+        textRef.current.classList.remove('empty-text');
+      }
+    }
   };
 
   // When editing, don't render React children to avoid DOM conflicts
@@ -151,10 +199,12 @@ const EditableText: React.FC<EditableTextProps> = memo(({
       onFocus={isEditable ? handleFocus : undefined}
       onBlur={isEditable ? handleBlur : undefined}
       onKeyDown={isEditable ? handleKeyDown : undefined}
+      onInput={isEditable ? handleInput : undefined}
       onMouseDown={handleMouseDown}
       className={getTextStyles()}
       data-element-id={elementId}
       data-text-content={currentText} // Store current text in data attribute for debugging
+      data-placeholder="Type text here..." // Placeholder text
       style={{
         position: 'relative',
         zIndex: 1,
@@ -166,6 +216,7 @@ const EditableText: React.FC<EditableTextProps> = memo(({
     >
       {!isEditing && !isEditable && renderTextWithLineBreaks(currentText)}
       {!isEditing && isEditable && (currentText || "\u00A0")}
+      {/* When editing, contentEditable handles the content, but we need to ensure initial content */}
     </span>
   );
 }, (prevProps, nextProps) => {

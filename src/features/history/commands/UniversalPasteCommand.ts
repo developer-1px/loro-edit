@@ -48,13 +48,23 @@ export class UniversalPasteCommand extends BaseCommand {
 
     // Find handler for clipboard data
     const handlers = clipboardManager.getHandlers();
-    const handler = handlers.find(h => h.type === clipboardData.type);
+    console.log('Available handlers:', handlers.map(h => h.type));
+    console.log('Looking for handler for clipboard type:', clipboardData.type);
+    console.log('Clipboard data:', clipboardData);
+    
+    // First try to find handler by exact type match
+    let handler = handlers.find(h => h.type === clipboardData.type);
+    
+    // If no exact match, find handler that can paste this data
+    if (!handler) {
+      handler = handlers.find(h => h.canPaste(targetElement, clipboardData));
+    }
     
     if (!handler) {
       throw new Error(`No handler found for clipboard type: ${clipboardData.type}`);
     }
 
-    // Check if paste is allowed
+    // Check if paste is allowed (redundant if we found handler via canPaste)
     if (!handler.canPaste(targetElement, clipboardData)) {
       throw new Error(`Cannot paste ${clipboardData.type} here`);
     }

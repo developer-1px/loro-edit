@@ -20,17 +20,37 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
   }
   
   canPaste(target: ParsedElement | null, clipboardData: ClipboardData): boolean {
-    // Can only paste repeat items into repeat containers or after other repeat items
-    if (clipboardData.type !== 'repeat-item') return false;
+    console.log('RepeatItemClipboardHandler.canPaste:', {
+      targetType: target?.type,
+      targetId: target?.id,
+      clipboardType: clipboardData.type,
+      targetIsRepeatItem: target ? this.canHandle(target) : false
+    });
     
-    if (!target) return false;
+    // Can only paste repeat items into repeat containers or after other repeat items
+    if (clipboardData.type !== 'repeat-item') {
+      console.log('Cannot paste: clipboard type is not repeat-item');
+      return false;
+    }
+    
+    if (!target) {
+      console.log('Cannot paste: no target');
+      return false;
+    }
     
     // Check if target is a repeat item
-    if (this.canHandle(target)) return true;
+    if (this.canHandle(target)) {
+      console.log('Can paste: target is a repeat item');
+      return true;
+    }
     
     // Check if target is a repeat container
-    if (target.type === 'repeat-container') return true;
+    if (target.type === 'repeat-container') {
+      console.log('Can paste: target is a repeat container');
+      return true;
+    }
     
+    console.log('Cannot paste: target is neither repeat item nor container');
     return false;
   }
   
@@ -50,7 +70,14 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
   }
   
   paste(target: ParsedElement | null, clipboardData: ClipboardData, context: PasteContext): PasteResult {
+    console.log('RepeatItemClipboardHandler.paste called with:', {
+      target: target,
+      clipboardData: clipboardData,
+      canPaste: target ? this.canPaste(target, clipboardData) : false
+    });
+    
     if (!target || !this.canPaste(target, clipboardData)) {
+      console.log('Cannot paste: target missing or canPaste returned false');
       return { success: false, error: 'Cannot paste repeat item here' };
     }
     
@@ -64,7 +91,10 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
     
     // Find the repeat container and insert position
     const containerInfo = this.findRepeatContainer(context.parsedElements, target.id);
+    console.log('Container info:', containerInfo);
+    
     if (!containerInfo) {
+      console.log('Failed to find repeat container for target:', target.id);
       return { success: false, error: 'Cannot find repeat container' };
     }
     
@@ -102,10 +132,24 @@ export class RepeatItemClipboardHandler implements ClipboardHandler {
   }
   
   private findRepeatContainer(elements: ParsedElement[], targetId: string): { containerId: string; insertIndex: number } | null {
+    console.log('Finding repeat container for target:', targetId);
+    
     for (const element of elements) {
       if (element.type === 'repeat-container' && element.items) {
+        console.log('Checking repeat container:', element.id, 'with items:', element.items.map(i => i.id));
+        
+        // If the target is the container itself, insert at the end
+        if (element.id === targetId) {
+          return {
+            containerId: element.id,
+            insertIndex: element.items.length
+          };
+        }
+        
+        // If the target is an item in this container
         const itemIndex = element.items.findIndex(item => item.id === targetId);
         if (itemIndex !== -1) {
+          console.log('Found target item at index:', itemIndex);
           return {
             containerId: element.id,
             insertIndex: itemIndex + 1
