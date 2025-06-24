@@ -41,6 +41,11 @@ export class DeleteElementCommand extends BaseCommand {
         this.context.setParsedElements([...result.updatedElements]);
         console.log(`🗑️ Deleted collection element: ${this.elementId}`);
       }
+      
+      // Clear selection only for collection types since element is removed
+      if (this.context.selection.selectedElementId === this.elementId) {
+        this.context.setSelection({ selectedElementId: null, mode: null });
+      }
     } else {
       // For non-collection types, clear content but keep structure
       const result = this.clearElementContent(this.context.parsedElements, this.elementId);
@@ -48,11 +53,9 @@ export class DeleteElementCommand extends BaseCommand {
         this.context.setParsedElements([...result.updatedElements]);
         console.log(`🧹 Cleared content of element: ${this.elementId}`);
       }
-    }
-    
-    // Clear selection if deleted element was selected
-    if (this.context.selection.selectedElementId === this.elementId) {
-      this.context.setSelection({ selectedElementId: null, mode: null });
+      
+      // Keep selection for non-collection types since element still exists
+      // This allows users to immediately paste new content or perform other operations
     }
     
     this.markAsExecuted();
