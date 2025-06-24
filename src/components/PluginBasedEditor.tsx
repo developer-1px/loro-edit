@@ -81,6 +81,24 @@ export const PluginBasedEditor: React.FC = () => {
     if (clear) clear();
   }, []); // Empty dependency array to run only once
 
+  // Debug keyboard events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        console.log('🔑 Global keydown detected:', {
+          key: e.key,
+          code: e.code,
+          metaKey: e.metaKey,
+          ctrlKey: e.ctrlKey,
+          defaultPrevented: e.defaultPrevented
+        });
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
+
   // Create plugin context
   const pluginContext: PluginContext = {
     selection,

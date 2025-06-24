@@ -28,6 +28,7 @@ const shortcuts: Shortcut[] = [
   
   // UI
   { keys: `${modKey}+\\`, description: 'Toggle UI panels', category: 'UI' },
+  { keys: `${modKey}+/`, description: 'Toggle UI panels (alternative)', category: 'UI' },
 ];
 
 export const KeyboardInspector: React.FC = () => {

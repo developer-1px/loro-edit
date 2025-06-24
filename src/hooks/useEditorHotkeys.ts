@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditorStore } from "../store/editorStore";
 import { useHistoryHotkeys } from "../features/history";
@@ -151,9 +151,9 @@ export const useEditorHotkeys = (setShowUI?: React.Dispatch<React.SetStateAction
     }
   );
 
-  // Toggle UI panels - Cmd+\
+  // Toggle UI panels - Cmd+\ or Cmd+/
   useHotkeys(
-    "mod+\\",
+    ["mod+\\", "mod+/"],
     () => {
       console.log("🎛️ TOGGLE UI: Hotkey pressed, setShowUI exists:", !!setShowUI);
       if (setShowUI) {
@@ -166,4 +166,20 @@ export const useEditorHotkeys = (setShowUI?: React.Dispatch<React.SetStateAction
       preventDefault: true,
     }
   );
+  
+  // Alternative: Direct implementation for backslash
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault();
+        console.log("🎛️ TOGGLE UI: Direct handler triggered");
+        if (setShowUI) {
+          setShowUI((prev) => !prev);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setShowUI]);
 };
