@@ -24,7 +24,7 @@ export class TextEditCommand extends BaseCommand {
 
   execute(): void {
     // Store previous text for undo
-    const element = this.findElement(this.context.parsedElements, this.elementId);
+    const element = this.findElement(this.elementId);
     if (element && element.type === 'text') {
       this.previousText = (element as any).content || '';
     }
@@ -38,20 +38,5 @@ export class TextEditCommand extends BaseCommand {
     // Restore previous text
     this.context.updateElement(this.elementId, { content: this.previousText });
     this.markAsUnexecuted();
-  }
-
-  private findElement(elements: any[], id: string): any {
-    for (const element of elements) {
-      if (element.id === id) return element;
-      if (element.children) {
-        const found = this.findElement(element.children, id);
-        if (found) return found;
-      }
-      if (element.items) {
-        const found = this.findElement(element.items, id);
-        if (found) return found;
-      }
-    }
-    return null;
   }
 }

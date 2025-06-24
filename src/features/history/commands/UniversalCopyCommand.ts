@@ -2,7 +2,6 @@
 
 import { BaseCommand } from './BaseCommand';
 import type { CommandContext } from './types';
-import type { ParsedElement } from '../../../types';
 import { clipboardManager } from '../../clipboard/ClipboardManager';
 
 export class UniversalCopyCommand extends BaseCommand {
@@ -25,12 +24,8 @@ export class UniversalCopyCommand extends BaseCommand {
     // Store previous clipboard state for undo
     this.previousClipboardData = clipboardManager.getData();
 
-    // Find the element
-    const element = this.findElementById(this.context.parsedElements, this.elementId);
-    
-    if (!element) {
-      throw new Error(`Element ${this.elementId} not found`);
-    }
+    // Find and validate the element using base class utility
+    const element = this.validateElement(this.elementId);
 
     // Find handler for this element
     const handler = clipboardManager.findHandler(element);
@@ -63,26 +58,5 @@ export class UniversalCopyCommand extends BaseCommand {
 
     this.markAsUnexecuted();
     console.log(`↩️ Undid copy: ${this.elementId}`);
-  }
-
-  private findElementById(elements: ParsedElement[], elementId: string): ParsedElement | null {
-    for (const element of elements) {
-      if (element.id === elementId) {
-        return element;
-      }
-      
-      // Search recursively in children
-      if ('children' in element && element.children && Array.isArray(element.children)) {
-        const found = this.findElementById(element.children, elementId);
-        if (found) return found;
-      }
-      
-      // Search in items (for repeat containers)
-      if ('items' in element && element.items && Array.isArray(element.items)) {
-        const found = this.findElementById(element.items, elementId);
-        if (found) return found;
-      }
-    }
-    return null;
   }
 }

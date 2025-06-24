@@ -2,7 +2,7 @@
 
 import { BaseCommand } from './BaseCommand';
 import type { CommandContext } from './types';
-import type { ParsedElement, RegularElement } from '../../../types';
+import type { ParsedElement } from '../../../types';
 
 export class DeleteElementCommand extends BaseCommand {
   private elementId: string;
@@ -24,23 +24,17 @@ export class DeleteElementCommand extends BaseCommand {
     // Store current state for undo
     this.previousElements = JSON.parse(JSON.stringify(this.context.parsedElements));
 
-    // First, find the element to determine its type
-    const elementInfo = this.findElement(this.context.parsedElements, this.elementId);
-    
-    if (!elementInfo.found || !elementInfo.element) {
-      throw new Error(`Element ${this.elementId} not found`);
-    }
+    // Validate element exists
+    const element = this.validateElement(this.elementId);
 
     // Check if this is a collection type or non-collection type
-    const isCollectionType = this.isCollectionElement(elementInfo.element);
+    const isCollectionType = this.isCollectionElement(element);
     
     if (isCollectionType) {
       // For collection types, remove the element entirely
-      const result = this.findAndRemoveElement(this.context.parsedElements, this.elementId);
-      if (result.found) {
-        this.context.setParsedElements([...result.updatedElements]);
-        console.log(`🗑️ Deleted collection element: ${this.elementId}`);
-      }
+      const updatedElements = this.removeElement(this.elementId);
+      this.context.setParsedElements(updatedElements);
+      console.log(`🗑️ Deleted collection element: ${this.elementId}`);
       
       // Clear selection only for collection types since element is removed
       if (this.context.selection.selectedElementId === this.elementId) {
@@ -48,11 +42,9 @@ export class DeleteElementCommand extends BaseCommand {
       }
     } else {
       // For non-collection types, clear content but keep structure
-      const result = this.clearElementContent(this.context.parsedElements, this.elementId);
-      if (result.found) {
-        this.context.setParsedElements([...result.updatedElements]);
-        console.log(`🧹 Cleared content of element: ${this.elementId}`);
-      }
+      const updatedElements = this.clearElementContent(this.context.parsedElements, this.elementId);
+      this.context.setParsedElements(updatedElements);
+      console.log(`🧹 Cleared content of element: ${this.elementId}`);
       
       // Keep selection for non-collection types since element still exists
       // This allows users to immediately paste new content or perform other operations
@@ -78,157 +70,34 @@ export class DeleteElementCommand extends BaseCommand {
     return false;
   }
 
-  private findElement(elements: ParsedElement[], targetId: string): {
-    found: boolean;
-    element: ParsedElement | null;
-  } {
-    for (const element of elements) {
-      if (element.id === targetId) {
-        return { found: true, element };
+  private clearElementContent(_elements: ParsedElement[], targetId: string): ParsedElement[] {
+    return this.updateElement(targetId, (element) => {
+      // Clear content based on element type
+      if (element.type === 'img' || element.type === 'picture') {
+        return {
+          ...element,
+          src: '',
+          alt: ''
+        } as ParsedElement;
+      } else if (element.type === 'svg') {
+        return {
+          ...element,
+          svgContent: ''
+        } as ParsedElement;
+      } else if (element.type === 'text') {
+        return {
+          ...element,
+          content: ''
+        } as ParsedElement;
+      } else if (element.type === 'element') {
+        // For regular elements like button, clear text content
+        return {
+          ...element,
+          children: []
+        } as ParsedElement;
       }
-
-      // Search in children
-      if ('children' in element && element.children) {
-        const result = this.findElement(element.children, targetId);
-        if (result.found) return result;
-      }
-
-      // Search in items
-      if ('items' in element && element.items) {
-        const result = this.findElement(element.items, targetId);
-        if (result.found) return result;
-      }
-    }
-
-    return { found: false, element: null };
-  }
-
-  private clearElementContent(elements: ParsedElement[], targetId: string): {
-    found: boolean;
-    updatedElements: ParsedElement[];
-  } {
-    const updatedElements = elements.map(element => {
-      if (element.id === targetId) {
-        // Clear content based on element type
-        if (element.type === 'img' || element.type === 'picture') {
-          return {
-            ...element,
-            src: '',
-            alt: ''
-          } as ParsedElement;
-        } else if (element.type === 'svg') {
-          return {
-            ...element,
-            svgContent: ''
-          } as ParsedElement;
-        } else if (element.type === 'text') {
-          return {
-            ...element,
-            content: ''
-          } as ParsedElement;
-        } else if (element.type === 'element') {
-          // For regular elements like button, clear text content
-          return {
-            ...element,
-            children: []
-          } as ParsedElement;
-        }
-        return element;
-      }
-
-      // Process children
-      if ('children' in element && element.children) {
-        const result = this.clearElementContent(element.children, targetId);
-        if (result.found) {
-          return {
-            ...element,
-            children: result.updatedElements
-          } as ParsedElement;
-        }
-      }
-
-      // Process items
-      if ('items' in element && element.items) {
-        const result = this.clearElementContent(element.items, targetId);
-        if (result.found) {
-          return {
-            ...element,
-            items: result.updatedElements as RegularElement[]
-          } as ParsedElement;
-        }
-      }
-
       return element;
     });
-
-    // Check if we found and updated the element
-    const found = JSON.stringify(updatedElements) !== JSON.stringify(elements);
-    return { found, updatedElements };
   }
 
-  private findAndRemoveElement(elements: ParsedElement[], targetId: string, parentId: string | null = null): {
-    found: boolean;
-    element: ParsedElement | null;
-    parentId: string | null;
-    index: number;
-    updatedElements: ParsedElement[];
-  } {
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
-      
-      if (element.id === targetId) {
-        const updatedElements = [...elements];
-        updatedElements.splice(i, 1);
-        return {
-          found: true,
-          element,
-          parentId,
-          index: i,
-          updatedElements
-        };
-      }
-
-      // Search in children
-      if ('children' in element && element.children) {
-        const result = this.findAndRemoveElement(element.children, targetId, element.id);
-        if (result.found) {
-          const updatedElement = {
-            ...element,
-            children: result.updatedElements
-          } as ParsedElement;
-          const updatedElements = [...elements];
-          updatedElements[i] = updatedElement;
-          return {
-            ...result,
-            updatedElements
-          };
-        }
-      }
-
-      // Search in items
-      if ('items' in element && element.items) {
-        const result = this.findAndRemoveElement(element.items, targetId, element.id);
-        if (result.found) {
-          const updatedElement = {
-            ...element,
-            items: result.updatedElements
-          } as ParsedElement;
-          const updatedElements = [...elements];
-          updatedElements[i] = updatedElement;
-          return {
-            ...result,
-            updatedElements
-          };
-        }
-      }
-    }
-
-    return {
-      found: false,
-      element: null,
-      parentId: null,
-      index: -1,
-      updatedElements: elements
-    };
-  }
 }

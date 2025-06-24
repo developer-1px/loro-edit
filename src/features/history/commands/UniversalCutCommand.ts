@@ -27,12 +27,8 @@ export class UniversalCutCommand extends BaseCommand {
     this.previousElements = JSON.parse(JSON.stringify(this.context.parsedElements));
     this.previousClipboardData = clipboardManager.getData();
 
-    // Find the element
-    const element = this.findElementById(this.context.parsedElements, this.elementId);
-    
-    if (!element) {
-      throw new Error(`Element ${this.elementId} not found`);
-    }
+    // Find and validate the element
+    const element = this.validateElement(this.elementId);
 
 
     // Find handler for this element
@@ -50,7 +46,7 @@ export class UniversalCutCommand extends BaseCommand {
     }
 
     // Remove element from tree
-    const updatedElements = this.removeElement(this.context.parsedElements, this.elementId);
+    const updatedElements = this.removeElementFromTree(this.context.parsedElements, this.elementId);
 
     // Update elements
     this.context.setParsedElements(updatedElements);
@@ -82,28 +78,8 @@ export class UniversalCutCommand extends BaseCommand {
     console.log(`↩️ Undid cut: ${this.elementId}`);
   }
 
-  private findElementById(elements: ParsedElement[], elementId: string): ParsedElement | null {
-    for (const element of elements) {
-      if (element.id === elementId) {
-        return element;
-      }
-      
-      // Search recursively in children
-      if ('children' in element && element.children && Array.isArray(element.children)) {
-        const found = this.findElementById(element.children, elementId);
-        if (found) return found;
-      }
-      
-      // Search in items (for repeat containers)
-      if ('items' in element && element.items && Array.isArray(element.items)) {
-        const found = this.findElementById(element.items, elementId);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
 
-  private removeElement(elements: ParsedElement[], elementId: string): ParsedElement[] {
+  private removeElementFromTree(elements: ParsedElement[], elementId: string): ParsedElement[] {
     return elements
       .map(element => {
         // If this is the element to remove, return null
@@ -113,7 +89,7 @@ export class UniversalCutCommand extends BaseCommand {
         
         // If element has children, recursively process them
         if ('children' in element && element.children && Array.isArray(element.children)) {
-          const updatedChildren = this.removeElement(element.children, elementId);
+          const updatedChildren = this.removeElementFromTree(element.children, elementId);
           return {
             ...element,
             children: updatedChildren
@@ -122,7 +98,7 @@ export class UniversalCutCommand extends BaseCommand {
         
         // If element has items, recursively process them
         if ('items' in element && element.items && Array.isArray(element.items)) {
-          const updatedItems = this.removeElement(element.items, elementId);
+          const updatedItems = this.removeElementFromTree(element.items, elementId);
           return {
             ...element,
             items: updatedItems
