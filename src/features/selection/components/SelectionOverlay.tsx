@@ -27,10 +27,15 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   });
   
   const toggleFloatingUI = useFloatingUIStore((state) => state.toggleFloatingUI);
+  const activeElementId = useFloatingUIStore((state) => state.activeElementId);
+  const isUIOpen = useFloatingUIStore((state) => state.isUIOpen);
   
   // Check if this element has floating UI capability
   const plugin = elementId ? pluginManager.getPluginById(elementId) : null;
   const hasFloatingUI = plugin?.floatingUI?.enabled;
+  
+  // Hide selection label if floating UI is active for this element
+  const hideLabel = elementId === activeElementId && isUIOpen;
 
   if (!boundingRect) return null;
 
@@ -58,27 +63,30 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         borderRadius: "4px",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: -28,
-          left: 0,
-          backgroundColor: color,
-          color: "white",
-          padding: "4px 8px",
-          borderRadius: "4px 4px 0 0",
-          fontSize: "12px",
-          fontWeight: 600,
-          whiteSpace: "nowrap",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-          zIndex: 25,
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          pointerEvents: "auto", // Enable clicking on label
-        }}
-      >
-        {elementName}
+      {!hideLabel && (
+        <div
+          style={{
+            position: "absolute",
+            top: -28,
+            left: 0,
+            backgroundColor: color,
+            color: "white",
+            padding: "4px 8px",
+            borderRadius: "4px 4px 0 0",
+            fontSize: "12px",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            zIndex: 25,
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            pointerEvents: "auto", // Enable clicking on label
+            cursor: hasFloatingUI ? "pointer" : "default",
+          }}
+          onClick={hasFloatingUI ? handleSettingsClick : undefined}
+        >
+          {elementName}
         
         {/* Action type indicators for button */}
         {pluginName === 'button' && elementData?.attributes?.['data-action-type'] && (
@@ -98,8 +106,8 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
           </span>
         )}
         
-        {/* Settings icon for elements with floating UI */}
-        {hasFloatingUI && (
+        {/* Remove settings icon - floating UI toggles on element click */}
+        {false && hasFloatingUI && (
           <button
             style={{
               background: "none",
@@ -122,7 +130,8 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
             <Settings size={12} />
           </button>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

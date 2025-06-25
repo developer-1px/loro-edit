@@ -121,17 +121,35 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
       className="floating-ui-content"
       style={{
         ...getPositionForElement(),
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        backgroundColor: '#111827',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
       }}
       data-floating-ui
       onClick={(e) => e.stopPropagation()}
     >
-      {React.createElement(floatingUIConfig.render, {
-        element: activeElement,
-        isOpen: isUIOpen,
-        onClose: closeFloatingUI,
-        updateElement
-      })}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ 
+          color: '#6b7280',
+          fontSize: '11px',
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          borderRight: '1px solid #374151',
+          paddingRight: '12px',
+          lineHeight: 1,
+        }}>
+          {plugin.selectable?.name || plugin.name}
+        </span>
+        {React.createElement(floatingUIConfig.render, {
+          element: activeElement,
+          isOpen: isUIOpen,
+          onClose: closeFloatingUI,
+          updateElement
+        })}
+      </div>
     </div>
   );
 };
