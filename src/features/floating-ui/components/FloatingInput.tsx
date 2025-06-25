@@ -12,6 +12,7 @@ interface FloatingInputProps {
   className?: string;
   autoFocus?: boolean;
   width?: string;
+  selectionColor?: string;
 }
 
 export const FloatingInput: React.FC<FloatingInputProps> = ({
@@ -22,7 +23,8 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
   type = "text",
   className = "",
   autoFocus = false,
-  width = "w-32"
+  width = "w-32",
+  selectionColor = "#3b82f6"
 }) => {
   const [tempValue, setTempValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,14 +60,15 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
   };
   
   return (
-    <div className={`bg-gray-800 rounded px-2 py-1 flex items-center ${className}`}>
+    <div className={`bg-gray-900 rounded px-2 py-1 flex items-center ${className}`} style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
       <Input
         ref={inputRef}
         type={type}
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}
         placeholder={placeholder}
-        className={`bg-gray-900 border-gray-700 text-gray-200 placeholder-gray-500 h-6 text-xs ${width}`}
+        className={`bg-gray-950 text-gray-200 placeholder-gray-500 h-6 text-xs ${width}`}
+        style={{ borderColor: `${selectionColor}20` }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         onBlur={handleSave}

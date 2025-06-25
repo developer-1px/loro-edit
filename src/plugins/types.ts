@@ -51,6 +51,7 @@ export interface FloatingUIRenderProps {
   isOpen: boolean;
   onClose: () => void;
   updateElement: (elementId: string, updates: Partial<ParsedElement>) => void;
+  selectionColor?: string;
 }
 
 export interface Plugin {

@@ -49,7 +49,8 @@ const detectLinkType = (href: string): LinkType => {
 
 export const LinkFloatingUI: React.FC<FloatingUIRenderProps> = ({
   element,
-  updateElement
+  updateElement,
+  selectionColor
 }) => {
   const linkElement = element as RegularElement;
   const currentHref = linkElement.attributes?.href || '';
@@ -139,6 +140,7 @@ export const LinkFloatingUI: React.FC<FloatingUIRenderProps> = ({
         onSelect={() => {
           // Type change is handled in onClick
         }}
+        selectionColor={selectionColor}
       />
       
       <FloatingInput
@@ -148,6 +150,7 @@ export const LinkFloatingUI: React.FC<FloatingUIRenderProps> = ({
         placeholder={getLinkTypePlaceholder(linkType)}
         type={linkType === 'email' ? 'email' : linkType === 'url' ? 'url' : 'text'}
         width="w-48"
+        selectionColor={selectionColor}
       />
     </div>
   );

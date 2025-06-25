@@ -18,6 +18,7 @@ interface FloatingDropdownProps {
   placeholder?: string;
   className?: string;
   onSelect?: (item: DropdownItem) => void;
+  selectionColor?: string;
 }
 
 export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
@@ -25,7 +26,8 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
   selectedItem,
   placeholder = "Select option",
   className = "",
-  onSelect
+  onSelect,
+  selectionColor = "#3b82f6"
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
@@ -39,7 +41,12 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`bg-gray-800 rounded px-2.5 py-1 flex items-center gap-1.5 text-gray-200 hover:bg-gray-700 transition-colors text-xs border border-gray-700 ${className}`}
+          className={`bg-gray-900 rounded px-2.5 py-1 flex items-center gap-1.5 text-gray-200 hover:bg-gray-800 transition-colors text-xs ${className}`}
+          style={{ 
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: `${selectionColor}30`
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {selectedItem?.icon && (
@@ -55,7 +62,12 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
       </PopoverTrigger>
       
       <PopoverContent
-        className="p-1 bg-gray-900 border-gray-800 shadow-xl w-auto"
+        className="p-1 bg-gray-900 shadow-xl w-auto"
+        style={{ 
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: `${selectionColor}30`
+        }}
         side="top"
         align="start"
         sideOffset={5}

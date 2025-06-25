@@ -18,7 +18,8 @@ const ICONS = [
 
 export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
   element,
-  updateElement
+  updateElement,
+  selectionColor
 }) => {
   const svgElement = element as RegularElement;
   const [showIconPicker, setShowIconPicker] = useState(false);
@@ -67,15 +68,17 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
   
   return (
     <div className="flex flex-col items-center gap-2">
-      <FloatingToolbar buttons={toolbarButtons} />
+      <FloatingToolbar buttons={toolbarButtons} selectionColor={selectionColor} />
       
       {showIconPicker && (
-        <div className="bg-gray-900 rounded-md shadow-xl p-3 max-w-xs">
+        <div className="bg-gray-900 rounded-md shadow-xl p-3 max-w-xs" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
           <div className="grid grid-cols-3 gap-2">
             {ICONS.map((icon) => (
               <button
                 key={icon.name}
-                className="p-2 rounded hover:bg-gray-800 transition-colors"
+                className="p-2 rounded transition-colors hover:opacity-80"
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${selectionColor}10`}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 onClick={() => handleIconSelect(icon)}
                 title={icon.name}
               >
@@ -93,9 +96,10 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
       )}
       
       {showCodeEditor && (
-        <div className="bg-gray-900 rounded-md shadow-xl p-3 w-80">
+        <div className="bg-gray-900 rounded-md shadow-xl p-3 w-80" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
           <textarea
-            className="w-full h-32 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 font-mono"
+            className="w-full h-32 bg-gray-950 rounded px-2 py-1 text-xs text-gray-200 font-mono"
+            style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}20` }}
             placeholder="Enter SVG code..."
             defaultValue={svgElement.children?.[0]?.type === 'text' ? svgElement.children[0].content : ''}
             onBlur={(e) => {

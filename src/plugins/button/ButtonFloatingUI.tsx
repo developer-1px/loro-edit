@@ -31,7 +31,8 @@ const getActionLabel = (type: ActionType) => {
 
 export const ButtonFloatingUI: React.FC<FloatingUIRenderProps> = ({
   element,
-  updateElement
+  updateElement,
+  selectionColor
 }) => {
   const buttonElement = element as RegularElement;
   const currentAction = (buttonElement.attributes?.['data-action-type'] as ActionType) || 'onClick';
@@ -85,6 +86,7 @@ export const ButtonFloatingUI: React.FC<FloatingUIRenderProps> = ({
             setShowLinkInput(true);
           }
         }}
+        selectionColor={selectionColor}
       />
       
       {(currentAction === 'linkTo' || showLinkInput) && (
@@ -96,6 +98,7 @@ export const ButtonFloatingUI: React.FC<FloatingUIRenderProps> = ({
           type="url"
           autoFocus={showLinkInput}
           width="w-40"
+          selectionColor={selectionColor}
         />
       )}
     </div>

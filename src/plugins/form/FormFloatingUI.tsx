@@ -21,7 +21,8 @@ const getMethodIcon = (method: FormMethod) => {
 
 export const FormFloatingUI: React.FC<FloatingUIRenderProps> = ({
   element,
-  updateElement
+  updateElement,
+  selectionColor
 }) => {
   const formElement = element as RegularElement;
   const currentMethod = (formElement.attributes?.method as FormMethod) || 'POST';
@@ -66,6 +67,7 @@ export const FormFloatingUI: React.FC<FloatingUIRenderProps> = ({
         onSelect={() => {
           // Method is already updated in onClick
         }}
+        selectionColor={selectionColor}
       />
       
       <FloatingInput
@@ -75,6 +77,7 @@ export const FormFloatingUI: React.FC<FloatingUIRenderProps> = ({
         placeholder="/api/endpoint"
         type="text"
         width="w-48"
+        selectionColor={selectionColor}
       />
     </div>
   );

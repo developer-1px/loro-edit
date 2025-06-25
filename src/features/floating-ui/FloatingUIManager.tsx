@@ -154,7 +154,8 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
           element: selectedElement,
           isOpen: true,
           onClose: closeFloatingUI,
-          updateElement
+          updateElement,
+          selectionColor
         })}
       </div>
     </div>
