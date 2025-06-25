@@ -171,3 +171,60 @@ When adding new element types:
 - Avoid unnecessary re-renders through proper state management
 - Optimize plugin matching logic for large DOM trees
 - Implement efficient clipboard operations
+
+## UI Design Conventions
+
+### Compact Application-Like Interface
+The UI should always prioritize compactness and efficiency, resembling professional desktop applications rather than spacious web interfaces:
+
+#### General Principles
+- **Dense Information Display**: Maximize content visibility with minimal chrome
+- **Small, Precise Controls**: Use compact buttons, inputs, and menus
+- **Dark Theme for Tools**: Floating menus and toolbars use dark backgrounds (gray-900)
+- **Minimal Padding**: Reduce spacing to essential amounts only
+- **Professional Aesthetics**: Clean, sharp edges with subtle shadows
+
+#### Specific Guidelines
+
+##### Floating Menus
+- Background: `bg-gray-900` (dark theme)
+- Padding: `px-0.5 py-0.5` for containers, `px-2.5 py-1.5` for buttons
+- Text size: `text-xs` (12px) for labels
+- Icons: Small sizes (12-16px), typically `w-3.5 h-3.5`
+- Hover states: Subtle color changes (`hover:bg-gray-800`)
+- Active states: Amber accent (`bg-amber-500 text-gray-900`)
+
+##### Popovers and Dialogs
+- Width: Constrained (`w-48`, `w-60`, `w-80` max)
+- Dark backgrounds with light borders (`bg-gray-900 border-gray-800`)
+- Compact headers and footers
+- Small form controls with reduced padding
+
+##### Selection Overlays
+- Thin borders (2px)
+- Small labels with minimal padding (`padding: 4px 8px`)
+- Tiny font sizes (`fontSize: 12px`)
+- Positioned close to selected elements
+
+##### Buttons and Controls
+- Small heights (`h-6`, `h-7` for action buttons)
+- Reduced padding (`px-2`, `px-3`)
+- Compact text (`text-xs`)
+- Grouped controls with minimal gaps (`gap-0.5`, `gap-1`)
+
+#### Examples
+```tsx
+// Compact floating menu
+<div className="bg-gray-900 rounded-md shadow-xl px-0.5 py-0.5 flex items-center gap-0.5">
+  <button className="px-2.5 py-1.5 text-xs hover:bg-gray-800">
+    <Icon className="w-3.5 h-3.5" />
+  </button>
+</div>
+
+// Small popover
+<PopoverContent className="w-48 p-2 bg-gray-900 border-gray-800">
+  // Compact content
+</PopoverContent>
+```
+
+This approach creates a professional, efficient interface that maximizes usable space while maintaining excellent usability.

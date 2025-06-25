@@ -40,8 +40,23 @@ export function getSelectableElements(elements: ParsedElement[]): string[] {
 export function getElementAtPoint(x: number, y: number): string | null {
   const elementsAtPoint = document.elementsFromPoint(x, y);
   
+  // Skip floating UI and overlay elements
   for (const element of elementsAtPoint) {
-    const elementId = (element as HTMLElement).dataset?.elementId;
+    const htmlEl = element as HTMLElement;
+    
+    // Skip if it's a floating UI element
+    if (htmlEl.closest('[data-radix-popover-content]') ||
+        htmlEl.closest('[data-radix-tabs-content]') ||
+        htmlEl.closest('[data-radix-tabs-list]') ||
+        htmlEl.closest('[data-radix-tabs-trigger]') ||
+        htmlEl.closest('.floating-menu') ||
+        htmlEl.closest('.popover-content') ||
+        htmlEl.closest('[data-selection-overlay]') ||
+        htmlEl.closest('[data-preview-controls]')) {
+      continue;
+    }
+    
+    const elementId = htmlEl.dataset?.elementId;
     if (elementId) return elementId;
   }
   

@@ -1,13 +1,12 @@
 // src/plugins/svg.tsx
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import type { Plugin } from "./types";
 import type { SvgElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
-import { Edit3, Palette } from "lucide-react";
+import { ChevronDown, Code, Palette } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
 import { cn } from "../lib/utils";
 
@@ -56,85 +55,84 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
   elementId,
   isSelected,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [customSvg, setCustomSvg] = useState(svgContent);
+  const [open, setOpen] = useState<'icons' | 'code' | false>(false);
+  const [customSvg, setCustomSvg] = useState(svgContent || '');
   const updateElement = useEditorStore((state) => state.updateElement);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Keep local state in sync with prop
+  React.useEffect(() => {
+    setCustomSvg(svgContent || '');
+  }, [svgContent]);
 
   const handleSvgSelect = (newSvgContent: string) => {
-    updateElement(elementId, { svgContent: newSvgContent });
+    // Update the element in the store with new SVG content
+    updateElement(elementId, { 
+      svgContent: newSvgContent
+    });
+    
+    // Close the popover
     setOpen(false);
   };
 
   const handleCustomSvgSave = () => {
     if (customSvg.trim()) {
-      updateElement(elementId, { svgContent: customSvg });
+      updateElement(elementId, { 
+        svgContent: customSvg
+      });
       setOpen(false);
     }
   };
-
-  const handleOpenChange = (newOpen: boolean) => {
-    // 선택되지 않은 상태에서는 popover를 열 수 없음
-    if (newOpen && !isSelected) {
-      return;
-    }
-    
-    setOpen(newOpen);
-    if (newOpen) {
-      setCustomSvg(svgContent);
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    // 선택되지 않은 상태에서는 클릭 이벤트를 버블링하여 선택되도록 함
-    if (!isSelected) {
-      // 부모로 이벤트를 전파해서 선택 시스템이 처리하도록 함
-      return;
-    }
-    
-    // 선택된 상태에서는 popover 열기
-    e.stopPropagation();
-    e.preventDefault();
-    setOpen(true);
-  };
-
-  // Popover가 열려있을 때 외부 클릭 감지
-  React.useEffect(() => {
-    if (!open) return;
-
-    const handleGlobalClick = (e: MouseEvent) => {
-      // Popover 내부 클릭은 무시 (더 포괄적으로 체크)
-      const target = e.target as Element;
-      if (
-        target.closest('[data-radix-popover-content]') ||
-        target.closest('[data-radix-tabs-content]') ||
-        target.closest('[data-radix-tabs-list]') ||
-        target.closest('[data-radix-tabs-trigger]')
-      ) {
-        return;
-      }
-      
-      // 외부 클릭 시 popover 닫기
-      setOpen(false);
-    };
-
-    document.addEventListener('click', handleGlobalClick, true);
-    return () => {
-      document.removeEventListener('click', handleGlobalClick, true);
-    };
-  }, [open]);
 
   return (
-    <>
+    <div className="relative" ref={containerRef}>
+      {/* Black-themed floating menu - always visible when selected */}
+      {isSelected && (
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-gray-900 rounded-md shadow-xl px-0.5 py-0.5 flex items-center gap-0.5">
+            {/* Icon dropdown button */}
+            <button
+              className="flex items-center gap-1 px-2 py-1 hover:bg-gray-800 rounded text-white transition-colors text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen('icons');
+              }}
+              title="Choose icon"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>Icons</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            
+            {/* Divider */}
+            <div className="w-px h-4 bg-gray-700" />
+            
+            {/* Code button */}
+            <button
+              className="flex items-center gap-1 px-2 py-1 hover:bg-gray-800 rounded text-white transition-colors text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCustomSvg(svgContent);
+                setOpen('code');
+              }}
+              title="Enter code"
+            >
+              <Code className="w-3.5 h-3.5" />
+              <span>Code</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SVG Content */}
       <div 
         className={cn(
-          "relative group transition-all",
-          isSelected ? "cursor-pointer hover:shadow-md" : "cursor-default",
+          "transition-all",
           className
         )} 
         data-element-id={elementId}
-        onClick={handleClick}
       >
-        {svgContent ? (
+        {svgContent && svgContent.trim() ? (
           <div 
             className="svg-container"
             style={{ 
@@ -146,7 +144,7 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
           />
         ) : (
           <div className={cn(
-            "border-2 border-dashed rounded-lg text-center flex items-center justify-center p-4 min-h-[60px] transition-colors relative",
+            "border-2 border-dashed rounded-lg text-center flex items-center justify-center p-4 min-h-[60px] transition-colors",
             isSelected 
               ? "border-amber-400 bg-amber-50" 
               : "border-gray-300"
@@ -156,153 +154,87 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
               isSelected && "text-amber-600"
             )}>
               <Palette className="mx-auto w-6 h-6 mb-1" />
-              <div className="text-xs font-medium">
-                {isSelected ? "Click to add" : "SVG"}
-              </div>
-            </div>
-            
-            {/* Floating add button for empty state */}
-            {isSelected && (
-              <div className="absolute -top-8 left-0 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-1.5 flex items-center gap-2 text-sm whitespace-nowrap">
-                  <Palette className="w-4 h-4 text-gray-600" />
-                  <span className="text-gray-700 font-medium">Add SVG</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Floating edit button - SVG 컨텐츠가 있고 선택된 상태에서만 표시 */}
-        {svgContent && isSelected && (
-          <div className="absolute -top-8 left-0 opacity-0 group-hover:opacity-100 transition-all duration-200">
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-1.5 flex items-center gap-2 text-sm whitespace-nowrap">
-              <Edit3 className="w-4 h-4 text-gray-600" />
-              <span className="text-gray-700 font-medium">Edit SVG</span>
+              <div className="text-xs font-medium">SVG</div>
             </div>
           </div>
         )}
       </div>
 
-      <Popover open={open} onOpenChange={handleOpenChange}>
-        <PopoverTrigger asChild>
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%'
-            }}
-          />
-        </PopoverTrigger>
-        
-        <PopoverContent 
-          className="w-60 max-h-80 overflow-hidden p-0 border shadow-lg bg-white"
-          side="top"
-          align="center"
-          sideOffset={8}
-          style={{ backgroundColor: 'white' }}
-          onInteractOutside={(e) => {
-            // 탭 관련 요소 클릭은 무시
-            const target = e.target as Element;
-            if (
-              target.closest('[data-radix-tabs-trigger]') ||
-              target.closest('[data-radix-tabs-list]') ||
-              target.closest('[data-radix-tabs-content]')
-            ) {
-              e.preventDefault();
-              return;
-            }
-            setOpen(false);
-          }}
-          onEscapeKeyDown={() => setOpen(false)}
-          onPointerDownOutside={(e) => {
-            // 탭 관련 요소 클릭은 무시
-            const target = e.target as Element;
-            if (
-              target.closest('[data-radix-tabs-trigger]') ||
-              target.closest('[data-radix-tabs-list]') ||
-              target.closest('[data-radix-tabs-content]')
-            ) {
-              e.preventDefault();
-              return;
-            }
-            setOpen(false);
-          }}
-        >
-          {/* Compact Header */}
-          <div className="px-3 py-2 border-b border-gray-100">
-            <h3 className="font-medium text-gray-900 text-xs">SVG</h3>
-          </div>
+      {/* Icon selection popover */}
+      {open === 'icons' && isSelected && (
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-50">
+          <Popover open={true} onOpenChange={(isOpen) => !isOpen && setOpen(false)}>
+            <PopoverTrigger asChild>
+              <div className="absolute inset-0 pointer-events-none" />
+            </PopoverTrigger>
+            
+            <PopoverContent 
+              className="w-48 p-2 bg-gray-900 border-gray-800 shadow-xl"
+              side="top"
+              align="center"
+              sideOffset={35}
+            >
+              <div className="grid grid-cols-3 gap-1">
+                {SVG_SAMPLES.map((sample, index) => (
+                  <button
+                    key={index}
+                    className="group p-2 bg-gray-800 hover:bg-gray-700 rounded transition-all duration-150 flex flex-col items-center gap-1"
+                    onClick={() => handleSvgSelect(sample.content)}
+                  >
+                    <div 
+                      className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors"
+                      dangerouslySetInnerHTML={{ __html: sample.content }}
+                    />
+                    <span className="text-[10px] text-gray-400 group-hover:text-gray-200 leading-none">
+                      {sample.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
 
-          <Tabs defaultValue="samples" className="flex flex-col">
-            {/* Ultra Compact Tab Navigation */}
-            <div className="px-3 py-1 border-b border-gray-100">
-              <TabsList className="grid w-full grid-cols-2 h-6 bg-gray-100 p-0.5 text-xs">
-                <TabsTrigger 
-                  value="samples" 
-                  className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm px-1"
-                >
-                  Icons
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="custom" 
-                  className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm px-1"
-                >
-                  Code
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Content Area */}
-            <div className="overflow-y-auto max-h-60">
-              <TabsContent value="samples" className="m-0 p-3">
-                <div className="grid grid-cols-3 gap-1.5">
-                  {SVG_SAMPLES.map((sample, index) => (
-                    <button
-                      key={index}
-                      className="group p-2 border border-gray-200 rounded hover:border-amber-400 hover:bg-amber-50 transition-all duration-150 flex flex-col items-center gap-1"
-                      onClick={() => handleSvgSelect(sample.content)}
-                    >
-                      <div 
-                        className="w-6 h-6 text-gray-600 group-hover:text-amber-600 transition-colors"
-                        dangerouslySetInnerHTML={{ __html: sample.content }}
-                      />
-                      <span className="text-xs font-medium text-gray-700 group-hover:text-amber-700 leading-tight">
-                        {sample.name.split(' ')[0]}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="custom" className="m-0 p-3 space-y-2">
+      {/* Code input popover */}
+      {open === 'code' && isSelected && (
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-50">
+          <Popover open={true} onOpenChange={(isOpen) => !isOpen && setOpen(false)}>
+            <PopoverTrigger asChild>
+              <div className="absolute inset-0 pointer-events-none" />
+            </PopoverTrigger>
+            
+            <PopoverContent 
+              className="w-64 p-3 bg-gray-900 border-gray-800 shadow-xl"
+              side="top"
+              align="center"
+              sideOffset={35}
+            >
+              <div className="space-y-3">
                 <Textarea
                   value={customSvg}
                   onChange={(e) => setCustomSvg(e.target.value)}
-                  className="h-16 font-mono text-xs resize-none"
+                  className="h-20 font-mono text-xs resize-none bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-500"
                   placeholder="<svg>...</svg>"
                 />
                 
                 {/* Live Preview */}
                 {customSvg && (
-                  <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center min-h-[40px] items-center">
+                  <div className="bg-gray-800 rounded p-2 flex justify-center min-h-[40px] items-center">
                     <div 
-                      className="w-8 h-8 text-gray-600"
+                      className="w-8 h-8 text-gray-300"
                       dangerouslySetInnerHTML={{ __html: customSvg }}
                     />
                   </div>
                 )}
 
                 {/* Footer Actions */}
-                <div className="flex justify-end gap-1">
+                <div className="flex justify-end gap-2">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setOpen(false)}
-                    className="text-xs h-6 px-2"
+                    className="text-xs h-7 px-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800"
                   >
                     Cancel
                   </Button>
@@ -310,17 +242,17 @@ const EditableSvg: React.FC<EditableSvgProps> = ({
                     size="sm"
                     onClick={handleCustomSvgSave}
                     disabled={!customSvg.trim()}
-                    className="bg-amber-500 hover:bg-amber-600 text-white text-xs h-6 px-2"
+                    className="bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs h-7 px-3 font-medium"
                   >
                     Apply
                   </Button>
                 </div>
-              </TabsContent>
-            </div>
-          </Tabs>
-        </PopoverContent>
-      </Popover>
-    </>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -333,7 +265,7 @@ export const svgPlugin: Plugin = {
     color: "#f59e0b", // amber - same as image
     level: "element",
     elementType: "inline",
-    priority: 0
+    priority: 2 // Higher than repeat-item (1)
   },
 
   match: (element: Element) => {
@@ -367,7 +299,7 @@ export const svgPlugin: Plugin = {
       <EditableSvg
         key={svgElement.id}
         elementId={svgElement.id}
-        svgContent={svgElement.svgContent}
+        svgContent={svgElement.svgContent || ''}
         width={svgElement.width}
         height={svgElement.height}
         className={svgElement.attributes?.class || ""}

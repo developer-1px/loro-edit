@@ -145,16 +145,25 @@ class PluginManager implements IPluginManager {
     console.log('📌 Current selection:', currentSelection);
     console.log('📌 Current mode:', currentMode);
     
-    // Skip control elements
+    // Skip control elements, overlays, and floating UI
     const hasControlElement = elementsAtPoint.some(el => {
       const htmlEl = el as HTMLElement;
       return htmlEl.closest('[data-selection-overlay]') ||
              htmlEl.closest('[data-preview-controls]') ||
+             htmlEl.closest('[data-radix-popover-content]') ||
+             htmlEl.closest('[data-radix-tabs-content]') ||
+             htmlEl.closest('[data-radix-tabs-list]') ||
+             htmlEl.closest('[data-radix-tabs-trigger]') ||
+             htmlEl.classList.contains('floating-menu') ||
+             htmlEl.closest('.floating-menu') ||
+             htmlEl.classList.contains('bg-gray-900') || // Floating menu style
+             htmlEl.classList.contains('popover-content') ||
+             htmlEl.closest('.popover-content') ||
              (htmlEl.tagName === 'INPUT' && htmlEl.style.display === 'none');
     });
 
     if (hasControlElement) {
-      console.log('⚠️ Control element detected, skipping');
+      console.log('⚠️ Control element or floating UI detected, skipping');
       return null;
     }
     

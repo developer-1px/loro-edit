@@ -7,8 +7,8 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
           <h1 class="text-4xl md:text-6xl font-bold mb-6">Build the Future with AI</h1>
           <p class="text-xl md:text-2xl mb-8 opacity-90">Transform your business with cutting-edge artificial intelligence solutions that drive innovation and growth.</p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Start Free Trial</button>
-            <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600">Watch Demo</button>
+            <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100" data-action-type="onClick">Start Free Trial</button>
+            <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600" data-action-type="linkTo" data-link-url="https://youtube.com/watch?v=demo">Watch Demo</button>
           </div>
         </div>
         <div class="flex justify-center">
@@ -35,8 +35,8 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
           </div>
         </div>
         <div class="flex items-center space-x-4">
-          <button class="text-gray-600 hover:text-gray-900">Sign In</button>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Get Started</button>
+          <button class="text-gray-600 hover:text-gray-900" data-action-type="linkTo" data-link-url="/login">Sign In</button>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" data-action-type="openModal">Get Started</button>
         </div>
       </div>
     </div>
@@ -156,19 +156,19 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
               <td class="py-4 px-6 border-b border-gray-200">Starter</td>
               <td class="py-4 px-6 border-b border-gray-200">Basic AI tools, 5GB storage, Community support</td>
               <td class="py-4 px-6 border-b border-gray-200">$49/mo</td>
-              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-500 text-white px-4 py-2 rounded">Choose</button></td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-500 text-white px-4 py-2 rounded" data-action-type="onClick">Choose</button></td>
             </tr>
             <tr class="hover:bg-gray-100">
               <td class="py-4 px-6 border-b border-gray-200">Professional</td>
               <td class="py-4 px-6 border-b border-gray-200">Advanced AI tools, 50GB storage, Priority email support</td>
               <td class="py-4 px-6 border-b border-gray-200">$99/mo</td>
-              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-600 text-white px-4 py-2 rounded">Choose</button></td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="bg-blue-600 text-white px-4 py-2 rounded" data-action-type="onClick">Choose</button></td>
             </tr>
             <tr class="hover:bg-gray-100">
               <td class="py-4 px-6 border-b border-gray-200">Enterprise</td>
               <td class="py-4 px-6 border-b border-gray-200">All features, Unlimited storage, 24/7 dedicated support</td>
               <td class="py-4 px-6 border-b border-gray-200">Contact Us</td>
-              <td class="py-4 px-6 border-b border-gray-200"><button class="border border-gray-400 text-gray-600 px-4 py-2 rounded">Contact</button></td>
+              <td class="py-4 px-6 border-b border-gray-200"><button class="border border-gray-400 text-gray-600 px-4 py-2 rounded" data-action-type="linkTo" data-link-url="https://techcorp.com/contact">Contact</button></td>
             </tr>
           </tbody>
         </table>
@@ -224,8 +224,8 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
       <h3 class="text-3xl md:text-4xl font-bold mb-6">Ready to Get Started?</h3>
       <p class="text-xl mb-8 opacity-90">Join thousands of companies already using our platform to drive innovation.</p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Start Your Free Trial</button>
-        <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">Contact Sales</button>
+        <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100" data-action-type="onClick">Start Your Free Trial</button>
+        <button class="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700" data-action-type="linkTo" data-link-url="mailto:sales@techcorp.com">Contact Sales</button>
       </div>
     </div>
   </section>
@@ -251,7 +251,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
           <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
         </div>
         <div class="text-center">
-          <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">Send Message</button>
+          <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700" data-action-type="submit">Send Message</button>
         </div>
       </form>
     </div>
