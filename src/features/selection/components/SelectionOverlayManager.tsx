@@ -52,6 +52,7 @@ export const SelectionOverlayManager: React.FC<SelectionOverlayManagerProps> = (
         color={plugin.selectable?.color || "#3b82f6"}
         elementData={selectedElement}
         pluginName={plugin.name}
+        elementId={selection.selectedElementId}
       />
     </div>
   );

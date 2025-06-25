@@ -1,6 +1,8 @@
 import React from "react";
 import { useElementRect } from "../../../hooks/useElementRect";
-import { MousePointer, ExternalLink, Send, Layers, ArrowDown } from "lucide-react";
+import { MousePointer, ExternalLink, Send, Layers, ArrowDown, Settings } from "lucide-react";
+import { useFloatingUIStore } from "../../../store/floatingUIStore";
+import { pluginManager } from "../../../plugins";
 
 interface SelectionOverlayProps {
   targetSelector: string;
@@ -8,6 +10,7 @@ interface SelectionOverlayProps {
   color?: string;
   elementData?: any;
   pluginName?: string;
+  elementId?: string;
 }
 
 export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
@@ -15,16 +18,30 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   elementName,
   color = "#3b82f6",
   elementData,
-  pluginName
+  pluginName,
+  elementId
 }) => {
   const { boundingRect } = useElementRect(targetSelector, {
     containerSelector: "[data-preview-container]",
     enabled: Boolean(targetSelector),
   });
+  
+  const toggleFloatingUI = useFloatingUIStore((state) => state.toggleFloatingUI);
+  
+  // Check if this element has floating UI capability
+  const plugin = elementId ? pluginManager.getPluginById(elementId) : null;
+  const hasFloatingUI = plugin?.floatingUI?.enabled;
 
   if (!boundingRect) return null;
 
   const padding = elementName === "Text" ? 4 : elementName === "Button" ? -1 : 0;
+  
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (elementId && hasFloatingUI) {
+      toggleFloatingUI(elementId);
+    }
+  };
 
   return (
     <div
@@ -58,9 +75,12 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
           display: "flex",
           alignItems: "center",
           gap: "4px",
+          pointerEvents: "auto", // Enable clicking on label
         }}
       >
         {elementName}
+        
+        {/* Action type indicators for button */}
         {pluginName === 'button' && elementData?.attributes?.['data-action-type'] && (
           <span style={{ opacity: 0.8, display: "flex", alignItems: "center" }}>
             |
@@ -76,6 +96,31 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
               }
             })()}
           </span>
+        )}
+        
+        {/* Settings icon for elements with floating UI */}
+        {hasFloatingUI && (
+          <button
+            style={{
+              background: "none",
+              border: "none",
+              color: "white",
+              cursor: "pointer",
+              padding: "2px",
+              marginLeft: "4px",
+              borderRadius: "2px",
+              display: "flex",
+              alignItems: "center",
+              opacity: 0.8,
+              transition: "opacity 0.2s"
+            }}
+            onClick={handleSettingsClick}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.8"}
+            title="Open settings"
+          >
+            <Settings size={12} />
+          </button>
         )}
       </div>
     </div>

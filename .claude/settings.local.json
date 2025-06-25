@@ -24,7 +24,9 @@
       "Bash(sed:*)",
       "Bash(ls:*)",
       "Bash(node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm run test:*)"
     ],
     "deny": []
   }
