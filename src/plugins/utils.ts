@@ -34,6 +34,7 @@ export function createElementProps(parsedElement: ParsedElement, isSelected?: bo
   return {
     key: parsedElement.id,
     'data-element-id': parsedElement.id,
+    id: hasAttributes && parsedElement.attributes?.id ? parsedElement.attributes.id : undefined,
     className: hasAttributes ? parsedElement.attributes?.class || "" : "",
   };
 }

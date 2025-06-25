@@ -28,10 +28,12 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
         <div class="flex items-center space-x-4">
           <h2 class="text-2xl font-bold text-gray-900">TechCorp</h2>
           <div class="hidden md:flex space-x-8 ml-8">
-            <a href="#" class="text-gray-600 hover:text-gray-900">Products</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">Solutions</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">About</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900">Contact</a>
+            <a href="#products" class="text-gray-600 hover:text-gray-900">Products</a>
+            <a href="#solutions" class="text-gray-600 hover:text-gray-900">Solutions</a>
+            <a href="#about" class="text-gray-600 hover:text-gray-900">About</a>
+            <a href="#contact" class="text-gray-600 hover:text-gray-900">Contact</a>
+            <a href="https://github.com/techcorp" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-gray-900">GitHub</a>
+            <a href="https://docs.techcorp.com" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-gray-900">Docs</a>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -43,7 +45,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
   </nav>
 
   <!-- Features Section -->
-  <section class="py-20 bg-white">
+  <section id="products" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose TechCorp?</h3>
@@ -111,7 +113,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
   </section>
 
   <!-- Testimonials Section -->
-  <section class="py-20 bg-gray-50">
+  <section id="solutions" class="py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h3>
@@ -135,7 +137,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
   </section>
 
   <!-- Pricing Section -->
-  <section class="py-20 bg-white">
+  <section id="about" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Flexible Pricing for Teams of All Sizes</h3>
@@ -231,7 +233,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
   </section>
 
   <!-- Contact Form Section -->
-  <section class="py-20 bg-gray-50">
+  <section id="contact" class="py-20 bg-gray-50">
     <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Contact Our Team</h3>
