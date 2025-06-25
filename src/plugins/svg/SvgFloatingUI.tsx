@@ -1,11 +1,14 @@
 // src/plugins/svg/SvgFloatingUI.tsx
 
 import React, { useState } from 'react';
-import { Palette, Code } from 'lucide-react';
+import { Palette, Code, Link as LinkIcon } from 'lucide-react';
 import { FloatingToolbar } from '../../features/floating-ui';
 import type { ToolbarButton } from '../../features/floating-ui';
 import type { FloatingUIRenderProps } from '../types';
 import type { RegularElement } from '../../types';
+import { useEditorStore } from '../../store/editorStore';
+import { getParentLinkInfo } from '../../utils/parentElementUtils';
+import { LinkFloatingUI } from '../link/LinkFloatingUI';
 
 const ICONS = [
   { name: 'Heart', svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>' },
@@ -22,8 +25,14 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
   selectionColor
 }) => {
   const svgElement = element as RegularElement;
+  const parsedElements = useEditorStore(state => state.parsedElements);
+  
+  // 상위 링크 정보 확인
+  const parentLink = getParentLinkInfo(element.id, parsedElements);
+  
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const [activeTab, setActiveTab] = useState<'svg' | 'link'>('svg');
   
   const handleIconSelect = (icon: typeof ICONS[0]) => {
     const newSvgContent = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${icon.svg}</svg>`;
@@ -55,22 +64,46 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
       label: 'Icons',
       icon: <Palette className="w-3.5 h-3.5" />,
       onClick: toggleIconPicker,
-      isActive: showIconPicker
+      isActive: showIconPicker && activeTab === 'svg'
     },
     {
       id: 'code',
-      label: 'Code',
+      label: 'Code', 
       icon: <Code className="w-3.5 h-3.5" />,
       onClick: toggleCodeEditor,
-      isActive: showCodeEditor
+      isActive: showCodeEditor && activeTab === 'svg'
     }
   ];
   
+  // 링크 버튼 (상위 링크가 있을 때만)
+  const linkButton: ToolbarButton | null = parentLink ? {
+    id: 'link',
+    label: 'Link',
+    icon: <LinkIcon className="w-3.5 h-3.5" />,
+    onClick: () => setActiveTab(activeTab === 'link' ? 'svg' : 'link'),
+    isActive: activeTab === 'link'
+  } : null;
+  
+  const allButtons = linkButton ? [...toolbarButtons, linkButton] : toolbarButtons;
+  
   return (
     <div className="flex flex-col items-center gap-1">
-      <FloatingToolbar buttons={toolbarButtons} selectionColor={selectionColor} />
+      <FloatingToolbar buttons={allButtons} selectionColor={selectionColor} />
       
-      {showIconPicker && (
+      {/* 링크 편집 UI */}
+      {activeTab === 'link' && parentLink && (
+        <div className="mt-1">
+          <LinkFloatingUI
+            element={parentLink}
+            updateElement={updateElement}
+            selectionColor={selectionColor}
+            isOpen={true}
+            onClose={() => {}}
+          />
+        </div>
+      )}
+      
+      {activeTab === 'svg' && showIconPicker && (
         <div className="bg-gray-900 rounded shadow-xl p-2 max-w-xs" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
           <div className="grid grid-cols-3 gap-1">
             {ICONS.map((icon) => (
@@ -95,7 +128,7 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
         </div>
       )}
       
-      {showCodeEditor && (
+      {activeTab === 'svg' && showCodeEditor && (
         <div className="bg-gray-900 rounded shadow-xl p-2 w-72" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
           <textarea
             className="w-full h-24 bg-gray-950 rounded px-2 py-1 text-[11px] text-gray-200 font-mono"

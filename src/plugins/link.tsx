@@ -3,26 +3,20 @@
 import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
-import { LinkFloatingUI } from "./link/LinkFloatingUI";
 
 export const linkPlugin: Plugin = {
   name: "link",
   
   selectable: {
-    enabled: true,
+    enabled: false, // 링크는 직접 선택하지 않고 하위 요소를 통해 편집
     name: "Link",
     color: "#3B82F6", // blue
     level: "content",
     elementType: "inline",
-    priority: 8 // Lower priority so text selection takes precedence
+    priority: 8
   },
 
-  floatingUI: {
-    enabled: true,
-    position: 'top',
-    offset: 24,
-    render: LinkFloatingUI
-  },
+  // floatingUI 제거 - 하위 요소의 UI에서 처리
 
   match: (element: Element) => 
     element.tagName.toLowerCase() === "a" && 

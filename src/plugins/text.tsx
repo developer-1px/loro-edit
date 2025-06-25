@@ -2,6 +2,7 @@ import React, { useRef, memo } from "react";
 import type { Plugin } from "./types";
 import type { TextElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
+import { TextFloatingUI } from "./text/TextFloatingUI";
 
 interface EditableTextProps {
   text: string;
@@ -95,6 +96,13 @@ export const textPlugin: Plugin = {
     level: "content",
     elementType: "inline",
     priority: 0
+  },
+
+  floatingUI: {
+    enabled: true,
+    position: 'top',
+    offset: 24,
+    render: TextFloatingUI
   },
 
   match: (element: Element) => {
