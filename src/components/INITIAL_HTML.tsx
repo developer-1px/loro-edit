@@ -220,6 +220,38 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
     </div>
   </section>
 
+  <!-- Table Data Section -->
+  <section class="py-10 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Data Table Integration</h2>
+        <p class="text-sm text-gray-600 max-w-3xl mx-auto">Display any API data in a customizable table format with field selection.</p>
+      </div>
+      
+      <!-- Table with API integration -->
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table data-table
+               data-api-url="https://jsonplaceholder.typicode.com/users" 
+               data-columns="name,email,phone,website"
+               class="min-w-full">
+          <!-- Table will be rendered by plugin -->
+        </table>
+      </div>
+      
+      <div class="mt-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Posts Table</h3>
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <table data-table
+                 data-api-url="https://jsonplaceholder.typicode.com/posts" 
+                 data-columns="userId,id,title"
+                 class="min-w-full">
+            <!-- Table will be rendered by plugin -->
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA Section -->
   <section class="py-20 bg-blue-600 text-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

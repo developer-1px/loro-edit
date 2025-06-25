@@ -10,6 +10,7 @@ import { repeatItemPlugin } from "./repeat-item";
 import { formPlugin } from "./form";
 import { inputPlugin } from "./input";
 import { linkPlugin } from "./link";
+import { tablePlugin } from "./table";
 import { fallbackPlugin as elementPlugin } from "./fallback";
 
 let pluginsRegistered = false;
@@ -29,6 +30,7 @@ export const registerDefaultPlugins = () => {
   pluginManager.register(imagePlugin);
   pluginManager.register(svgPlugin);
   pluginManager.register(sectionPlugin);
+  pluginManager.register(tablePlugin);
   pluginManager.register(textPlugin);
   pluginManager.register(elementPlugin); // Must be last as fallback
   
@@ -48,4 +50,5 @@ export { repeatItemPlugin } from "./repeat-item";
 export { formPlugin } from "./form";
 export { inputPlugin } from "./input";
 export { linkPlugin } from "./link";
+export { tablePlugin } from "./table";
 export { fallbackPlugin as elementPlugin } from "./fallback";
