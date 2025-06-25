@@ -1,7 +1,6 @@
 import React from "react";
 import { useElementRect } from "../../../hooks/useElementRect";
-import { MousePointer, ExternalLink, Send, Layers, ArrowDown, Settings } from "lucide-react";
-import { useFloatingUIStore } from "../../../store/floatingUIStore";
+import { MousePointer, ExternalLink, Send, Layers, ArrowDown } from "lucide-react";
 import { pluginManager } from "../../../plugins";
 
 interface SelectionOverlayProps {
@@ -26,27 +25,18 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
     enabled: Boolean(targetSelector),
   });
   
-  const toggleFloatingUI = useFloatingUIStore((state) => state.toggleFloatingUI);
-  const activeElementId = useFloatingUIStore((state) => state.activeElementId);
-  const isUIOpen = useFloatingUIStore((state) => state.isUIOpen);
-  
   // Check if this element has floating UI capability
   const plugin = elementId ? pluginManager.getPluginById(elementId) : null;
   const hasFloatingUI = plugin?.floatingUI?.enabled;
   
-  // Hide selection label if floating UI is active for this element
-  const hideLabel = elementId === activeElementId && isUIOpen;
+  // Hide selection label if element has floating UI
+  const hideLabel = hasFloatingUI;
 
   if (!boundingRect) return null;
 
   const padding = elementName === "Text" ? 4 : elementName === "Button" ? -1 : 0;
   
-  const handleSettingsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (elementId && hasFloatingUI) {
-      toggleFloatingUI(elementId);
-    }
-  };
+  // Remove unused handler since floating UI auto-opens
 
   return (
     <div
@@ -82,9 +72,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
             alignItems: "center",
             gap: "4px",
             pointerEvents: "auto", // Enable clicking on label
-            cursor: hasFloatingUI ? "pointer" : "default",
           }}
-          onClick={hasFloatingUI ? handleSettingsClick : undefined}
         >
           {elementName}
         
@@ -106,30 +94,6 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
           </span>
         )}
         
-        {/* Remove settings icon - floating UI toggles on element click */}
-        {false && hasFloatingUI && (
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              color: "white",
-              cursor: "pointer",
-              padding: "2px",
-              marginLeft: "4px",
-              borderRadius: "2px",
-              display: "flex",
-              alignItems: "center",
-              opacity: 0.8,
-              transition: "opacity 0.2s"
-            }}
-            onClick={handleSettingsClick}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.8"}
-            title="Open settings"
-          >
-            <Settings size={12} />
-          </button>
-        )}
         </div>
       )}
     </div>

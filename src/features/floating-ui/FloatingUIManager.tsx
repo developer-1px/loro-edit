@@ -15,7 +15,7 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
 }) => {
   const parsedElements = useEditorStore(state => state.parsedElements);
   const updateElement = useEditorStore(state => state.updateElement);
-  const { activeElementId, isUIOpen, closeFloatingUI } = useFloatingUIStore();
+  const { isUIOpen, openFloatingUI, closeFloatingUI } = useFloatingUIStore();
   
   // Find the selected element
   const findElement = (elements: ParsedElement[], id: string): ParsedElement | null => {
@@ -35,17 +35,22 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
     return null;
   };
   
-  const activeElement = activeElementId ? findElement(parsedElements, activeElementId) : null;
-  const plugin = activeElementId ? pluginManager.getPluginById(activeElementId) : null;
+  const selectedElement = selectedElementId ? findElement(parsedElements, selectedElementId) : null;
+  const plugin = selectedElementId ? pluginManager.getPluginById(selectedElementId) : null;
   
   useEffect(() => {
-    // Close floating UI when selection changes
-    if (selectedElementId !== activeElementId && isUIOpen) {
+    // Auto-open floating UI for elements that have it
+    if (selectedElementId && selectedElement && plugin?.floatingUI?.enabled && !isUIOpen) {
+      openFloatingUI(selectedElementId);
+    }
+    // Close when selection changes to element without floating UI
+    else if (!plugin?.floatingUI?.enabled && isUIOpen) {
       closeFloatingUI();
     }
-  }, [selectedElementId, activeElementId, isUIOpen, closeFloatingUI]);
+  }, [selectedElementId, selectedElement, plugin, isUIOpen, openFloatingUI, closeFloatingUI]);
   
-  if (!activeElementId || !activeElement || !plugin?.floatingUI?.enabled || !isUIOpen) {
+  // Show floating UI if element has it enabled
+  if (!selectedElement || !plugin?.floatingUI?.enabled) {
     return null;
   }
   
@@ -53,8 +58,8 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
   const position = floatingUIConfig.position || 'top';
   const offset = floatingUIConfig.offset || 16;
   
-  // Get the active element's DOM position
-  const targetElement = document.querySelector(`[data-element-id="${activeElementId}"]`);
+  // Get the selected element's DOM position
+  const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`);
   const previewContainer = document.querySelector('[data-preview-container]');
   
   if (!targetElement || !previewContainer) {
@@ -144,8 +149,8 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
           {plugin.selectable?.name || plugin.name}
         </span>
         {React.createElement(floatingUIConfig.render, {
-          element: activeElement,
-          isOpen: isUIOpen,
+          element: selectedElement,
+          isOpen: true,
           onClose: closeFloatingUI,
           updateElement
         })}
