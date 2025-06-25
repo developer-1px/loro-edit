@@ -154,6 +154,7 @@ class PluginManager implements IPluginManager {
              htmlEl.closest('[data-radix-tabs-content]') ||
              htmlEl.closest('[data-radix-tabs-list]') ||
              htmlEl.closest('[data-radix-tabs-trigger]') ||
+             htmlEl.closest('[data-floating-ui]') ||
              htmlEl.classList.contains('floating-menu') ||
              htmlEl.closest('.floating-menu') ||
              htmlEl.classList.contains('bg-gray-900') || // Floating menu style

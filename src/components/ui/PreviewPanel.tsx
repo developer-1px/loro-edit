@@ -3,6 +3,7 @@
 import React from 'react';
 import type { ParsedElement, SelectionState } from '../../types';
 import { SelectionOverlayManager } from '../../features/selection';
+import { FloatingUIManager } from '../../features/floating-ui';
 
 interface PreviewPanelProps {
   previewMode: 'mobile' | 'tablet' | 'desktop';
@@ -61,6 +62,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         {/* Selection Overlay Manager */}
         <SelectionOverlayManager
           selection={selection}
+        />
+        
+        {/* Floating UI Manager */}
+        <FloatingUIManager
+          selectedElementId={selection.selectedElementId}
         />
       </div>
     </div>

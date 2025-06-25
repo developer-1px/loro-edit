@@ -9,6 +9,7 @@ import { svgPlugin } from "./svg";
 import { repeatItemPlugin } from "./repeat-item";
 import { formPlugin } from "./form";
 import { inputPlugin } from "./input";
+import { linkPlugin } from "./link";
 import { fallbackPlugin as elementPlugin } from "./fallback";
 
 let pluginsRegistered = false;
@@ -23,6 +24,7 @@ export const registerDefaultPlugins = () => {
   pluginManager.register(repeatItemPlugin); // Higher priority for repeat items
   pluginManager.register(formPlugin);
   pluginManager.register(buttonPlugin);
+  pluginManager.register(linkPlugin);
   pluginManager.register(inputPlugin);
   pluginManager.register(imagePlugin);
   pluginManager.register(svgPlugin);
@@ -45,4 +47,5 @@ export { svgPlugin } from "./svg";
 export { repeatItemPlugin } from "./repeat-item";
 export { formPlugin } from "./form";
 export { inputPlugin } from "./input";
+export { linkPlugin } from "./link";
 export { fallbackPlugin as elementPlugin } from "./fallback";

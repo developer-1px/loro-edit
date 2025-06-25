@@ -3,6 +3,7 @@
 import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
+import { FormFloatingUI } from "./form/FormFloatingUI";
 
 export const formPlugin: Plugin = {
   name: "form",
@@ -14,6 +15,13 @@ export const formPlugin: Plugin = {
     level: "container",
     elementType: "block",
     priority: 0
+  },
+
+  floatingUI: {
+    enabled: true,
+    position: 'top',
+    offset: 64,
+    render: FormFloatingUI
   },
 
   match: (element: Element) => element.tagName.toLowerCase() === "form",

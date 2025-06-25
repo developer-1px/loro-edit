@@ -39,9 +39,24 @@ export interface SelectableConfig {
   allowDeepSelection?: boolean;  // 내부 요소로 진입 가능 여부
 }
 
+export interface FloatingUIConfig {
+  enabled: boolean;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  offset?: number;
+  render: React.ComponentType<FloatingUIRenderProps>;
+}
+
+export interface FloatingUIRenderProps {
+  element: ParsedElement;
+  isOpen: boolean;
+  onClose: () => void;
+  updateElement: (elementId: string, updates: Partial<ParsedElement>) => void;
+}
+
 export interface Plugin {
   name: string;
   selectable: SelectableConfig;
+  floatingUI?: FloatingUIConfig;
   match: (element: Element) => boolean;
   parse: (element: Element) => ParsedElement | null;
   render: (props: PluginRenderProps) => React.ReactNode;
