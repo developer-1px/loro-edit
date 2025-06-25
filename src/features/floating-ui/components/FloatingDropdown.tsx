@@ -39,7 +39,7 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`bg-gray-900 rounded-md shadow-xl px-3 py-1.5 flex items-center gap-2 text-white hover:bg-gray-800 transition-colors ${className}`}
+          className={`bg-white/20 rounded px-2.5 py-1 flex items-center gap-1.5 text-white hover:bg-white/30 transition-colors text-xs ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
           {selectedItem?.icon && (

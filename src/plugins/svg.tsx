@@ -79,7 +79,7 @@ export const svgPlugin: Plugin = {
   floatingUI: {
     enabled: true,
     position: 'top',
-    offset: 32,
+    offset: 24,
     render: SvgFloatingUI
   },
 

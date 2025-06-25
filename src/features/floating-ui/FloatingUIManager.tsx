@@ -56,7 +56,8 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
   
   const floatingUIConfig = plugin.floatingUI;
   const position = floatingUIConfig.position || 'top';
-  const offset = floatingUIConfig.offset || 8; // Reduced from 16 to 8 for closer positioning
+  const offset = floatingUIConfig.offset || 4; // Further reduced for tighter positioning
+  const selectionColor = plugin.selectable?.color || '#3b82f6';
   
   // Get the selected element's DOM position
   const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`);
@@ -127,24 +128,25 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
       style={{
         ...getPositionForElement(),
         pointerEvents: 'auto',
-        backgroundColor: '#111827',
-        borderRadius: '8px',
-        padding: '8px 12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+        backgroundColor: selectionColor,
+        borderRadius: '6px',
+        padding: '6px 10px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
       }}
       data-floating-ui
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ 
-          color: '#6b7280',
+          color: 'white',
           fontSize: '11px',
-          fontWeight: 700,
+          fontWeight: 600,
           textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          borderRight: '1px solid #374151',
-          paddingRight: '12px',
+          letterSpacing: '0.05em',
+          borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+          paddingRight: '8px',
           lineHeight: 1,
+          opacity: 0.9,
         }}>
           {plugin.selectable?.name || plugin.name}
         </span>

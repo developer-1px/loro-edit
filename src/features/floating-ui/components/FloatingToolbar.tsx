@@ -21,16 +21,16 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   className = ""
 }) => {
   return (
-    <div className={`bg-gray-900 rounded-md shadow-xl px-0.5 py-0.5 flex items-center gap-0.5 ${className}`}>
+    <div className={`flex items-center gap-1 ${className}`}>
       {buttons.map((button) => (
         <button
           key={button.id}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-colors text-xs ${
+          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs ${
             button.isActive
-              ? "bg-amber-500 text-gray-900 hover:bg-amber-400"
+              ? "bg-white/30 text-white"
               : button.variant === 'primary'
-              ? "bg-blue-600 text-white hover:bg-blue-500"
-              : "text-white hover:bg-gray-800"
+              ? "bg-white/20 text-white hover:bg-white/30"
+              : "text-white hover:bg-white/20"
           }`}
           onClick={(e) => {
             e.stopPropagation();

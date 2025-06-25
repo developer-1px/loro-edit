@@ -58,14 +58,14 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
   };
   
   return (
-    <div className={`bg-gray-900 rounded-md shadow-xl px-2 py-1 flex items-center ${className}`}>
+    <div className={`bg-white/20 rounded px-2 py-1 flex items-center ${className}`}>
       <Input
         ref={inputRef}
         type={type}
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}
         placeholder={placeholder}
-        className={`bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-500 h-6 text-xs ${width}`}
+        className={`bg-white/10 border-white/20 text-white placeholder-white/50 h-6 text-xs ${width}`}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         onBlur={handleSave}
