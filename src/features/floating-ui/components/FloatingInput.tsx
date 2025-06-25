@@ -60,14 +60,14 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
   };
   
   return (
-    <div className={`bg-gray-900 rounded px-1.5 py-0.5 flex items-center ${className}`} style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
+    <div className={`bg-gray-900 rounded px-1 py-0.5 flex items-center ${className}`} style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
       <Input
         ref={inputRef}
         type={type}
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}
         placeholder={placeholder}
-        className={`bg-gray-950 text-gray-200 placeholder-gray-500 h-5 text-[11px] px-1.5 ${width}`}
+        className={`bg-gray-950 text-gray-200 placeholder-gray-500 h-5 text-[11px] px-1 ${width}`}
         style={{ borderColor: `${selectionColor}20` }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}

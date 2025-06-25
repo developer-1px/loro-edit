@@ -4,7 +4,7 @@ export const INITIAL_HTML = `<div class="min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid lg:grid-cols-2 gap-12 items-center">
         <div class="text-center lg:text-left">
-          <h1 class="text-4xl md:text-6xl font-bold mb-6">Build the Future with AI</h1>
+          <h1 class="text-xl md:text-2xl font-bold mb-3">Build the Future with AI</h1>
           <p class="text-xl md:text-2xl mb-8 opacity-90">Transform your business with cutting-edge artificial intelligence solutions that drive innovation and growth.</p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100" data-action-type="onClick">Start Free Trial</button>

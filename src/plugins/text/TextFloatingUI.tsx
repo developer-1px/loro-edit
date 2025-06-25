@@ -42,13 +42,13 @@ export const TextFloatingUI: React.FC<FloatingUIRenderProps> = ({
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       {/* 상위 링크가 있으면 탭 표시 */}
       {parentLink && (
-        <div className="flex items-center gap-1 mr-2">
+        <div className="flex items-center gap-0.5 mr-1">
           <button
             onClick={() => setActiveTab('text')}
-            className={`px-2 py-0.5 rounded text-[10px] ${
+            className={`px-1.5 py-0.5 rounded text-[9px] ${
               activeTab === 'text' 
                 ? 'bg-gray-700 text-white' 
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-700'
@@ -59,7 +59,7 @@ export const TextFloatingUI: React.FC<FloatingUIRenderProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('link')}
-            className={`px-2 py-0.5 rounded text-[10px] ${
+            className={`px-1.5 py-0.5 rounded text-[9px] ${
               activeTab === 'link' 
                 ? 'bg-gray-700 text-white' 
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-700'

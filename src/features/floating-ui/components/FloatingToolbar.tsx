@@ -27,7 +27,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
       {buttons.map((button) => (
         <button
           key={button.id}
-          className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded transition-colors text-[11px] hover:opacity-80`}
+          className={`flex items-center gap-0.5 px-1 py-0.5 rounded transition-colors text-[11px] hover:opacity-80`}
           style={{
             backgroundColor: button.isActive ? selectionColor : button.variant === 'primary' ? `${selectionColor}20` : 'transparent',
             color: button.isActive ? 'white' : button.variant === 'primary' ? selectionColor : '#9ca3af',

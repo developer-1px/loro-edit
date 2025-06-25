@@ -56,7 +56,7 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
   
   const floatingUIConfig = plugin.floatingUI;
   const position = floatingUIConfig.position || 'top';
-  const offset = floatingUIConfig.offset || 4; // Further reduced for tighter positioning
+  const offset = floatingUIConfig.offset || 1; // Very close positioning
   const selectionColor = plugin.selectable?.color || '#3b82f6';
   
   // Get the selected element's DOM position
@@ -137,7 +137,7 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
       data-floating-ui
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
         <span style={{ 
           color: selectionColor,
           fontSize: '10px',
@@ -145,7 +145,7 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           borderRight: `1px solid ${selectionColor}30`,
-          paddingRight: '6px',
+          paddingRight: '3px',
           lineHeight: 1,
         }}>
           {plugin.selectable?.name || plugin.name}

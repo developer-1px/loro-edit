@@ -87,7 +87,7 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
   const allButtons = linkButton ? [...toolbarButtons, linkButton] : toolbarButtons;
   
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5">
       <FloatingToolbar buttons={allButtons} selectionColor={selectionColor} />
       
       {/* 링크 편집 UI */}
@@ -104,12 +104,12 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
       )}
       
       {activeTab === 'svg' && showIconPicker && (
-        <div className="bg-gray-900 rounded shadow-xl p-2 max-w-xs" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
-          <div className="grid grid-cols-3 gap-1">
+        <div className="bg-gray-900 rounded shadow-xl p-1.5 max-w-xs" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
+          <div className="grid grid-cols-3 gap-0.5">
             {ICONS.map((icon) => (
               <button
                 key={icon.name}
-                className="p-1.5 rounded transition-colors hover:opacity-80"
+                className="p-1 rounded transition-colors hover:opacity-80"
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${selectionColor}10`}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 onClick={() => handleIconSelect(icon)}
@@ -129,9 +129,9 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
       )}
       
       {activeTab === 'svg' && showCodeEditor && (
-        <div className="bg-gray-900 rounded shadow-xl p-2 w-72" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
+        <div className="bg-gray-900 rounded shadow-xl p-1.5 w-72" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}30` }}>
           <textarea
-            className="w-full h-24 bg-gray-950 rounded px-2 py-1 text-[11px] text-gray-200 font-mono"
+            className="w-full h-20 bg-gray-950 rounded px-1.5 py-1 text-[10px] text-gray-200 font-mono"
             style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: `${selectionColor}20` }}
             placeholder="Enter SVG code..."
             defaultValue={svgElement.children?.[0]?.type === 'text' ? svgElement.children[0].content : ''}
@@ -148,7 +148,7 @@ export const SvgFloatingUI: React.FC<FloatingUIRenderProps> = ({
               }
             }}
           />
-          <div className="text-[10px] text-gray-400 mt-1">
+          <div className="text-[9px] text-gray-400 mt-0.5">
             Enter SVG code without the outer &lt;svg&gt; tags
           </div>
         </div>

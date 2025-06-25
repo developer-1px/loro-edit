@@ -41,7 +41,7 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`bg-gray-900 rounded px-2 py-0.5 flex items-center gap-1 text-gray-200 hover:bg-gray-800 transition-colors text-[11px] ${className}`}
+          className={`bg-gray-900 rounded px-1.5 py-0.5 flex items-center gap-0.5 text-gray-200 hover:bg-gray-800 transition-colors text-[11px] ${className}`}
           style={{ 
             borderWidth: '1px',
             borderStyle: 'solid',
@@ -77,7 +77,7 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
           {items.map((item) => (
             <button
               key={item.id}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] w-full text-left transition-colors ${
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] w-full text-left transition-colors ${
                 item.isActive
                   ? "bg-gray-800 text-white"
                   : "text-gray-300 hover:bg-gray-800 hover:text-white"
