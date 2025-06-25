@@ -57,7 +57,7 @@ export const buttonPlugin: Plugin = {
   floatingUI: {
     enabled: true,
     position: 'top',
-    offset: 64,
+    offset: 32,
     render: ButtonFloatingUI
   },
 

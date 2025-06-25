@@ -56,7 +56,7 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
   
   const floatingUIConfig = plugin.floatingUI;
   const position = floatingUIConfig.position || 'top';
-  const offset = floatingUIConfig.offset || 16;
+  const offset = floatingUIConfig.offset || 8; // Reduced from 16 to 8 for closer positioning
   
   // Get the selected element's DOM position
   const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`);

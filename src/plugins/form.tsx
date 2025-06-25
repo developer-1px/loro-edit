@@ -20,7 +20,7 @@ export const formPlugin: Plugin = {
   floatingUI: {
     enabled: true,
     position: 'top',
-    offset: 64,
+    offset: 32,
     render: FormFloatingUI
   },
 
