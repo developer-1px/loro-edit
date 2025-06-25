@@ -63,7 +63,7 @@ const generateNewIds = (element: ParsedElement): ParsedElement => {
 
 export const useEditorStore = create<EditorState>()(
   temporal(
-    (set) => {
+    (set, get) => {
       return {
         htmlInput: "",
         parsedElements: [],
@@ -159,10 +159,83 @@ export const useEditorStore = create<EditorState>()(
         }));
       },
 
-      // Simplified repeat functions - TODO: Implement with new selection system
-      handleRepeatItemCopy: () => {},
-      handleRepeatItemCut: () => {},
-      handleRepeatItemPaste: () => {},
+      // Repeat item clipboard operations
+      handleRepeatItemCopy: () => {
+        const state = get();
+        if (!state.selection.selectedElementId) return;
+        
+        // Import command directly
+        import('../features/history/commands/CopyRepeatItemCommand').then(({ CopyRepeatItemCommand }) => {
+          import('../features/history').then(({ commandManager }) => {
+            const store = useEditorStore.getState();
+            const context = {
+              parsedElements: state.parsedElements,
+              setParsedElements: (elements: ParsedElement[]) => set({ parsedElements: elements }),
+              selection: state.selection,
+              setSelection: (selection: Partial<SelectionState>) => set(s => ({ selection: { ...s.selection, ...selection } })),
+              updateElement: store.updateElement
+            };
+            
+            const command = new CopyRepeatItemCommand(state.selection.selectedElementId!, context);
+            commandManager.execute(command);
+          });
+        });
+      },
+      
+      handleRepeatItemCut: () => {
+        const state = get();
+        if (!state.selection.selectedElementId) return;
+        
+        import('../features/history/commands/CutRepeatItemCommand').then(({ CutRepeatItemCommand }) => {
+          import('../features/history').then(({ commandManager }) => {
+            const store = useEditorStore.getState();
+            const context = {
+              parsedElements: state.parsedElements,
+              setParsedElements: (elements: ParsedElement[]) => set({ parsedElements: elements }),
+              selection: state.selection,
+              setSelection: (selection: Partial<SelectionState>) => set(s => ({ selection: { ...s.selection, ...selection } })),
+              updateElement: store.updateElement
+            };
+            
+            const command = new CutRepeatItemCommand(state.selection.selectedElementId!, context);
+            commandManager.execute(command);
+          });
+        });
+      },
+      
+      handleRepeatItemPaste: (containerId) => {
+        import('../features/history/commands/PasteRepeatItemCommand').then(({ PasteRepeatItemCommand }) => {
+          import('../features/history').then(({ commandManager }) => {
+            const state = get();
+            const store = useEditorStore.getState();
+            const context = {
+              parsedElements: state.parsedElements,
+              setParsedElements: (elements: ParsedElement[]) => set({ parsedElements: elements }),
+              selection: state.selection,
+              setSelection: (selection: Partial<SelectionState>) => set(s => ({ selection: { ...s.selection, ...selection } })),
+              updateElement: store.updateElement
+            };
+            
+            // Get the currently selected repeat item index
+            const selectedId = state.selection.selectedElementId;
+            
+            // Find index of selected item within container
+            let afterIndex = -1; // Default to beginning
+            if (selectedId) {
+              // Use the helper method from PasteRepeatItemCommand
+              const indexInfo = PasteRepeatItemCommand.getRepeatItemIndex(state.parsedElements, selectedId);
+              if (indexInfo && indexInfo.containerId === containerId) {
+                afterIndex = indexInfo.index;
+              }
+            }
+            
+            const command = new PasteRepeatItemCommand(containerId, afterIndex, context);
+            if (command.canExecute()) {
+              commandManager.execute(command);
+            }
+          });
+        });
+      },
 
       handleDatabaseViewModeChange: (databaseId: string, viewMode: "cards" | "table") => {
         set((state) => {
