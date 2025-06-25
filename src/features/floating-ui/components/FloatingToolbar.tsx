@@ -27,10 +27,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           key={button.id}
           className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs ${
             button.isActive
-              ? "bg-white/30 text-white"
+              ? "bg-gray-800 text-white"
               : button.variant === 'primary'
-              ? "bg-white/20 text-white hover:bg-white/30"
-              : "text-white hover:bg-white/20"
+              ? "bg-gray-800 text-white hover:bg-gray-700"
+              : "text-gray-300 hover:bg-gray-800 hover:text-white"
           }`}
           onClick={(e) => {
             e.stopPropagation();

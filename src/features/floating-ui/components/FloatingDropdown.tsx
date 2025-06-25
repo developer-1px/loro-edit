@@ -39,7 +39,7 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`bg-white/20 rounded px-2.5 py-1 flex items-center gap-1.5 text-white hover:bg-white/30 transition-colors text-xs ${className}`}
+          className={`bg-gray-800 rounded px-2.5 py-1 flex items-center gap-1.5 text-gray-200 hover:bg-gray-700 transition-colors text-xs border border-gray-700 ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
           {selectedItem?.icon && (
@@ -67,8 +67,8 @@ export const FloatingDropdown: React.FC<FloatingDropdownProps> = ({
               key={item.id}
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs w-full text-left transition-colors ${
                 item.isActive
-                  ? "bg-amber-500 text-gray-900 hover:bg-amber-400"
-                  : "text-white hover:bg-gray-800"
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
               }`}
               onClick={(e) => {
                 e.stopPropagation();

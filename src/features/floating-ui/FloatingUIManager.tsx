@@ -128,25 +128,25 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
       style={{
         ...getPositionForElement(),
         pointerEvents: 'auto',
-        backgroundColor: selectionColor,
+        backgroundColor: '#111827',
         borderRadius: '6px',
         padding: '6px 10px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+        border: `1px solid ${selectionColor}20`,
       }}
       data-floating-ui
       onClick={(e) => e.stopPropagation()}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ 
-          color: 'white',
+          color: selectionColor,
           fontSize: '11px',
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRight: `1px solid ${selectionColor}30`,
           paddingRight: '8px',
           lineHeight: 1,
-          opacity: 0.9,
         }}>
           {plugin.selectable?.name || plugin.name}
         </span>
