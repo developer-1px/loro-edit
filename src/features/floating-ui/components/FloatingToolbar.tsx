@@ -23,11 +23,11 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   selectionColor = "#3b82f6"
 }) => {
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center gap-0.5 ${className}`}>
       {buttons.map((button) => (
         <button
           key={button.id}
-          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs hover:opacity-80`}
+          className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded transition-colors text-[11px] hover:opacity-80`}
           style={{
             backgroundColor: button.isActive ? selectionColor : button.variant === 'primary' ? `${selectionColor}20` : 'transparent',
             color: button.isActive ? 'white' : button.variant === 'primary' ? selectionColor : '#9ca3af',
@@ -41,7 +41,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           }}
         >
           {button.icon && (
-            <span className="w-3.5 h-3.5 flex items-center justify-center">
+            <span className="w-3 h-3 flex items-center justify-center">
               {button.icon}
             </span>
           )}

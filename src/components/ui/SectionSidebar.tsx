@@ -46,32 +46,32 @@ export const SectionSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-48 bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className="w-40 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-white">
-        <h2 className="text-sm font-semibold text-gray-900">Pages</h2>
-        <div className="flex items-center space-x-1">
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-gray-200 bg-white">
+        <h2 className="text-xs font-semibold text-gray-700">Pages</h2>
+        <div className="flex items-center space-x-0.5">
           <button
             onClick={() => setActiveTab('sections')}
-            className={`p-1.5 rounded ${
+            className={`p-1 rounded ${
               activeTab === 'sections' 
                 ? 'bg-blue-100 text-blue-600' 
                 : 'text-gray-400 hover:text-gray-600'
             }`}
             title="Sections"
           >
-            <LayoutGridIcon size={14} />
+            <LayoutGridIcon size={12} />
           </button>
           <button
             onClick={() => setActiveTab('library')}
-            className={`p-1.5 rounded ${
+            className={`p-1 rounded ${
               activeTab === 'library' 
                 ? 'bg-blue-100 text-blue-600' 
                 : 'text-gray-400 hover:text-gray-600'
             }`}
             title="Design Library"
           >
-            <PlusIcon size={14} />
+            <PlusIcon size={12} />
           </button>
         </div>
       </div>
@@ -79,7 +79,7 @@ export const SectionSidebar: React.FC = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'sections' ? (
-          <div className="p-2 space-y-2">
+          <div className="p-1.5 space-y-1">
             {sections.map((section, index) => (
               <SectionPreview
                 key={section.id}
@@ -91,9 +91,9 @@ export const SectionSidebar: React.FC = () => {
               />
             ))}
             {sections.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <LayoutGridIcon size={32} className="mx-auto mb-2 opacity-30" />
-                <p className="text-xs">No sections found</p>
+              <div className="text-center py-4 text-gray-500">
+                <LayoutGridIcon size={24} className="mx-auto mb-1 opacity-30" />
+                <p className="text-[10px]">No sections found</p>
               </div>
             )}
           </div>

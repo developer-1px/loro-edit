@@ -119,9 +119,9 @@ export const SectionPreview: React.FC<SectionPreviewProps> = ({
   // const sectionTitle = getSectionTitle(section); // Removed for Keynote-style minimal display
 
   return (
-    <div className="mb-4">
+    <div className="mb-2">
       {/* Page Number - Outside and bottom-left */}
-      <div className="text-[10px] font-medium text-gray-500 mb-1 ml-1">
+      <div className="text-[9px] font-medium text-gray-400 mb-0.5 ml-0.5">
         {index + 1}
       </div>
       
@@ -141,14 +141,14 @@ export const SectionPreview: React.FC<SectionPreviewProps> = ({
         <div 
           className="bg-white border border-gray-200 rounded-md overflow-hidden"
           style={{ 
-            width: '120px',
-            height: '80px'
+            width: '100px',
+            height: '65px'
           }}
         >
           <div style={{
-            transform: 'scale(0.08)',
+            transform: 'scale(0.065)',
             transformOrigin: 'top left',
-            width: '1500px',
+            width: '1538px',
             height: '1000px'
           }}>
             {('preview' in section && section.preview) ? (
@@ -162,35 +162,35 @@ export const SectionPreview: React.FC<SectionPreviewProps> = ({
         </div>
 
         {/* Drag Handle (only on hover) */}
-        <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-0.5 right-0.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="p-0.5 bg-white bg-opacity-90 rounded">
-            <GripVerticalIcon size={10} className="text-gray-400" />
+            <GripVerticalIcon size={8} className="text-gray-400" />
           </div>
         </div>
 
         {/* Action Buttons (only on hover and selected) */}
         {(isHovering || isSelected) && (
-          <div className="absolute bottom-1 right-1 flex space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0.5 right-0.5 flex space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={handleCopy}
               className="p-0.5 bg-white bg-opacity-90 rounded hover:bg-gray-50"
               title="Copy section"
             >
-              <CopyIcon size={10} className="text-gray-600" />
+              <CopyIcon size={8} className="text-gray-600" />
             </button>
             <button
               onClick={handleCut}
               className="p-0.5 bg-white bg-opacity-90 rounded hover:bg-gray-50"
               title="Cut section"
             >
-              <ScissorsIcon size={10} className="text-gray-600" />
+              <ScissorsIcon size={8} className="text-gray-600" />
             </button>
             <button
               onClick={handleDelete}
               className="p-0.5 bg-white bg-opacity-90 rounded hover:bg-red-50 hover:text-red-600"
               title="Delete section"
             >
-              <TrashIcon size={10} className="text-gray-600 hover:text-red-600" />
+              <TrashIcon size={8} className="text-gray-600 hover:text-red-600" />
             </button>
           </div>
         )}

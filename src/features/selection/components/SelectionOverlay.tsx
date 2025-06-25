@@ -57,20 +57,20 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         <div
           style={{
             position: "absolute",
-            top: -28,
+            top: -24,
             left: 0,
             backgroundColor: color,
             color: "white",
-            padding: "4px 8px",
+            padding: "2px 6px",
             borderRadius: "4px 4px 0 0",
-            fontSize: "12px",
+            fontSize: "10px",
             fontWeight: 600,
             whiteSpace: "nowrap",
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
             zIndex: 25,
             display: "flex",
             alignItems: "center",
-            gap: "4px",
+            gap: "3px",
             pointerEvents: "auto", // Enable clicking on label
           }}
         >
@@ -83,12 +83,12 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
             {(() => {
               const actionType = elementData.attributes['data-action-type'];
               switch (actionType) {
-                case 'linkTo': return <ExternalLink size={12} style={{ marginLeft: "4px" }} />;
-                case 'submit': return <Send size={12} style={{ marginLeft: "4px" }} />;
-                case 'onClick': return <MousePointer size={12} style={{ marginLeft: "4px" }} />;
-                case 'openModal': return <Layers size={12} style={{ marginLeft: "4px" }} />;
-                case 'scrollTo': return <ArrowDown size={12} style={{ marginLeft: "4px" }} />;
-                default: return <MousePointer size={12} style={{ marginLeft: "4px" }} />;
+                case 'linkTo': return <ExternalLink size={10} style={{ marginLeft: "3px" }} />;
+                case 'submit': return <Send size={10} style={{ marginLeft: "3px" }} />;
+                case 'onClick': return <MousePointer size={10} style={{ marginLeft: "3px" }} />;
+                case 'openModal': return <Layers size={10} style={{ marginLeft: "3px" }} />;
+                case 'scrollTo': return <ArrowDown size={10} style={{ marginLeft: "3px" }} />;
+                default: return <MousePointer size={10} style={{ marginLeft: "3px" }} />;
               }
             })()}
           </span>
