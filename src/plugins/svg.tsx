@@ -73,7 +73,7 @@ export const svgPlugin: Plugin = {
     color: "#f59e0b", // amber - same as image
     level: "element",
     elementType: "inline",
-    priority: 2 // Higher than repeat-item (1)
+    priority: 1 // Higher priority than link (8) but lower than text (0)
   },
 
   floatingUI: {
