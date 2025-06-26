@@ -2,6 +2,7 @@
 
 import { pluginManager } from "./PluginManager";
 import { textPlugin } from "./text";
+import { paragraphPlugin } from "./paragraph";
 import { buttonPlugin } from "./button";
 import { sectionPlugin } from "./section";
 import { imagePlugin } from "./image";
@@ -21,6 +22,9 @@ export const registerDefaultPlugins = () => {
   
   console.log('📦 Registering plugins...');
   
+  // Clear any existing plugins to ensure correct order (important for HMR)
+  pluginManager.clearAllPlugins();
+  
   // Register plugins in priority order
   pluginManager.register(repeatItemPlugin); // Higher priority for repeat items
   pluginManager.register(formPlugin);
@@ -31,6 +35,7 @@ export const registerDefaultPlugins = () => {
   pluginManager.register(svgPlugin);
   pluginManager.register(sectionPlugin);
   pluginManager.register(tablePlugin);
+  pluginManager.register(paragraphPlugin); // Handle <p> tags
   pluginManager.register(textPlugin);
   pluginManager.register(elementPlugin); // Must be last as fallback
   
@@ -42,6 +47,7 @@ export const registerDefaultPlugins = () => {
 export { pluginManager } from "./PluginManager";
 export * from "./types";
 export { textPlugin } from "./text";
+export { paragraphPlugin } from "./paragraph";
 export { buttonPlugin } from "./button";
 export { sectionPlugin } from "./section";
 export { imagePlugin } from "./image";

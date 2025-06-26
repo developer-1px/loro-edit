@@ -1,12 +1,13 @@
 // src/components/ui/InspectorPanel.tsx
 
 import React, { useState } from 'react';
-import { History, Target, Keyboard } from 'lucide-react';
+import { History, Target, Keyboard, Download } from 'lucide-react';
 import type { ParsedElement, SelectionState } from '../../types';
 import { HistoryInspector } from './HistoryInspector';
 import { SelectionInspector } from './SelectionInspector';
 import { KeyboardInspector } from './KeyboardInspector';
 import { Button } from './button';
+import { useEditorStore } from '../../store/editorStore';
 
 interface InspectorPanelProps {
   selection: SelectionState;
@@ -21,6 +22,20 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 }) => {
   // History가 기본 탭
   const [activeTab, setActiveTab] = useState<TabType>('history');
+  const { generateFullHtml, sections } = useEditorStore();
+  
+  const handleExportHtml = () => {
+    const html = generateFullHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'exported-page.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const tabs = [
     {
@@ -45,6 +60,18 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
   return (
     <div className="h-full bg-white border-l border-gray-200 flex flex-col">
+      {/* Export Button */}
+      <div className="p-2 border-b border-gray-200">
+        <Button
+          onClick={handleExportHtml}
+          disabled={sections.length === 0}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5"
+        >
+          <Download className="w-3 h-3 mr-1.5" />
+          Export HTML
+        </Button>
+      </div>
+      
       {/* Tab Navigation */}
       <div className="flex-shrink-0 border-b border-gray-200">
         <div className="flex">

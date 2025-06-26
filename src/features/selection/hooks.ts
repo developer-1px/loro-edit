@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import type { ParsedElement } from '../../types';
 import type { SelectionState } from './types';
 import { pluginManager } from '../../plugins';
+import { log } from '../../utils/logger';
 
 interface UseSelectionHandlingProps {
   selection: SelectionState;
@@ -18,7 +19,7 @@ export const useSelectionHandling = ({
   }, [setSelection]);
 
   const clearHoverEffects = useCallback(() => {
-    document.querySelectorAll('[data-element-id]').forEach(el => {
+    document.querySelectorAll('[data-element-id], [data-section-id]').forEach(el => {
       (el as HTMLElement).style.removeProperty('outline');
     });
   }, []);
@@ -37,19 +38,41 @@ export const useSelectionHandling = ({
   const handleClick = useCallback((event: React.MouseEvent) => {
     const { clientX, clientY } = event;
     
-    console.log('🖱️ Click at:', { x: clientX, y: clientY });
-    console.log('🎯 Current selection:', selection.selectedElementId);
+    log.selection('debug', `Click detected at coordinates`, { x: clientX, y: clientY });
+    log.selection('debug', `Current selection state`, { 
+      mode: selection.mode,
+      selectedElementId: selection.selectedElementId 
+    });
     
     const elementsAtPoint = document.elementsFromPoint(clientX, clientY);
-    console.log('📍 Elements at point:', elementsAtPoint.map(el => ({
+    const elementDetails = elementsAtPoint.map(el => ({
       tag: el.tagName,
       id: el.id,
       className: el.className,
       dataElementId: (el as HTMLElement).dataset?.elementId,
+      dataSectionId: (el as HTMLElement).dataset?.sectionId,
       textContent: el.textContent?.substring(0, 20)
-    })));
+    }));
+    
+    log.selection('debug', `Elements at click point`, { 
+      count: elementsAtPoint.length,
+      elements: elementDetails
+    });
 
-    // Pass current selection and mode for hierarchical selection
+    // First check if we clicked on a section wrapper
+    const sectionElement = elementsAtPoint.find(el => 
+      (el as HTMLElement).dataset?.sectionId
+    ) as HTMLElement;
+    
+    if (sectionElement && event.target === sectionElement) {
+      // Clicked directly on section wrapper (not on child elements)
+      const sectionId = sectionElement.dataset.sectionId!;
+      log.selection('info', `Section clicked directly`, { sectionId });
+      setSelection({ mode: 'block', selectedElementId: sectionId });
+      return;
+    }
+
+    // Otherwise, try to find a selectable element within
     const result = pluginManager.findSelectableAtPoint(
       clientX, 
       clientY, 
@@ -57,23 +80,45 @@ export const useSelectionHandling = ({
       selection.mode || undefined
     );
     
-    console.log('🔍 Selection result:', result);
+    log.selection('debug', `Plugin manager selection result`, result);
     
     if (!result) {
-      console.log('❌ No selectable element found');
+      // If no element found but we're inside a section, select the section
+      if (sectionElement) {
+        const sectionId = sectionElement.dataset.sectionId!;
+        log.selection('info', `No element found, selecting parent section`, { sectionId });
+        setSelection({ mode: 'block', selectedElementId: sectionId });
+        return;
+      }
+      
+      log.selection('warn', `No selectable element found at click point`);
       clearSelection();
       return;
     }
 
     const { elementId, mode } = result;
-    console.log('✅ Setting selection:', { elementId, mode });
+    log.selection('info', `Selection successful`, { elementId, mode });
     setSelection({ mode, selectedElementId: elementId });
-  }, [setSelection, clearSelection, selection.selectedElementId]);
+  }, [setSelection, clearSelection, selection.selectedElementId, selection.mode]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    const result = pluginManager.findSelectableAtPoint(event.clientX, event.clientY);
-    
     clearHoverEffects();
+    
+    // First check for section hover
+    const elementsAtPoint = document.elementsFromPoint(event.clientX, event.clientY);
+    const sectionElement = elementsAtPoint.find(el => 
+      (el as HTMLElement).dataset?.sectionId && 
+      (el as HTMLElement).dataset?.elementId
+    ) as HTMLElement;
+    
+    if (sectionElement && event.target === sectionElement) {
+      // Hovering directly on section wrapper
+      sectionElement.style.outline = '1px dashed rgba(59, 130, 246, 0.4)';
+      return;
+    }
+    
+    // Otherwise check for element hover
+    const result = pluginManager.findSelectableAtPoint(event.clientX, event.clientY);
     
     if (result) {
       // Add subtle hover effect
@@ -81,6 +126,9 @@ export const useSelectionHandling = ({
       if (targetElement) {
         targetElement.style.outline = '1px dashed rgba(59, 130, 246, 0.4)';
       }
+    } else if (sectionElement) {
+      // If no element but we're in a section, show section hover
+      sectionElement.style.outline = '1px dashed rgba(59, 130, 246, 0.2)';
     }
   }, [clearHoverEffects]);
 

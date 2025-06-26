@@ -8,6 +8,7 @@ import type {
 import type { ParsedElement } from "../types";
 import React from "react";
 import { clipboardManager } from "../features/clipboard/ClipboardManager";
+import { log } from "../utils/logger";
 
 class PluginManager implements IPluginManager {
   private _plugins: Plugin[] = [];
@@ -46,9 +47,9 @@ class PluginManager implements IPluginManager {
     // Find first matching plugin
     const tagName = element.tagName.toLowerCase();
     
-    // Only log important elements
+    // Log important elements with plugin system tag
     if (tagName === 'button' || tagName === 'form' || tagName === 'input') {
-      console.log(`🔌 Finding plugin for:`, {
+      log.plugin('debug', `Finding plugin for ${tagName}`, {
         tagName,
         className: element.className,
         id: element.id
@@ -59,18 +60,18 @@ class PluginManager implements IPluginManager {
       const matches = plugin.match(element);
       
       if (tagName === 'button' || tagName === 'form' || tagName === 'input') {
-        console.log(`  - Trying ${plugin.name}: ${matches ? '✅' : '❌'}`);
+        log.plugin('debug', `Trying ${plugin.name}`, { matches });
       }
       
       if (matches) {
         if (tagName === 'button' || tagName === 'form' || tagName === 'input') {
-          console.log(`  ✅ Matched with ${plugin.name}!`);
+          log.plugin('info', `Matched with ${plugin.name}`, { tagName });
         }
         return plugin;
       }
     }
     
-    console.log(`  ❌ No plugin matched!`);
+    log.plugin('warn', 'No plugin matched', { tagName });
     return null;
   }
 
@@ -91,7 +92,7 @@ class PluginManager implements IPluginManager {
     if (parsedElement.type === 'text') {
       plugin = this._plugins.find(p => p.name === 'text') || null;
       if (!plugin) {
-        console.warn('⚠️ Text plugin not found');
+        log.plugin('warn', 'Text plugin not found');
         return null;
       }
       // Text elements are handled specially
@@ -101,17 +102,18 @@ class PluginManager implements IPluginManager {
     }
     
     if (!plugin) {
-      console.warn(`⚠️ No plugin found for element`, domElement);
+      log.plugin('warn', 'No plugin found for element', { tagName: domElement.tagName });
       return null;
     }
 
     // Always update mapping for HMR compatibility
     this._elementPluginMap.set(parsedElement.id, { plugin, parsedElement });
     
-    // Only log important elements to reduce noise
+    // Log element mapping with plugin tag
     const tagName = 'tagName' in parsedElement ? parsedElement.tagName : 'N/A';
     if (tagName === 'button' || tagName === 'form' || tagName === 'input' || plugin.name === 'text' || plugin.name !== 'element') {
-      console.log(`🗺️ Mapping element ${parsedElement.id} to plugin ${plugin.name}`, {
+      log.plugin('debug', `Mapping element to plugin ${plugin.name}`, {
+        elementId: parsedElement.id,
         type: parsedElement.type,
         tagName,
         selectable: plugin.selectable?.enabled,
@@ -128,7 +130,7 @@ class PluginManager implements IPluginManager {
       const isSelected = context.selection.selectedElementId === parsedElement.id;
       return plugin.render({ parsedElement, context, renderElement, canEditText, isSelected }) || null;
     } catch (error) {
-      console.error(`❌ Error rendering with plugin ${plugin.name}:`, error);
+      log.plugin('error', `Error rendering with plugin ${plugin.name}`, { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -138,14 +140,54 @@ class PluginManager implements IPluginManager {
   }
 
   findSelectableAtPoint(x: number, y: number, currentSelection?: string, currentMode?: 'text' | 'block' | null): { elementId: string; mode: 'text' | 'block' } | null {
-    const elementsAtPoint = document.elementsFromPoint(x, y);
+    // First check if click is within main editor area
+    const previewContainer = document.querySelector('[data-preview-container]');
+    if (!previewContainer) {
+      log.selection('warn', 'Preview container not found');
+      return null;
+    }
+
+    const containerRect = previewContainer.getBoundingClientRect();
+    const isWithinContainer = x >= containerRect.left && x <= containerRect.right && 
+                             y >= containerRect.top && y <= containerRect.bottom;
     
-    console.log('🔍 === findSelectableAtPoint START ===');
-    console.log('📍 Click position:', { x, y });
-    console.log('📌 Current selection:', currentSelection);
-    console.log('📌 Current mode:', currentMode);
+    if (!isWithinContainer) {
+      log.selection('debug', 'Click outside main editor area, skipping', { x, y, containerRect });
+      return null;
+    }
     
-    // Skip control elements, overlays, and floating UI
+    const allElementsAtPoint = document.elementsFromPoint(x, y);
+    
+    // Filter to only elements that belong to the main editor container
+    // Exclude any elements from section preview renderers (scaled thumbnails)
+    const elementsAtPoint = allElementsAtPoint.filter(el => {
+      // Must be contained within the main preview container
+      if (!previewContainer.contains(el)) {
+        return false;
+      }
+      
+      // Exclude elements from scaled preview renderers
+      const previewRenderer = el.closest('[data-section-preview-renderer]');
+      if (previewRenderer) {
+        log.selection('debug', 'Excluding element from section preview renderer', { 
+          element: el.tagName, 
+          className: el.className 
+        });
+        return false;
+      }
+      
+      return true;
+    });
+
+    log.selection('debug', 'Filtered elements', { 
+      totalElements: allElementsAtPoint.length,
+      filteredElements: elementsAtPoint.length
+    });
+    
+    log.selection('debug', '=== findSelectableAtPoint START ===');
+    log.selection('debug', 'Click position and context', { x, y, currentSelection, currentMode, elementsFound: elementsAtPoint.length });
+    
+    // Skip control elements, overlays, floating UI, and section wrappers from PluginBasedEditor
     const hasControlElement = elementsAtPoint.some(el => {
       const htmlEl = el as HTMLElement;
       return htmlEl.closest('[data-selection-overlay]') ||
@@ -163,8 +205,25 @@ class PluginManager implements IPluginManager {
              (htmlEl.tagName === 'INPUT' && htmlEl.style.display === 'none');
     });
 
+    // Filter out section wrapper elements created by PluginBasedEditor
+    const filteredElements = elementsAtPoint.filter(el => {
+      const htmlEl = el as HTMLElement;
+      // Skip section wrappers that have data-section-id but no data-element-id
+      if (htmlEl.tagName === 'SECTION' && 
+          htmlEl.dataset.sectionId && 
+          !htmlEl.dataset.elementId &&
+          htmlEl.classList.contains('section-wrapper')) {
+        log.selection('debug', 'Skipping section wrapper', { 
+          sectionId: htmlEl.dataset.sectionId,
+          className: htmlEl.className 
+        });
+        return false;
+      }
+      return true;
+    });
+
     if (hasControlElement) {
-      console.log('⚠️ Control element or floating UI detected, skipping');
+      log.selection('warn', 'Control element or floating UI detected, skipping selection');
       return null;
     }
     
@@ -177,18 +236,31 @@ class PluginManager implements IPluginManager {
       element: Element;
     }> = [];
     
-    console.log('🔎 Checking elements at point:', elementsAtPoint.length);
+    log.selection('debug', 'Checking elements at point', { 
+      totalElements: elementsAtPoint.length,
+      filteredElements: filteredElements.length 
+    });
     
-    for (const domElement of elementsAtPoint) {
+    for (const domElement of filteredElements) {
       const elementId = (domElement as HTMLElement).dataset?.elementId;
-      if (!elementId) continue;
+      if (!elementId) {
+        log.selection('debug', 'Element has no data-element-id', { tagName: domElement.tagName, className: domElement.className });
+        continue;
+      }
 
       const mapping = this._elementPluginMap.get(elementId);
-      if (!mapping) continue;
+      if (!mapping) {
+        log.selection('debug', 'No mapping found for element', { elementId });
+        continue;
+      }
 
       // Skip fallback plugin or non-selectable
       if (mapping.plugin.name === 'element' || !mapping.plugin.selectable?.enabled) {
-        console.log(`⏭️ Skipping: ${elementId} (${mapping.plugin.name})`);
+        log.selection('debug', 'Skipping non-selectable element', { 
+          elementId, 
+          pluginName: mapping.plugin.name,
+          selectable: mapping.plugin.selectable?.enabled 
+        });
         continue;
       }
 
@@ -200,22 +272,28 @@ class PluginManager implements IPluginManager {
         element: domElement
       });
       
-      console.log(`✅ Found selectable: ${mapping.plugin.name} (${mapping.plugin.selectable.level})`);
+      log.selection('info', 'Found selectable element', { 
+        elementId, 
+        pluginName: mapping.plugin.name, 
+        level: mapping.plugin.selectable.level 
+      });
     }
     
     if (selectableElements.length === 0) {
-      console.log('❌ No selectable elements found');
+      log.selection('warn', 'No selectable elements found at click point');
       return null;
     }
     
     // Step 2: Selection logic with hierarchy
-    console.log('📊 Selectable elements:', selectableElements.map(el => `${el.plugin.name}(${el.level})`));
+    log.selection('debug', 'Selection logic with hierarchy', { 
+      selectableElements: selectableElements.map(el => `${el.plugin.name}(${el.level})`) 
+    });
     
     // If text mode, prefer text
     if (currentMode === 'text') {
       const textElement = selectableElements.find(el => el.plugin.name === 'text');
       if (textElement) {
-        console.log('📝 Text mode: selecting text');
+        log.selection('info', 'Text mode: selecting text element', { elementId: textElement.elementId });
         return { elementId: textElement.elementId, mode: 'text' };
       }
     }
@@ -230,7 +308,7 @@ class PluginManager implements IPluginManager {
       const currentLevel = currentMapping?.plugin.selectable?.level;
       const currentLevelPriority = currentLevel ? levelPriority[currentLevel] : -1;
       
-      console.log(`📍 Current selection level: ${currentLevel} (priority: ${currentLevelPriority})`);
+      log.selection('debug', 'Current selection level', { currentLevel, priority: currentLevelPriority });
       
       const currentElement = document.querySelector(`[data-element-id="${currentSelection}"]`);
       if (currentElement) {
@@ -248,7 +326,7 @@ class PluginManager implements IPluginManager {
           });
           
           const child = childElements[0];
-          console.log(`👶 Selecting child: ${child.plugin.name} (${child.level})`);
+          log.selection('info', 'Selecting child element', { pluginName: child.plugin.name, level: child.level });
           return {
             elementId: child.elementId,
             mode: child.plugin.name === 'text' ? 'text' : 'block'
@@ -264,7 +342,7 @@ class PluginManager implements IPluginManager {
         if (sameLevelElements.length > 0) {
           sameLevelElements.sort((a, b) => a.priority - b.priority);
           const selected = sameLevelElements[0];
-          console.log(`🔄 Selecting same level: ${selected.plugin.name} (${selected.level})`);
+          log.selection('info', 'Selecting same level', { pluginName: selected.plugin.name, level: selected.level });
           return {
             elementId: selected.elementId,
             mode: selected.plugin.name === 'text' || selected.level === 'content' ? 'text' : 'block'
@@ -283,7 +361,7 @@ class PluginManager implements IPluginManager {
               return a.priority - b.priority;
             });
             const selected = selectableItems[0];
-            console.log(`🎯 Text mode: selecting ${selected.level}: ${selected.plugin.name}`);
+            log.selection('info', 'Text mode selection', { level: selected.level, pluginName: selected.plugin.name });
             return {
               elementId: selected.elementId,
               mode: selected.level === 'content' ? 'text' : 'block'
@@ -302,17 +380,39 @@ class PluginManager implements IPluginManager {
     });
     
     const selected = selectableElements[0];
-    console.log(`🎯 Default selection: ${selected.plugin.name} (${selected.level})`);
+    const mode = selected.plugin.name === 'text' || selected.level === 'content' ? 'text' : 'block';
+    
+    log.selection('info', 'Default selection made', { 
+      elementId: selected.elementId,
+      pluginName: selected.plugin.name, 
+      level: selected.level,
+      mode 
+    });
     
     return {
       elementId: selected.elementId,
-      mode: selected.plugin.name === 'text' || selected.level === 'content' ? 'text' : 'block'
+      mode
     };
   }
 
 
   clearElementMapping(): void {
     this._elementPluginMap.clear();
+  }
+
+  clearAllPlugins(): void {
+    // Unregister all clipboard handlers
+    this._plugins.forEach(plugin => {
+      if (plugin.clipboardHandler) {
+        clipboardManager.unregisterHandler(plugin.clipboardHandler.type);
+      }
+    });
+    
+    // Clear plugins array and mapping
+    this._plugins = [];
+    this._elementPluginMap.clear();
+    
+    log.plugin('info', 'Cleared all plugins');
   }
 }
 

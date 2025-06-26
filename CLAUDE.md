@@ -36,6 +36,7 @@ The editor follows a minimalist approach inspired by Builder.io-style WYSIWYG ed
 - **Build Tool**: Vite with SWC plugin for fast compilation
 - **State Management**: Zustand with temporal (undo/redo) capabilities via Zundo  
 - **Styling**: Tailwind CSS with PostCSS
+- **UI Components**: Radix UI primitives (Dialog, Popover, Select, etc.)
 - **UI Icons**: Lucide React and Huge Icons React
 - **Keyboard Shortcuts**: react-hotkeys-hook
 - **Common Utilities**: react-use library for reusable patterns
@@ -62,8 +63,12 @@ The application uses a sophisticated plugin architecture for handling different 
 - **Individual Plugins**:
   - `text.tsx` - Text content handling
   - `image.tsx` - Image element management
+  - `link.tsx` - Link editing with contextual popup
+  - `table.tsx` - Table elements with API data integration
+  - `form.tsx` - Form element handling
   - `database.tsx` - Database view components with cards/table modes
   - `repeat-container.tsx` - Repeatable element containers
+  - `repeat-item.tsx` - Individual items within repeat containers
   - `section.tsx` - Section/container elements
   - `element.tsx` - Generic element fallback
 
@@ -76,6 +81,14 @@ The application uses a sophisticated plugin architecture for handling different 
   - Clipboard operations for repeat items
   - Element manipulation (text changes, image updates, database operations)
   - Undo/redo functionality
+- **floatingUIStore.ts** - Manages floating UI state for contextual menus
+
+#### Features (`src/features/`)
+Modular feature implementations:
+- **clipboard/** - Copy/cut/paste operations with hotkeys
+- **floating-ui/** - Contextual floating menus and link editing
+- **history/** - Undo/redo system with command pattern
+- **selection/** - Selection handling, keyboard navigation, and visual indicators
 
 #### Selection System
 The editor implements a dual-mode selection system:
@@ -101,6 +114,8 @@ The editor implements a dual-mode selection system:
 6. **Copy/Cut/Paste**: Clipboard operations for repeatable elements
 7. **Database Integration**: Dynamic data fetching and display in cards/table views
 8. **Real-time Parsing**: HTML changes instantly reflected in preview
+9. **Floating UI**: Contextual menus that appear near selected elements
+10. **Link Editing**: Click-through link editing with child element support
 
 ### Plugin Development Guidelines
 
@@ -125,6 +140,9 @@ The project uses a composite TypeScript setup:
 - `tsconfig.app.json` - Application-specific TypeScript settings
 - `tsconfig.node.json` - Node.js/build tool specific settings
 
+Key TypeScript paths configured:
+- `@/*` → `./src/*` - Use this import alias for all src imports
+
 ## Development Guidelines
 
 ### Code Style Requirements
@@ -133,6 +151,7 @@ The project uses a composite TypeScript setup:
 - Use React Hooks pattern consistently
 - Follow ESLint rules without exceptions
 - Apply Tailwind CSS for all styling
+- Use path aliases (`@/`) for imports from src directory
 
 ### Minimalist Code Conventions
 - **Prefer concise, declarative code**: Write the smallest amount of code that clearly expresses intent

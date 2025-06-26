@@ -8,9 +8,6 @@ import { useEditorHotkeys } from "../hooks/useEditorHotkeys";
 import { useSelectionHandling } from "../features/selection";
 import { useResizeHandling } from "../hooks/useResizeHandling";
 import { useHistory } from "../features/history";
-import { INITIAL_HTML } from "./INITIAL_HTML";
-// import { INITIAL_HTML_SIMPLE } from "./INITIAL_HTML_SIMPLE";
-// import { INITIAL_HTML_TEST } from "./INITIAL_HTML_TEST";
 
 // UI Components
 import { PreviewControls } from "./ui/PreviewControls";
@@ -21,13 +18,16 @@ import { SectionSidebar } from "./ui/SectionSidebar";
 
 // Plugin system
 import { pluginManager, registerDefaultPlugins } from "../plugins";
-import { parseAndRenderHTML } from "../utils/htmlParser";
-import type { ParsedElement } from "../types";
+import type { ParsedElement, RegularElement } from "../types";
 import type { PluginContext } from "../plugins/types";
+import { parseAndRenderHTML } from "../utils/htmlParser";
+import { getTemplateById } from "../data/sectionTemplates";
+import { log } from "../utils/logger";
 
 export const PluginBasedEditor: React.FC = () => {
   const {
     parsedElements,
+    sections,
     selection,
     setParsedElements,
     setSelection,
@@ -35,6 +35,8 @@ export const PluginBasedEditor: React.FC = () => {
     handleDatabaseViewModeChange,
     handleDatabaseSettingsUpdate,
     handleDatabaseFetch,
+    addSection,
+    updateSectionElements,
   } = useEditorStore();
 
   // Use history feature for command management
@@ -70,16 +72,74 @@ export const PluginBasedEditor: React.FC = () => {
 
   useEditorHotkeys(setShowUI);
 
+  // Load initial sections
+  const loadInitialSections = () => {
+    // Define initial sections to create a complete page with various elements
+    const initialTemplates = [
+      'test-simple-text',    // Simple text
+      'hero-split',          // Buttons + Images
+      'features-grid',       // Repeat items
+      'cta-split',          // Form inputs
+      'testimonials-grid',   // More repeat items
+    ];
+
+    // Add each template as a section
+    initialTemplates.forEach((templateId, index) => {
+      const template = getTemplateById(templateId);
+      if (template) {
+        // Add section
+        addSection(template, index);
+        
+        // Parse and add elements to the section
+        setTimeout(() => {
+          const sections = useEditorStore.getState().sections;
+          const section = sections[index];
+          if (section) {
+            const elements = parseAndRenderHTML(template.html);
+            log.parser('info', `Parsed elements for section`, { sectionId: section.id, elementCount: elements.length });
+            updateSectionElements(section.id, elements);
+          }
+        }, 50 * (index + 1)); // Stagger the updates
+      }
+    });
+  };
+
   useEffect(() => {
     // Set initial HTML input on mount - only run once
     registerDefaultPlugins();
-    // Parse initial HTML (mapping will be created during rendering)
-    const elements = parseAndRenderHTML(INITIAL_HTML);
-    setParsedElements(elements);
+    // Clear initial state
+    setParsedElements([]);
     // Reset both command history and temporal history for new HTML
     clearHistory();
     if (clear) clear();
+    
+    // Load initial sections with sample content
+    loadInitialSections();
   }, []); // Empty dependency array to run only once
+
+  // Update parsedElements when sections change - wrap each section
+  useEffect(() => {
+    // Create section wrappers with their elements
+    const sectionElements: ParsedElement[] = sections
+      .sort((a, b) => a.order - b.order)
+      .map(section => {
+        const wrapper: ParsedElement = {
+          id: section.id,
+          type: 'element',
+          tagName: 'section',
+          attributes: {
+            'data-section-id': section.id,
+            'class': 'section-wrapper'
+          },
+          children: section.elements
+        } as RegularElement;
+        
+        return wrapper;
+      });
+    
+    log.render('debug', 'Setting parsedElements', { sectionCount: sectionElements.length });
+    setParsedElements(sectionElements);
+  }, [sections, setParsedElements]);
 
   // Debug keyboard events
   useEffect(() => {
@@ -112,8 +172,34 @@ export const PluginBasedEditor: React.FC = () => {
 
   // Plugin-based rendering
   const renderElement = (parsedElement: ParsedElement): React.ReactNode => {
-    // For the new plugin system, we need to create a mock DOM element to pass to the plugin
-    // This is a temporary solution until we fully refactor to work with DOM elements
+    log.render('debug', 'Rendering element', { id: parsedElement.id, type: parsedElement.type });
+    
+    // Check if this is a section wrapper
+    if ("tagName" in parsedElement && parsedElement.tagName === "section" && 
+        "attributes" in parsedElement && parsedElement.attributes?.['data-section-id']) {
+      log.render('debug', 'Rendering section wrapper', { 
+        sectionId: parsedElement.attributes['data-section-id'],
+        childrenCount: (parsedElement as RegularElement).children?.length || 0
+      });
+      // Render section wrapper directly
+      return (
+        <section
+          key={parsedElement.id}
+          id={parsedElement.id}
+          data-element-id={parsedElement.id}
+          data-section-id={parsedElement.attributes['data-section-id']}
+          className={parsedElement.attributes.class || ''}
+        >
+          {"children" in parsedElement && (parsedElement as RegularElement).children?.map((child, index) => (
+            <React.Fragment key={child.id || index}>
+              {renderElement(child)}
+            </React.Fragment>
+          ))}
+        </section>
+      );
+    }
+    
+    // For other elements, use the plugin system
     const tagName = "tagName" in parsedElement ? parsedElement.tagName : "div";
     const className = "attributes" in parsedElement && parsedElement.attributes?.class || "";
     const mockElement = document.createElement(tagName || "div");

@@ -5,6 +5,8 @@ import type {
   SelectionState,
   ClipboardItem,
   RegularElement,
+  Section,
+  SectionTemplate,
 } from "../types";
 // Commands are now handled by the history feature
 // import { commandManager, type CommandContext, type UndoRedoState } from "../features/history";
@@ -12,6 +14,7 @@ import type {
 export interface EditorState {
   htmlInput: string;
   parsedElements: ParsedElement[];
+  sections: Section[];
   selection: SelectionState;
   clipboard: ClipboardItem | null;
   
@@ -20,6 +23,15 @@ export interface EditorState {
   setParsedElements: (elements: ParsedElement[]) => void;
   setSelection: (selection: Partial<SelectionState>) => void;
   setClipboard: (clipboard: ClipboardItem | null) => void;
+  
+  // Section management
+  setSections: (sections: Section[]) => void;
+  addSection: (template: SectionTemplate, position?: number) => void;
+  removeSection: (sectionId: string) => void;
+  moveSection: (fromIndex: number, toIndex: number) => void;
+  updateSectionElements: (sectionId: string, elements: ParsedElement[]) => void;
+  getSectionById: (sectionId: string) => Section | undefined;
+  generateFullHtml: () => string;
   
   // History functionality moved to features/history
   // Use useHistory() hook instead of store methods
@@ -67,6 +79,7 @@ export const useEditorStore = create<EditorState>()(
       return {
         htmlInput: "",
         parsedElements: [],
+        sections: [],
         selection: {
           mode: null,
           selectedElementId: null,
@@ -79,6 +92,79 @@ export const useEditorStore = create<EditorState>()(
         setSelection: (selection) =>
           set((state) => ({ selection: { ...state.selection, ...selection } })),
         setClipboard: (clipboard) => set({ clipboard }),
+        
+        // Section management
+        setSections: (sections) => set({ sections }),
+        
+        addSection: (template, position) => {
+          set((state) => {
+            const newSection: Section = {
+              id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              templateId: template.id,
+              elements: [], // Will be populated by parsing template.html
+              order: position ?? state.sections.length,
+            };
+            
+            const sections = [...state.sections];
+            if (position !== undefined && position >= 0 && position <= sections.length) {
+              // Insert at specific position and update order for other sections
+              sections.splice(position, 0, newSection);
+              sections.forEach((section, index) => {
+                section.order = index;
+              });
+            } else {
+              // Add to end
+              sections.push(newSection);
+            }
+            
+            return { sections };
+          });
+        },
+        
+        removeSection: (sectionId) => {
+          set((state) => {
+            const sections = state.sections
+              .filter(section => section.id !== sectionId)
+              .map((section, index) => ({ ...section, order: index }));
+            return { sections };
+          });
+        },
+        
+        moveSection: (fromIndex, toIndex) => {
+          set((state) => {
+            if (fromIndex === toIndex) return state;
+            
+            const sections = [...state.sections];
+            const [movedSection] = sections.splice(fromIndex, 1);
+            sections.splice(toIndex, 0, movedSection);
+            
+            // Update order
+            sections.forEach((section, index) => {
+              section.order = index;
+            });
+            
+            return { sections };
+          });
+        },
+        
+        updateSectionElements: (sectionId, elements) => {
+          set((state) => ({
+            sections: state.sections.map(section =>
+              section.id === sectionId
+                ? { ...section, elements }
+                : section
+            ),
+          }));
+        },
+        
+        getSectionById: (sectionId) => {
+          return get().sections.find(section => section.id === sectionId);
+        },
+        
+        generateFullHtml: () => {
+          const { sectionsToHtml } = require('../utils/sectionUtils');
+          return sectionsToHtml(get().sections);
+        },
 
         // History functionality moved to features/history - use useHistory() hook
 

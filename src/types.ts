@@ -83,5 +83,23 @@ export type ParsedElement =
   | RepeatContainer
   | DatabaseElement;
 
+// Section Template types
+export interface SectionTemplate {
+  id: string;
+  name: string;
+  category: string;
+  thumbnail: string;
+  description: string;
+  html: string;
+  preview?: string; // Optional preview image/HTML
+}
+
+export interface Section {
+  id: string;
+  templateId?: string; // Reference to the template used
+  elements: ParsedElement[]; // The actual parsed elements for this section
+  order: number; // Order in the page
+}
+
 // Selection types moved to /features/selection
 export type { SelectionState, ClipboardItem } from './features/selection/types';

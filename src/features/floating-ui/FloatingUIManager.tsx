@@ -60,8 +60,10 @@ export const FloatingUIManager: React.FC<FloatingUIManagerProps> = ({
   const selectionColor = plugin.selectable?.color || '#3b82f6';
   
   // Get the selected element's DOM position
-  const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`);
   const previewContainer = document.querySelector('[data-preview-container]');
+  const targetElement = previewContainer 
+    ? previewContainer.querySelector(`[data-element-id="${selectedElementId}"]`)
+    : document.querySelector(`[data-element-id="${selectedElementId}"]`);
   
   if (!targetElement || !previewContainer) {
     return null;

@@ -5,10 +5,25 @@ import { pluginManager } from "../plugins/PluginManager";
 import { VOID_ELEMENTS } from "./voidElements";
 
 export const parseAndRenderHTML = (html: string): ParsedElement[] => {
+  console.log('parseAndRenderHTML called with:', html);
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
-  const elements = processElement(doc.body.firstElementChild);
-  return elements ? [elements] : [];
+  
+  console.log('doc.body.children:', Array.from(doc.body.children));
+  
+  // Process all top-level elements, not just the first one
+  const elements: ParsedElement[] = [];
+  Array.from(doc.body.children).forEach(child => {
+    console.log('Processing child:', child);
+    const parsed = processElement(child);
+    console.log('Parsed result:', parsed);
+    if (parsed) {
+      elements.push(parsed);
+    }
+  });
+  
+  console.log('Final parsed elements:', elements);
+  return elements;
 };
 
 // Inline formatting tags that should be merged into text content
@@ -23,7 +38,9 @@ const processElement = (element: Element | null): ParsedElement | null => {
   const isVoidElement = VOID_ELEMENTS.has(tagName);
   
   // Try to use plugin system to parse the element
+  console.log('processElement: Trying to parse element:', element.tagName, element);
   const parsed = pluginManager.parseElement(element);
+  console.log('processElement: Plugin system returned:', parsed);
   if (parsed) {
     
     // Recursively parse children if this is a container element

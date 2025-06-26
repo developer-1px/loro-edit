@@ -3,6 +3,7 @@ import type { Plugin } from "./types";
 import type { TextElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
 import { TextFloatingUI } from "./text/TextFloatingUI";
+import { log } from "../utils/logger";
 
 interface EditableTextProps {
   text: string;
@@ -21,6 +22,13 @@ const EditableText: React.FC<EditableTextProps> = memo(({
 }) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const isTextMode = useEditorStore((state) => state.selection.mode === "text");
+  
+  log.render('debug', `Creating EditableText component`, {
+    elementId,
+    text: text.slice(0, 50) + (text.length > 50 ? '...' : ''),
+    isEditable,
+    isTextMode
+  });
 
   const handleBlur = () => {
     if (textRef.current) {
@@ -125,6 +133,13 @@ export const textPlugin: Plugin = {
 
   render: ({ parsedElement, canEditText, context }) => {
     const textElement = parsedElement as TextElement;
+    
+    log.plugin('debug', `Rendering text element with ID: ${textElement.id}`, {
+      element: textElement,
+      canEditText,
+      content: textElement.content
+    });
+    
     return (
       <EditableText
         key={textElement.id}

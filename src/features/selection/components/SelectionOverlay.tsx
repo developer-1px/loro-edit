@@ -2,6 +2,7 @@ import React from "react";
 import { useElementRect } from "../../../hooks/useElementRect";
 import { MousePointer, ExternalLink, Send, Layers, ArrowDown } from "lucide-react";
 import { pluginManager } from "../../../plugins";
+import { log } from "../../../utils/logger";
 
 interface SelectionOverlayProps {
   targetSelector: string;
@@ -20,9 +21,21 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   pluginName,
   elementId
 }) => {
+  log.ui('debug', `SelectionOverlay rendering`, {
+    targetSelector,
+    elementName,
+    elementId,
+    pluginName
+  });
+  
   const { boundingRect } = useElementRect(targetSelector, {
     containerSelector: "[data-preview-container]",
     enabled: Boolean(targetSelector),
+  });
+  
+  log.ui('debug', `SelectionOverlay bounding rect`, {
+    targetSelector,
+    boundingRect
   });
   
   // Check if this element has floating UI capability
@@ -32,7 +45,23 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   // Hide selection label if element has floating UI
   const hideLabel = hasFloatingUI;
 
-  if (!boundingRect) return null;
+  if (!boundingRect) {
+    log.ui('warn', `SelectionOverlay: No bounding rect, not rendering`, { targetSelector });
+    return null;
+  }
+  
+  // Don't render overlay for Section elements to avoid blocking inner element selection
+  if (elementName === "Section") {
+    log.ui('debug', `SelectionOverlay: Skipping Section overlay to allow inner selection`, { targetSelector });
+    return null;
+  }
+  
+  log.ui('info', `SelectionOverlay: Rendering overlay`, {
+    targetSelector,
+    elementName,
+    boundingRect,
+    hideLabel
+  });
 
   const padding = elementName === "Text" ? 4 : elementName === "Button" ? -1 : 0;
   

@@ -2,6 +2,7 @@
 
 import type { ParsedElement } from '../types';
 import { VOID_ELEMENTS } from '../utils/voidElements';
+import { log } from '../utils/logger';
 
 // 공통 DOM 속성 파싱 유틸리티
 export function parseAttributes(element: Element): Record<string, string> {
@@ -31,10 +32,20 @@ export function createElementProps(parsedElement: ParsedElement, isSelected?: bo
   const hasAttributes = 'attributes' in parsedElement;
   // Currently not using isSelected but keeping for future use
   void isSelected;
-  return {
+  
+  const props = {
     key: parsedElement.id,
     'data-element-id': parsedElement.id,
     id: hasAttributes && parsedElement.attributes?.id ? parsedElement.attributes.id : undefined,
     className: hasAttributes ? parsedElement.attributes?.class || "" : "",
   };
+  
+  log.render('debug', `Creating element props`, {
+    elementId: parsedElement.id,
+    elementType: parsedElement.type,
+    props,
+    isSelected
+  });
+  
+  return props;
 }

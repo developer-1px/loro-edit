@@ -10,7 +10,7 @@ export const fallbackPlugin: Plugin = {
   name: "element",
   
   selectable: {
-    enabled: false,
+    enabled: true,
     name: "Element",
     color: "#6b7280",
     level: "element",
