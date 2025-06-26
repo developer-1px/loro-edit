@@ -1,25 +1,34 @@
 import '@testing-library/jest-dom'
 import { beforeEach, vi } from 'vitest'
 
+// Check if we're in browser environment
+const globalThis = typeof window !== 'undefined' ? window : global;
+
 // Mock crypto.randomUUID for tests
-Object.defineProperty(global, 'crypto', {
-  value: {
-    randomUUID: () => 'test-uuid-' + Math.random().toString(36).substring(2, 15)
-  }
-})
+if (!globalThis.crypto?.randomUUID) {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: {
+      randomUUID: () => 'test-uuid-' + Math.random().toString(36).substring(2, 15)
+    }
+  });
+}
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
+// Mock ResizeObserver if not available
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+}
 
-// Mock MutationObserver
-global.MutationObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  disconnect: vi.fn(),
-}))
+// Mock MutationObserver if not available
+if (!globalThis.MutationObserver) {
+  globalThis.MutationObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+}
 
 // Mock document.elementsFromPoint for JSDOM
 Object.defineProperty(document, 'elementsFromPoint', {

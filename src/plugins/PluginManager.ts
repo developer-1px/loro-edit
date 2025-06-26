@@ -371,15 +371,47 @@ class PluginManager implements IPluginManager {
       }
     }
     
-    // Default: Sort by level (prefer smallest/most specific level first)
-    selectableElements.sort((a, b) => {
-      // Reverse order - prefer content (2) > element (1) > container (0)
-      const levelDiff = levelPriority[b.level] - levelPriority[a.level];
-      if (levelDiff !== 0) return levelDiff;
-      return a.priority - b.priority;
-    });
+    // Default: Check if we're clicking directly on an element or empty space
+    // If clicking on empty space within a container, select the container
+    const elementsAtExactPoint = document.elementsFromPoint(x, y);
     
-    const selected = selectableElements[0];
+    // Find the topmost selectable element that we're clicking directly on
+    let directClick = null;
+    for (const el of elementsAtExactPoint) {
+      const elementId = el.getAttribute('data-element-id');
+      if (elementId) {
+        const selectable = selectableElements.find(s => s.elementId === elementId);
+        if (selectable) {
+          directClick = selectable;
+          break;
+        }
+      }
+    }
+    
+    let selected;
+    if (directClick) {
+      // We're clicking directly on this element
+      selected = directClick;
+      log.selection('debug', 'Direct click on element', { 
+        elementId: selected.elementId,
+        level: selected.level 
+      });
+    } else {
+      // Not clicking directly on any selectable element
+      // Prefer containers in this case (clicking empty space)
+      selectableElements.sort((a, b) => {
+        // Prefer container (0) > element (1) > content (2) for empty space clicks
+        const levelDiff = levelPriority[a.level] - levelPriority[b.level];
+        if (levelDiff !== 0) return levelDiff;
+        return a.priority - b.priority;
+      });
+      selected = selectableElements[0];
+      log.selection('debug', 'Empty space click, preferring container', { 
+        elementId: selected.elementId,
+        level: selected.level 
+      });
+    }
+    
     const mode = selected.plugin.name === 'text' || selected.level === 'content' ? 'text' : 'block';
     
     log.selection('info', 'Default selection made', { 

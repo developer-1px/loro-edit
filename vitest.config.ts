@@ -7,6 +7,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    browser: {
+      enabled: true,
+      name: 'chromium',
+      provider: 'playwright',
+      headless: true,
+    },
     setupFiles: './src/test/setup.ts',
     css: true,
     includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
