@@ -9,6 +9,8 @@ import type { ParsedElement } from "../types";
 import React from "react";
 import { clipboardManager } from "../features/clipboard/ClipboardManager";
 import { log } from "../utils/logger";
+import { selectionManager, type SelectionContext } from "../selection";
+import { useEditorStore } from "../store/editorStore";
 
 class PluginManager implements IPluginManager {
   private _plugins: Plugin[] = [];
@@ -26,6 +28,12 @@ class PluginManager implements IPluginManager {
     // Register clipboard handler if present
     if (plugin.clipboardHandler) {
       clipboardManager.registerHandler(plugin.clipboardHandler);
+    }
+    
+    // Register selection strategy if present
+    if (plugin.selectable.enabled && plugin.selectable.strategy) {
+      selectionManager.registerStrategy(plugin.name, plugin.selectable.strategy);
+      log.plugin('info', `Registered selection strategy for plugin: ${plugin.name}`);
     }
   }
 
@@ -107,7 +115,7 @@ class PluginManager implements IPluginManager {
     }
 
     // Always update mapping for HMR compatibility
-    this._elementPluginMap.set(parsedElement.id, { plugin, parsedElement });
+    this.storeParsedElement(parsedElement.id, plugin, parsedElement);
     
     // Log element mapping with plugin tag
     const tagName = 'tagName' in parsedElement ? parsedElement.tagName : 'N/A';
@@ -140,6 +148,50 @@ class PluginManager implements IPluginManager {
   }
 
   findSelectableAtPoint(x: number, y: number, currentSelection?: string, currentMode?: 'text' | 'block' | null): { elementId: string; mode: 'text' | 'block' } | null {
+    // Use new selection system if strategies are registered
+    const hasStrategies = Array.from(selectionManager['strategies'].keys()).length > 0;
+    
+    if (hasStrategies) {
+      // Get all elements at point
+      const elementsAtPoint = document.elementsFromPoint(x, y) as HTMLElement[];
+      
+      // Get current selection from store if not provided
+      const store = useEditorStore.getState();
+      const currentSelectionData = currentSelection ? {
+        elementId: currentSelection,
+        mode: (currentMode || 'block') as 'text' | 'block'
+      } : store.selection.selectedElementId ? {
+        elementId: store.selection.selectedElementId,
+        mode: store.selection.mode as 'text' | 'block'
+      } : undefined;
+      
+      // Create selection context
+      const context: SelectionContext = {
+        point: { x, y },
+        currentSelection: currentSelectionData,
+        elementsAtPoint,
+        modifiers: {
+          shift: false,
+          ctrl: false,
+          alt: false,
+          meta: false
+        },
+        clickType: 'single',
+        isEditing: currentMode === 'text' || store.selection.mode === 'text'
+      };
+      
+      // Use the new selection manager
+      const result = selectionManager.findSelectionAt(context);
+      if (result && result.mode !== 'none') {
+        return {
+          elementId: result.elementId,
+          mode: result.mode as 'text' | 'block'
+        };
+      }
+      return null;
+    }
+    
+    // Fall back to legacy selection logic
     // First check if click is within main editor area
     const previewContainer = document.querySelector('[data-preview-container]');
     if (!previewContainer) {
@@ -267,8 +319,8 @@ class PluginManager implements IPluginManager {
       selectableElements.push({
         elementId,
         plugin: mapping.plugin,
-        level: mapping.plugin.selectable.level,
-        priority: mapping.plugin.selectable.priority,
+        level: mapping.plugin.selectable.level || 'element',
+        priority: mapping.plugin.selectable.priority || 0,
         element: domElement
       });
       
@@ -445,6 +497,17 @@ class PluginManager implements IPluginManager {
     this._elementPluginMap.clear();
     
     log.plugin('info', 'Cleared all plugins');
+  }
+  
+  // Store parsed element mapping
+  storeParsedElement(elementId: string, plugin: Plugin, parsedElement: ParsedElement): void {
+    this._elementPluginMap.set(elementId, { plugin, parsedElement });
+    
+    // Add plugin name to DOM element for selection
+    const domElement = document.querySelector(`[data-element-id="${elementId}"]`);
+    if (domElement) {
+      domElement.setAttribute('data-plugin-name', plugin.name);
+    }
   }
 }
 

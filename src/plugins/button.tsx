@@ -5,6 +5,7 @@ import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
 import { ButtonFloatingUI } from "./button/ButtonFloatingUI";
+import { InteractiveSelectionStrategy } from "../selection/strategies";
 
 interface ButtonProps {
   element: RegularElement;
@@ -46,6 +47,8 @@ export const buttonPlugin: Plugin = {
   
   selectable: {
     enabled: true,
+    strategy: new InteractiveSelectionStrategy(),
+    // Legacy fields
     name: "Button",
     color: "#3B82F6",
     level: "content",

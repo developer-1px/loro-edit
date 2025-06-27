@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import type { Plugin } from "./types";
 import type { ImageElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
+import { MediaSelectionStrategy } from "../selection/strategies";
 
 interface EditableImageProps {
   src?: string;
@@ -161,6 +162,8 @@ export const imagePlugin: Plugin = {
 
   selectable: {
     enabled: true,
+    strategy: new MediaSelectionStrategy(),
+    // Legacy fields
     name: "Image",
     color: "#f59e0b",
     level: "element",

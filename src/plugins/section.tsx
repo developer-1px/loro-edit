@@ -5,12 +5,15 @@ import type { Plugin } from "./types";
 import type { RegularElement } from "../types";
 import { parseBasicElement, createElementProps } from "./utils";
 import { SectionClipboardHandler } from "../features/clipboard/handlers/SectionClipboardHandler";
+import { ContainerSelectionStrategy } from "../selection/strategies";
 
 export const sectionPlugin: Plugin = {
   name: "section",
   
   selectable: {
     enabled: true,
+    strategy: new ContainerSelectionStrategy(5), // Very low priority for sections
+    // Legacy fields
     name: "Section",
     color: "#3b82f6",
     level: "container",

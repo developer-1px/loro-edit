@@ -4,6 +4,7 @@ import type { TextElement } from "../types";
 import { useEditorStore } from "../store/editorStore";
 import { TextFloatingUI } from "./text/TextFloatingUI";
 import { log } from "../utils/logger";
+import { TextSelectionStrategy } from "../selection/strategies";
 
 interface EditableTextProps {
   text: string;
@@ -99,6 +100,8 @@ export const textPlugin: Plugin = {
 
   selectable: {
     enabled: true,
+    strategy: new TextSelectionStrategy(),
+    // Legacy fields for backward compatibility
     name: "Text",
     color: "#10b981",
     level: "content",
